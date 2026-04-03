@@ -8,7 +8,7 @@
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
-  <!-- โหลดไลบรารีที่จำเป็นทั้งหมด -->
+  <!-- โหลดไลบรารีที่จำเป็น -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
@@ -16,9 +16,7 @@
   <style>
     * { font-family: 'Prompt', sans-serif; box-sizing: border-box; }
     
-    .tab-active-rm { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; border-color: transparent; }
-    .tab-active-fg { background: linear-gradient(135deg, #86198f 0%, #d946ef 100%); color: white; border-color: transparent; }
-    
+    .tab-active { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; border-color: transparent; }
     .status-waiting { background: #fef3c7; color: #92400e; }
     .status-loading { background: #dbeafe; color: #1e40af; }
     .status-completed { background: #d1fae5; color: #065f46; }
@@ -30,20 +28,25 @@
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* ปรับแต่งกล้องสำหรับ Tablet ให้สวยและเต็มจอ */
+    /* ปรับแต่งกล้องสำหรับ Tablet */
     #qr-reader { width: 100%; border: none !important; border-radius: 1.5rem; overflow: hidden; background-color: #0f172a; }
     #qr-reader video { object-fit: cover; width: 100%; min-height: 400px; }
-    #qr-reader__scan_region { background-color: #0f172a; }
   </style>
 </head>
 <body class="h-full bg-slate-50 text-slate-900 text-left">
   
-  <!-- แถบแสดง Error ไว้สำหรับ Debug (ซ่อนไว้เป็นค่าเริ่มต้น) -->
+  <!-- ระบบรับค่าจาก URL แบบปลอดภัย (Netlify) -->
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const COMPANY_FROM_URL = decodeURIComponent(urlParams.get('company') || '');
+    const LICENSE_FROM_URL = decodeURIComponent(urlParams.get('license') || urlParams.get('plate') || '');
+  </script>
+
   <div id="debug-error" class="hidden fixed top-0 w-full bg-rose-600 text-white font-bold p-3 z-[9999] text-xs text-center shadow-lg"></div>
 
   <div id="app" class="h-full w-full overflow-auto bg-gradient-to-br from-blue-50 to-indigo-50 relative">
     
-    <!-- หน้าเลือก Role -->
+    <!-- ================= หน้าเลือก Role ================= -->
     <div id="role-selection" class="min-h-full flex items-center justify-center p-4 fade-in">
       <div class="max-w-md w-full text-center">
         <div class="mb-10">
@@ -54,49 +57,39 @@
         <div class="space-y-4">
           <button type="button" onclick="showSupplierView()" class="w-full bg-white hover:border-blue-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer relative z-10">
             <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform flex-shrink-0">🚛</div>
-            <div><div class="font-bold text-slate-800 text-lg">Supplier</div><div class="text-slate-500 text-xs">เช็คอินรับคิว (ส่งวัตถุดิบ / รับสินค้า)</div></div>
+            <div>
+              <div class="font-bold text-slate-800 text-lg">Supplier</div>
+              <div class="text-slate-500 text-xs">เช็คอินรับคิวส่งวัตถุดิบ</div>
+            </div>
           </button>
           
-          <div class="grid grid-cols-2 gap-4">
-            <button type="button" onclick="showLogin('RM')" class="w-full bg-white hover:border-indigo-500 border-2 border-transparent rounded-3xl p-4 transition-all card-shadow flex flex-col items-center gap-2 group cursor-pointer relative z-10">
-              <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform">📥</div>
-              <div class="text-center"><div class="font-bold text-slate-800">Staff (RM)</div><div class="text-slate-500 text-[10px]">แผนกรับวัตถุดิบ</div></div>
-            </button>
-            <button type="button" onclick="showLogin('FG')" class="w-full bg-white hover:border-fuchsia-500 border-2 border-transparent rounded-3xl p-4 transition-all card-shadow flex flex-col items-center gap-2 group cursor-pointer relative z-10">
-              <div class="w-12 h-12 bg-fuchsia-50 rounded-2xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform">📤</div>
-              <div class="text-center"><div class="font-bold text-slate-800">Staff (FG)</div><div class="text-slate-500 text-[10px]">แผนกส่งออกสินค้า</div></div>
-            </button>
-          </div>
+          <button type="button" onclick="showLogin('STAFF')" class="w-full bg-white hover:border-indigo-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer relative z-10">
+            <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform flex-shrink-0">🏢</div>
+            <div>
+              <div class="font-bold text-slate-800 text-lg">Staff</div>
+              <div class="text-slate-500 text-xs">พนักงานคลังสินค้า (จัดการคิว)</div>
+            </div>
+          </button>
 
           <button type="button" onclick="enterGuardView()" class="w-full bg-white hover:border-emerald-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer relative z-10">
             <div class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform flex-shrink-0">👮‍♂️</div>
-            <div><div class="font-bold text-slate-800 text-lg">Guard (รปภ.)</div><div class="text-slate-500 text-xs font-medium">กล้องสแกนตรวจปล่อยรถ (Tablet)</div></div>
+            <div>
+              <div class="font-bold text-slate-800 text-lg">Guard (รปภ.)</div>
+              <div class="text-slate-500 text-xs font-medium">กล้องสแกนตรวจปล่อยรถ (Tablet)</div>
+            </div>
           </button>
         </div>
       </div>
     </div>
 
-    <!-- ส่วน Supplier -->
+    <!-- ================= ส่วน Supplier ================= -->
     <div id="supplier-view" class="min-h-full p-4 hidden text-left fade-in">
       <div class="max-w-lg mx-auto">
-        <button type="button" onclick="showRoleSelection()" class="text-slate-400 mb-6 flex items-center gap-2 cursor-pointer hover:text-slate-600 font-bold">← กลับหน้าหลัก</button>
+        <button type="button" onclick="showRoleSelection()" class="text-slate-400 mb-6 flex items-center gap-2 cursor-pointer font-bold hover:text-slate-600">← กลับหน้าหลัก</button>
         
         <div id="checkin-form" class="bg-white rounded-[2rem] p-8 card-shadow border border-white/50 text-left">
           <h2 class="text-xl font-bold text-center mb-8 text-slate-800">ลงทะเบียนเช็คอิน</h2>
           <div class="space-y-5">
-            <div>
-              <label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">ประเภทการติดต่อ *</label>
-              <div class="flex gap-4 mt-2">
-                <label class="flex-1 bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 flex items-center justify-center gap-2 cursor-pointer hover:border-blue-300 transition-colors">
-                  <input type="radio" name="contact_type" value="RM" checked onchange="updateSupplierTypeTheme()" class="w-4 h-4 text-blue-600 cursor-pointer">
-                  <span class="font-bold text-slate-700 text-sm">ส่งวัตถุดิบ (RM)</span>
-                </label>
-                <label class="flex-1 bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 flex items-center justify-center gap-2 cursor-pointer hover:border-fuchsia-300 transition-colors">
-                  <input type="radio" name="contact_type" value="FG" onchange="updateSupplierTypeTheme()" class="w-4 h-4 text-fuchsia-600 cursor-pointer">
-                  <span class="font-bold text-slate-700 text-sm">รับสินค้า (FG)</span>
-                </label>
-              </div>
-            </div>
             <div>
               <label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">ชื่อบริษัท Supplier *</label>
               <input type="text" id="supplier-name" placeholder="ระบุชื่อบริษัทของคุณ" class="w-full px-5 py-4 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500 bg-slate-50 mt-1 font-medium">
@@ -113,9 +106,8 @@
         <div id="queue-status" class="hidden bg-white rounded-[2rem] p-8 card-shadow text-center fade-in border border-white/50">
           <div id="status-icon" class="mb-4"></div>
           <div id="queue-number-display" class="text-8xl font-black text-blue-600 mb-2 tracking-tighter"></div>
-          <div id="display-type" class="text-sm font-bold text-slate-400 mb-4 uppercase tracking-widest"></div>
           
-          <div id="remaining-queues-container" class="hidden mb-6 fade-in">
+          <div id="remaining-queues-container" class="hidden mb-6">
              <div class="inline-flex items-center gap-2 bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-sm font-bold border border-slate-200">
                 <span class="pulse-dot w-2 h-2 bg-slate-500 rounded-full"></span>
                 <span id="remaining-queues-text">เหลืออีก 0 คิวจะถึงคุณ</span>
@@ -125,8 +117,8 @@
           <div id="current-status-text" class="px-6 py-2 rounded-full inline-block font-bold mb-6 shadow-sm"></div>
           
           <!-- แสดง QR Code เพื่อใช้สแกนผ่าน รปภ. -->
-          <div id="supplier-qr-container" class="hidden flex flex-col items-center justify-center bg-emerald-50 p-6 rounded-[2rem] border-4 border-emerald-400 border-dashed mb-6 fade-in shadow-lg">
-             <p class="text-xs font-black text-emerald-600 uppercase tracking-widest mb-4 pulse-dot">นำ QR Code สแกนที่ป้อม รปภ.</p>
+          <div id="supplier-qr-container" class="hidden flex flex-col items-center justify-center bg-emerald-50 p-6 rounded-[2rem] border-4 border-emerald-400 border-dashed mb-6 shadow-lg">
+             <p class="text-xs font-black text-emerald-600 uppercase tracking-widest mb-4 pulse-dot">แสดง QR Code นี้ให้ รปภ. สแกน</p>
              <div id="supplier-qrcode" class="p-2 bg-white rounded-xl shadow-sm flex justify-center w-full"></div>
           </div>
           
@@ -142,7 +134,7 @@
       </div>
     </div>
 
-    <!-- ส่วน Staff (RM / FG) -->
+    <!-- ================= ส่วน Staff ================= -->
     <div id="staff-view" class="min-h-full hidden pb-10 fade-in">
       <div class="bg-white/80 backdrop-blur-md border-b sticky top-0 z-10 shadow-sm text-center">
         <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
@@ -150,10 +142,10 @@
           <button type="button" onclick="staffLogout()" class="text-rose-600 px-4 py-2 rounded-xl font-bold text-xs hover:bg-rose-50 transition-colors cursor-pointer">ออกจากระบบ</button>
         </div>
         <div class="max-w-6xl mx-auto px-4 flex gap-2 pb-3 overflow-x-auto text-left hide-scrollbar">
-          <button type="button" onclick="showStaffTab('queue')" id="tab-queue" class="px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all shadow-md cursor-pointer">จัดการคิว</button>
+          <button type="button" onclick="showStaffTab('queue')" id="tab-queue" class="tab-active px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all shadow-md cursor-pointer">จัดการคิว</button>
           <button type="button" onclick="showStaffTab('daily')" id="tab-daily" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">สรุปวันนี้</button>
           <button type="button" onclick="showStaffTab('monthly')" id="tab-monthly" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">สถิติรายเดือน</button>
-          <button type="button" onclick="showStaffTab('kpi')" id="tab-kpi" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">สรุปผลภาพรวมทั้งหมด</button>
+          <button type="button" onclick="showStaffTab('kpi')" id="tab-kpi" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">สรุปผลภาพรวม</button>
         </div>
       </div>
 
@@ -176,15 +168,24 @@
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <div class="flex justify-between items-center px-2 font-bold text-slate-500 text-[10px] uppercase tracking-widest mb-3"><span>รอเข้าพื้นที่</span><span id="count-waiting" class="text-indigo-600 bg-white px-2 py-0.5 rounded-lg shadow-sm font-black">0</span></div>
+              <div class="flex justify-between items-center px-2 font-bold text-slate-500 text-[10px] uppercase tracking-widest mb-3">
+                <span>รอเข้าพื้นที่</span>
+                <span id="count-waiting" class="text-indigo-600 bg-white px-2 py-0.5 rounded-lg shadow-sm font-black">0</span>
+              </div>
               <div id="list-waiting" class="space-y-4"></div>
             </div>
             <div>
-              <div class="flex justify-between items-center px-2 font-bold text-slate-500 text-[10px] uppercase tracking-widest mb-3"><span>อยู่ในพื้นที่ (ขนถ่าย)</span><span id="count-loading" class="text-blue-600 bg-white px-2 py-0.5 rounded-lg shadow-sm font-black">0</span></div>
+              <div class="flex justify-between items-center px-2 font-bold text-slate-500 text-[10px] uppercase tracking-widest mb-3">
+                <span>อยู่ในพื้นที่ (ขนถ่าย)</span>
+                <span id="count-loading" class="text-blue-600 bg-white px-2 py-0.5 rounded-lg shadow-sm font-black">0</span>
+              </div>
               <div id="list-loading" class="space-y-4 text-left"></div>
             </div>
             <div>
-              <div class="flex justify-between items-center px-2 font-bold text-slate-500 text-[10px] uppercase tracking-widest mb-3"><span>เสร็จสิ้นวันนี้</span><span id="count-completed" class="text-emerald-600 bg-white px-2 py-0.5 rounded-lg shadow-sm font-black">0</span></div>
+              <div class="flex justify-between items-center px-2 font-bold text-slate-500 text-[10px] uppercase tracking-widest mb-3">
+                <span>เสร็จสิ้นวันนี้</span>
+                <span id="count-completed" class="text-emerald-600 bg-white px-2 py-0.5 rounded-lg shadow-sm font-black">0</span>
+              </div>
               <div id="list-completed" class="space-y-4 max-h-[70vh] overflow-y-auto pr-2 text-left"></div>
             </div>
         </div>
@@ -193,11 +194,23 @@
       <!-- Tab: Daily -->
       <div id="page-daily" class="max-w-6xl mx-auto p-4 hidden space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-          <div class="bg-white p-6 rounded-3xl shadow-sm border border-white"><div class="text-xs font-bold text-slate-400 uppercase mb-1">ทั้งหมดวันนี้</div><div id="stat-today-total" class="text-4xl font-black text-slate-800">0</div></div>
-          <div class="bg-white p-6 rounded-3xl shadow-sm border border-white"><div class="text-xs font-bold text-emerald-500 uppercase mb-1">เสร็จสิ้นแล้ว</div><div id="stat-today-done" class="text-4xl font-black text-emerald-500">0</div></div>
-          <div class="bg-white p-6 rounded-3xl shadow-sm border border-white"><div class="text-xs font-bold text-orange-400 uppercase mb-1">รอดำเนินการ</div><div id="stat-today-wait" class="text-4xl font-black text-orange-400">0</div></div>
+          <div class="bg-white p-6 rounded-3xl shadow-sm border border-white">
+            <div class="text-xs font-bold text-slate-400 uppercase mb-1">ทั้งหมดวันนี้</div>
+            <div id="stat-today-total" class="text-4xl font-black text-slate-800">0</div>
+          </div>
+          <div class="bg-white p-6 rounded-3xl shadow-sm border border-white">
+            <div class="text-xs font-bold text-emerald-500 uppercase mb-1">เสร็จสิ้นแล้ว</div>
+            <div id="stat-today-done" class="text-4xl font-black text-emerald-500">0</div>
+          </div>
+          <div class="bg-white p-6 rounded-3xl shadow-sm border border-white">
+            <div class="text-xs font-bold text-orange-400 uppercase mb-1">รอดำเนินการ</div>
+            <div id="stat-today-wait" class="text-4xl font-black text-orange-400">0</div>
+          </div>
         </div>
-        <div class="bg-white p-8 rounded-[2rem] shadow-sm text-left border border-white/50"><h3 class="font-bold mb-8 text-slate-800">สรุปย้อนหลัง 7 วัน</h3><div class="h-72"><canvas id="dailyChart"></canvas></div></div>
+        <div class="bg-white p-8 rounded-[2rem] shadow-sm text-left border border-white/50">
+          <h3 class="font-bold mb-8 text-slate-800">สรุปย้อนหลัง 7 วัน</h3>
+          <div class="h-72"><canvas id="dailyChart"></canvas></div>
+        </div>
         <div id="daily-history-list" class="space-y-6 text-left"></div>
       </div>
 
@@ -208,16 +221,35 @@
             <select id="month-selector" onchange="updateMonthlySummary()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-indigo-500 font-bold cursor-pointer"></select>
          </div>
          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-            <div class="bg-slate-800 p-6 rounded-3xl text-white shadow-xl"><div class="text-xs opacity-60 font-bold mb-1">รวมทั้งเดือน</div><div id="month-count" class="text-3xl font-black text-white">0</div></div>
-            <div class="bg-indigo-600 p-6 rounded-3xl text-white shadow-xl" id="monthly-unique-card"><div class="text-xs opacity-60 font-bold mb-1">บริษัทที่แตกต่าง</div><div id="month-unique" class="text-3xl font-black text-white">0</div></div>
-            <div class="bg-rose-500 p-6 rounded-3xl text-white shadow-xl"><div class="text-xs opacity-60 font-bold mb-1">มาบ่อยที่สุด</div><div id="month-top-supplier" class="text-xl font-bold truncate text-white">-</div></div>
+            <div class="bg-slate-800 p-6 rounded-3xl text-white shadow-xl">
+              <div class="text-xs opacity-60 font-bold mb-1">รวมทั้งเดือน</div>
+              <div id="month-count" class="text-3xl font-black text-white">0</div>
+            </div>
+            <div class="bg-indigo-600 p-6 rounded-3xl text-white shadow-xl" id="monthly-unique-card">
+              <div class="text-xs opacity-60 font-bold mb-1">บริษัทที่แตกต่าง</div>
+              <div id="month-unique" class="text-3xl font-black text-white">0</div>
+            </div>
+            <div class="bg-rose-500 p-6 rounded-3xl text-white shadow-xl">
+              <div class="text-xs opacity-60 font-bold mb-1">มาบ่อยที่สุด</div>
+              <div id="month-top-supplier" class="text-xl font-bold truncate text-white">-</div>
+            </div>
          </div>
-         <div class="bg-white p-8 rounded-[2rem] shadow-sm text-left border border-white/50"><h3 class="font-bold mb-8 text-slate-800">จำนวนรายวันในเดือนนี้</h3><div class="h-72"><canvas id="monthlyChart"></canvas></div></div>
+         <div class="bg-white p-8 rounded-[2rem] shadow-sm text-left border border-white/50">
+            <h3 class="font-bold mb-8 text-slate-800">จำนวนรายวันในเดือนนี้</h3>
+            <div class="h-72"><canvas id="monthlyChart"></canvas></div>
+         </div>
          <div class="bg-white rounded-[2rem] shadow-sm overflow-hidden border border-white text-left shadow-lg">
             <h3 class="font-bold p-6 border-b bg-slate-50/50">Top 10 ซัพพลายเออร์ที่เข้ามาบ่อยที่สุด</h3>
             <div class="overflow-x-auto">
                <table class="w-full text-left">
-                  <thead><tr class="bg-slate-100 text-slate-400 text-[10px] font-black uppercase tracking-widest"><th class="p-5">อันดับ</th><th class="p-5">ชื่อบริษัท</th><th class="p-5 text-center">จำนวน (ครั้ง)</th><th class="p-5">เปอร์เซ็นต์</th></tr></thead>
+                  <thead>
+                    <tr class="bg-slate-100 text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                      <th class="p-5">อันดับ</th>
+                      <th class="p-5">ชื่อบริษัท</th>
+                      <th class="p-5 text-center">จำนวน (ครั้ง)</th>
+                      <th class="p-5">เปอร์เซ็นต์</th>
+                    </tr>
+                  </thead>
                   <tbody id="top-suppliers-table" class="divide-y divide-slate-50"></tbody>
                </table>
             </div>
@@ -228,7 +260,7 @@
       <div id="page-kpi" class="max-w-6xl mx-auto p-4 hidden space-y-6 text-left">
          <div class="bg-white p-6 rounded-3xl shadow-sm flex flex-wrap items-center gap-4 border border-white">
             <div class="flex items-center gap-3">
-               <label class="text-sm font-bold text-slate-700">เลือกเดือน/เวลา:</label>
+               <label class="text-sm font-bold text-slate-700">เลือกเดือน:</label>
                <select id="kpi-month" onchange="updateKPIUI()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none font-bold text-sm min-w-[150px] cursor-pointer"></select>
             </div>
             <div class="flex items-center gap-3">
@@ -236,35 +268,89 @@
                <select id="kpi-supplier" onchange="updateKPIUI()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none font-bold text-sm min-w-[200px] cursor-pointer"></select>
             </div>
          </div>
+         
          <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
-            <div class="bg-white p-5 rounded-3xl shadow-sm border flex flex-col justify-center"><div id="kpi-total-label" class="text-[10px] font-bold text-slate-400 uppercase mb-1">จำนวน</div><div id="kpi-total" class="text-4xl font-black text-slate-700">0</div></div>
-            <div class="bg-white p-5 rounded-3xl shadow-sm border flex flex-col justify-center"><div class="text-[10px] font-bold text-emerald-500 uppercase mb-1">ตรงเวลา</div><div id="kpi-ontime" class="text-4xl font-black text-emerald-600">0</div><div id="kpi-ontime-pct" class="text-xs font-bold text-slate-400 mt-1">0%</div></div>
-            <div class="bg-white p-5 rounded-3xl shadow-sm border flex flex-col justify-center"><div class="text-[10px] font-bold text-rose-500 uppercase mb-1">มาล่าช้า</div><div id="kpi-late" class="text-4xl font-black text-rose-600">0</div><div id="kpi-late-pct" class="text-xs font-bold text-slate-400 mt-1">0%</div></div>
-            <div class="bg-white p-5 rounded-3xl shadow-sm border flex flex-col justify-center"><div class="text-[10px] font-bold text-amber-500 uppercase mb-1">นอกแผน</div><div id="kpi-unplanned" class="text-4xl font-black text-amber-500">0</div><div id="kpi-unplanned-pct" class="text-xs font-bold text-slate-400 mt-1">0%</div></div>
-            <div class="bg-slate-50 p-5 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-center" id="kpi-alltime-card"><div class="text-[10px] font-bold text-slate-500 uppercase mb-1">สัดส่วนรวม</div><div id="kpi-alltime-pct" class="text-4xl font-black text-slate-600">0%</div><div id="kpi-alltime-text" class="text-[10px] font-bold text-slate-400 mt-1">0 ครั้ง</div></div>
+            <div class="bg-white p-5 rounded-3xl shadow-sm border flex flex-col justify-center">
+              <div id="kpi-total-label" class="text-[10px] font-bold text-slate-400 uppercase mb-1">จำนวน</div>
+              <div id="kpi-total" class="text-4xl font-black text-slate-700">0</div>
+            </div>
+            <div class="bg-white p-5 rounded-3xl shadow-sm border flex flex-col justify-center">
+              <div class="text-[10px] font-bold text-emerald-500 uppercase mb-1">ตรงเวลา</div>
+              <div id="kpi-ontime" class="text-4xl font-black text-emerald-600">0</div>
+              <div id="kpi-ontime-pct" class="text-xs font-bold text-slate-400 mt-1">0%</div>
+            </div>
+            <div class="bg-white p-5 rounded-3xl shadow-sm border flex flex-col justify-center">
+              <div class="text-[10px] font-bold text-rose-500 uppercase mb-1">มาล่าช้า</div>
+              <div id="kpi-late" class="text-4xl font-black text-rose-600">0</div>
+              <div id="kpi-late-pct" class="text-xs font-bold text-slate-400 mt-1">0%</div>
+            </div>
+            <div class="bg-white p-5 rounded-3xl shadow-sm border flex flex-col justify-center">
+              <div class="text-[10px] font-bold text-amber-500 uppercase mb-1">นอกแผน</div>
+              <div id="kpi-unplanned" class="text-4xl font-black text-amber-500">0</div>
+              <div id="kpi-unplanned-pct" class="text-xs font-bold text-slate-400 mt-1">0%</div>
+            </div>
+            <div class="bg-slate-50 p-5 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-center" id="kpi-alltime-card">
+              <div class="text-[10px] font-bold text-slate-500 uppercase mb-1">สัดส่วนรวม</div>
+              <div id="kpi-alltime-pct" class="text-4xl font-black text-slate-600">0%</div>
+              <div id="kpi-alltime-text" class="text-[10px] font-bold text-slate-400 mt-1">0 ครั้ง</div>
+            </div>
          </div>
+
          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-white/50 col-span-1"><h3 class="font-bold mb-6 text-slate-800 text-center">สัดส่วน</h3><div class="h-60 relative"><canvas id="kpiPieChart"></canvas></div></div>
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-white/50 col-span-1">
+               <h3 class="font-bold mb-6 text-slate-800 text-center">สัดส่วน</h3>
+               <div class="h-60 relative"><canvas id="kpiPieChart"></canvas></div>
+            </div>
             <div class="bg-white rounded-[2rem] shadow-sm overflow-hidden border border-white col-span-2 flex flex-col">
                <h3 class="font-bold p-6 border-b bg-slate-50/50">ประวัติการเข้าพื้นที่</h3>
                <div class="overflow-y-auto max-h-[350px]">
                   <table class="w-full text-left">
-                     <thead class="sticky top-0 bg-slate-100"><tr class="text-slate-400 text-[10px] font-black uppercase tracking-widest"><th class="p-4">วันที่</th><th class="p-4">บริษัท</th><th class="p-4 text-center">เวลาเข้า</th><th class="p-4 text-center">ประเมิน</th></tr></thead>
+                     <thead class="sticky top-0 bg-slate-100">
+                       <tr class="text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                         <th class="p-4">วันที่</th>
+                         <th class="p-4">บริษัท</th>
+                         <th class="p-4 text-center">เวลาเข้า</th>
+                         <th class="p-4 text-center">ประเมิน</th>
+                       </tr>
+                     </thead>
                      <tbody id="kpi-history-table" class="divide-y divide-slate-50 text-sm"></tbody>
                   </table>
                </div>
             </div>
          </div>
-         <div class="bg-white rounded-[2rem] shadow-sm overflow-hidden border border-white mt-6"><h3 class="font-bold p-6 border-b bg-slate-50/50 flex justify-between items-center"><span>🏆 สรุปผลงานซัพพลายเออร์ทุกราย (All-Time)</span></h3><div class="overflow-x-auto max-h-[400px]"><table class="w-full text-left"><thead class="sticky top-0 bg-slate-100 z-10"><tr class="text-slate-500 text-[10px] font-black uppercase tracking-widest"><th class="p-5">บริษัทซัพพลายเออร์</th><th class="p-5 text-center">เข้าทั้งหมด</th><th class="p-5 text-center text-emerald-600">ตรงเวลา (ครั้ง/%)</th><th class="p-5 text-center text-rose-600">ล่าช้า (ครั้ง/%)</th><th class="p-5 text-center text-amber-500">นอกแผน (ครั้ง/%)</th></tr></thead><tbody id="kpi-all-suppliers-table" class="divide-y divide-slate-50 text-sm"></tbody></table></div></div>
+
+         <div class="bg-white rounded-[2rem] shadow-sm overflow-hidden border border-white mt-6">
+            <h3 class="font-bold p-6 border-b bg-slate-50/50 flex justify-between items-center">
+               <span>🏆 สรุปผลงานซัพพลายเออร์ทุกราย (All-Time)</span>
+            </h3>
+            <div class="overflow-x-auto max-h-[400px]">
+               <table class="w-full text-left">
+                  <thead class="sticky top-0 bg-slate-100 z-10">
+                     <tr class="text-slate-500 text-[10px] font-black uppercase tracking-widest">
+                        <th class="p-5">บริษัทซัพพลายเออร์</th>
+                        <th class="p-5 text-center">เข้าทั้งหมด</th>
+                        <th class="p-5 text-center text-emerald-600">ตรงเวลา (ครั้ง / %)</th>
+                        <th class="p-5 text-center text-rose-600">ล่าช้า (ครั้ง / %)</th>
+                        <th class="p-5 text-center text-amber-500">นอกแผน (ครั้ง / %)</th>
+                     </tr>
+                  </thead>
+                  <tbody id="kpi-all-suppliers-table" class="divide-y divide-slate-50 text-sm"></tbody>
+               </table>
+            </div>
+         </div>
       </div>
     </div>
 
-    <!-- ส่วน Guard (รปภ.) กล้อง Tablet จอใหญ่ -->
+    <!-- ================= ส่วน Guard (รปภ.) กล้อง Tablet จอใหญ่ ================= -->
     <div id="guard-view" class="min-h-full hidden flex-col bg-slate-900 w-full h-full fade-in">
       <div id="guard-camera-container" class="flex-1 flex flex-col w-full h-full">
          <div class="bg-emerald-600 backdrop-blur-md border-b border-emerald-500 shadow-lg text-center p-4 flex justify-between items-center z-10">
-            <div class="font-bold text-xl text-white flex items-center gap-2"><span>👮‍♂️</span> ตรวจปล่อยรถ (Tablet)</div>
-            <button type="button" onclick="guardLogout()" class="text-emerald-100 bg-black/20 hover:bg-black/40 px-4 py-2 rounded-xl font-bold text-sm transition-colors border border-emerald-500 cursor-pointer">ออกระบบ</button>
+            <div class="font-bold text-xl text-white flex items-center gap-2">
+              <span>👮‍♂️</span> ตรวจปล่อยรถ (Tablet)
+            </div>
+            <button type="button" onclick="guardLogout()" class="text-emerald-100 bg-black/20 hover:bg-black/40 px-4 py-2 rounded-xl font-bold text-sm transition-colors border border-emerald-500 cursor-pointer">
+              ออกระบบ
+            </button>
          </div>
 
          <div class="flex-1 flex flex-col items-center justify-center p-4 md:p-8 relative">
@@ -275,17 +361,20 @@
                
                <div id="qr-reader" class="mx-auto w-full max-w-lg min-h-[300px] md:min-h-[400px] rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-black relative"></div>
                
-               <!-- ปุ่มเปิดกล้องด้วยตัวเอง (เอาไว้แก้ปัญหาเบราว์เซอร์บล็อกกล้อง) -->
-               <button type="button" id="btn-start-camera" onclick="initGuardScanner()" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg hidden w-full max-w-sm cursor-pointer transition-colors">เปิดกล้องใหม่อีกครั้ง</button>
+               <button type="button" id="btn-start-camera" onclick="initGuardScanner()" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg hidden w-full max-w-sm cursor-pointer transition-colors">
+                 เปิดกล้องใหม่อีกครั้ง
+               </button>
             </div>
          </div>
       </div>
 
       <!-- Overlay ผลลัพธ์เต็มจอสำหรับ รปภ. -->
-      <div id="guard-result-overlay" class="fixed inset-0 z-50 hidden flex-col items-center justify-center p-4 md:p-8 transition-all duration-300"></div>
+      <div id="guard-result-overlay" class="fixed inset-0 z-50 hidden flex-col items-center justify-center p-4 md:p-8 transition-all duration-300">
+         <!-- เนื้อหาจะถูกแทรกด้วย JavaScript -->
+      </div>
     </div>
 
-    <!-- Login Unified -->
+    <!-- ================= Login Unified ================= -->
     <div id="unified-login" class="min-h-full flex items-center justify-center p-4 hidden text-center fade-in">
       <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-sm border border-white">
         <div id="login-icon" class="text-4xl mb-4">🏢</div>
@@ -325,7 +414,6 @@
     // ฟังก์ชันระบบหลักทั้งหมด
     // ===============================================
 
-    // ดักจับ Error ไว้เพื่อไม่ให้ปุ่มค้าง
     window.addEventListener('error', function(e) {
         console.error("System Error: ", e.message);
         const errDiv = document.getElementById('debug-error');
@@ -343,7 +431,7 @@
     function safeSetSession(key, val) { try { sessionStorage.setItem(key, val); } catch(e) {} }
     function safeRemoveSession(key) { try { sessionStorage.removeItem(key); } catch(e) {} }
 
-    let allData =[];
+    let allData = [];
     let globalPlanData =[]; 
     let currentSupplierRecord = null;
     let isStaffLoggedIn = false;
@@ -353,12 +441,6 @@
     let dailyChart = null, monthlyChart = null, kpiPieChart = null;
     let pendingUpdates = new Set(); 
     let html5QrCode = null;
-
-    // การดึง Parameter จาก URL ตรงๆ (ใช้บน Netlify)
-    const urlParams = new URLSearchParams(window.location.search);
-    const COMPANY_FROM_URL = urlParams.get('company') || '';
-    const LICENSE_FROM_URL = urlParams.get('license') || urlParams.get('plate') || '';
-    const TYPE_FROM_URL = urlParams.get('type') || '';
 
     function fetchAll() {
       callAPI('readAllData').then(res => {
@@ -370,6 +452,7 @@
       });
     }
 
+    // เริ่มต้นระบบเมื่อโหลดหน้าเว็บสมบูรณ์
     window.addEventListener('DOMContentLoaded', () => {
       
       const savedQueue = safeGetLocal('my_active_queue');
@@ -386,26 +469,23 @@
          } catch(e) {}
       }
 
-      if (COMPANY_FROM_URL && !currentSupplierRecord) {
+      // ดึงค่า Parameter จาก URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlCompany = urlParams.get('company') || '';
+      const urlLicense = urlParams.get('license') || urlParams.get('plate') || '';
+
+      if (urlCompany && !currentSupplierRecord) {
          showSupplierView();
          const nameInput = document.getElementById('supplier-name');
          const licenseInput = document.getElementById('supplier-license');
          
          if(nameInput) { 
-             nameInput.value = COMPANY_FROM_URL; 
+             nameInput.value = urlCompany; 
              nameInput.readOnly = true; 
          }
          
-         if (TYPE_FROM_URL === 'FG') {
-            const fgRadio = document.querySelector('input[name="contact_type"][value="FG"]');
-            if(fgRadio) { 
-                fgRadio.checked = true; 
-                updateSupplierTypeTheme(); 
-            }
-         }
-
-         if (LICENSE_FROM_URL && licenseInput) {
-            licenseInput.value = LICENSE_FROM_URL; 
+         if (urlLicense && licenseInput) {
+            licenseInput.value = urlLicense; 
             licenseInput.readOnly = true;
             if (!safeGetSession('qr_auto_triggered')) {
                 safeSetSession('qr_auto_triggered', 'true');
@@ -424,7 +504,8 @@
       if (isStaffLoggedIn) updateStaffUI();
       if (currentSupplierRecord) {
         const today = getThaiDate();
-        const match = allData.find(r => String(r.queue_number) === String(currentSupplierRecord.queue_number) && r.date === today && (r.type || 'RM') === currentSupplierRecord.type);
+        // ไม่ต้องเช็ค r.type แล้ว เพราะลบระบบ FG ออกหมดแล้ว
+        const match = allData.find(r => String(r.queue_number) === String(currentSupplierRecord.queue_number) && r.date === today);
         if (match) updateSupplierStatusDisplay(match);
       }
     }
@@ -449,12 +530,11 @@
     function showSupplierView() { 
         hideAll(); 
         document.getElementById('supplier-view').classList.remove('hidden'); 
-        updateSupplierTypeTheme(); 
     }
     
     function showLogin(mode) {
       hideAll(); 
-      currentLoginMode = mode;
+      currentLoginMode = 'STAFF'; // เปลี่ยนเป็น Staff เดียว
       
       const loginContainer = document.getElementById('unified-login');
       if(loginContainer) loginContainer.classList.remove('hidden');
@@ -465,64 +545,43 @@
       const title = document.getElementById('login-title');
       const icon = document.getElementById('login-icon');
       
-      if (mode === 'RM') { 
-          if(title) title.innerText = 'พนักงานคลัง (รับวัตถุดิบ RM)'; 
-          if(icon) icon.innerText = '📥'; 
-      } else if (mode === 'FG') { 
-          if(title) title.innerText = 'พนักงานคลัง (ส่งออก FG)'; 
-          if(icon) icon.innerText = '📤'; 
-      }
+      if(title) title.innerText = 'พนักงานคลังสินค้า'; 
+      if(icon) icon.innerText = '🏢'; 
     }
     
     function enterGuardView() {
         isGuardLoggedIn = true; 
         hideAll(); 
+        
         const gView = document.getElementById('guard-view');
         if(gView) {
             gView.classList.remove('hidden'); 
             gView.classList.add('flex'); 
+            // ให้ UI วาดเสร็จก่อนเปิดกล้อง
             setTimeout(() => { initGuardScanner(); }, 800); 
         }
     }
     
-    function staffLogout() { isStaffLoggedIn = false; showRoleSelection(); }
-    function guardLogout() { isGuardLoggedIn = false; showRoleSelection(); }
+    function staffLogout() { 
+        isStaffLoggedIn = false; 
+        showRoleSelection(); 
+    }
+    
+    function guardLogout() { 
+        isGuardLoggedIn = false; 
+        showRoleSelection(); 
+    }
 
     function processLogin() {
       const pwdInput = document.getElementById('unified-password');
       const pwd = pwdInput ? pwdInput.value : '';
       const err = document.getElementById('login-error-msg');
       
-      if (currentLoginMode === 'RM' && pwd === '1234') {
+      if (pwd === '1234') {
          isStaffLoggedIn = true; 
-         currentStaffType = 'RM';
          
          const title = document.getElementById('staff-header-title');
-         if(title) title.innerText = 'คลังสินค้า (รับวัตถุดิบ RM)';
-         
-         const card1 = document.getElementById('monthly-unique-card');
-         if(card1) card1.className = 'bg-indigo-600 p-6 rounded-3xl text-white shadow-xl';
-         
-         const card2 = document.getElementById('kpi-alltime-card');
-         if(card2) card2.className = 'bg-indigo-50 p-5 rounded-3xl shadow-sm border border-indigo-100 flex flex-col justify-center';
-         
-         hideAll(); 
-         const sView = document.getElementById('staff-view');
-         if(sView) sView.classList.remove('hidden'); 
-         showStaffTab('queue');
-         
-      } else if (currentLoginMode === 'FG' && pwd === '9999') {
-         isStaffLoggedIn = true; 
-         currentStaffType = 'FG';
-         
-         const title = document.getElementById('staff-header-title');
-         if(title) title.innerText = 'คลังสินค้า (ส่งออก FG)';
-         
-         const card1 = document.getElementById('monthly-unique-card');
-         if(card1) card1.className = 'bg-fuchsia-600 p-6 rounded-3xl text-white shadow-xl';
-         
-         const card2 = document.getElementById('kpi-alltime-card');
-         if(card2) card2.className = 'bg-fuchsia-50 p-5 rounded-3xl shadow-sm border border-fuchsia-100 flex flex-col justify-center';
+         if(title) title.innerText = 'ระบบคลังสินค้า';
          
          hideAll(); 
          const sView = document.getElementById('staff-view');
@@ -537,14 +596,10 @@
       }
     }
 
-    // ==========================================
-    // GUARD SCANNER LOGIC (Full Screen Result)
-    // ==========================================
+    // --- GUARD SCANNER LOGIC (Full Screen Result) ---
     function initGuardScanner() {
         const btnRetry = document.getElementById('btn-start-camera');
-        if(btnRetry) {
-            btnRetry.classList.add('hidden');
-        }
+        if(btnRetry) btnRetry.classList.add('hidden');
         
         const overlay = document.getElementById('guard-result-overlay');
         if(overlay) overlay.classList.add('hidden'); 
@@ -565,12 +620,22 @@
         const config = { fps: 10, qrbox: { width: 300, height: 300 }, aspectRatio: 1.0 };
         
         html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure)
+        .then(() => {
+            if(btnRetry) btnRetry.classList.add('hidden'); // ซ่อนปุ่มถ้าเปิดกล้องสำเร็จ
+        })
         .catch(err => {
             console.log("Rear camera failed", err);
             html5QrCode.start({ facingMode: "user" }, config, onScanSuccess, onScanFailure)
+            .then(() => {
+                if(btnRetry) btnRetry.classList.add('hidden');
+            })
             .catch(err2 => {
                  console.log("Camera failed completely", err2);
-                 if(btnRetry) btnRetry.classList.remove('hidden');
+                 if(btnRetry) {
+                     btnRetry.classList.remove('hidden');
+                     btnRetry.disabled = false;
+                     btnRetry.innerText = "ลองเปิดกล้องใหม่อีกครั้ง";
+                 }
                  alert("ไม่สามารถเปิดกล้องได้ กรุณากดอนุญาตให้เบราว์เซอร์ใช้งานกล้อง");
             });
         });
@@ -578,7 +643,7 @@
     
     function stopGuardScanner() {
         if (html5QrCode && html5QrCode.isScanning) {
-            html5QrCode.stop().then(() => html5QrCode.clear()).catch(e => console.log(e));
+            html5QrCode.stop().then(() => html5QrCode.clear()).catch(e => console.log("Failed to stop scanner", e));
         }
     }
 
@@ -589,7 +654,7 @@
         const camContainer = document.getElementById('guard-camera-container');
         if(camContainer) camContainer.classList.remove('hidden');
         
-        lastScannedText = ""; 
+        lastScannedText = ""; // รีเซ็ตค่าให้สแกนซ้ำได้
     }
 
     let lastScannedText = "";
@@ -601,7 +666,9 @@
         processScanResult(decodedText);
     }
     
-    function onScanFailure(error) { /* Ignore */ }
+    function onScanFailure(error) { 
+        // ไม่ต้องแสดง Error เนื่องจากกล้องจะแสกนหาเรื่อยๆ ตลอดเวลา
+    }
 
     function processScanResult(text) {
         const camContainer = document.getElementById('guard-camera-container');
@@ -612,26 +679,20 @@
         overlay.classList.remove('hidden');
         
         const parts = text.split('|');
-        if(parts.length !== 3) {
+        if(parts.length !== 2) {
             showGuardErrorResult("❌ ข้อมูลไม่ถูกต้อง", "ไม่ใช่ QR Code ของระบบเช็คอินนี้", "bg-rose-600"); 
             return;
         }
         
         const date = parts[0];
         const qNum = parts[1];
-        const type = parts[2];
 
-        const match = allData.find(r => r.date === date && String(r.queue_number) === String(qNum) && (r.type || 'RM') === type);
+        const match = allData.find(r => r.date === date && String(r.queue_number) === String(qNum));
         
         if(!match) {
             showGuardErrorResult("❓ ไม่พบข้อมูล", "ไม่พบประวัติคิวนี้ในระบบ", "bg-slate-600");
         } else if (match.status === 'loading') {
             // ✅ ผ่าน (อนุญาตให้เข้า)
-            const isFG = match.type === 'FG';
-            const zoneColor = isFG ? 'text-fuchsia-600' : 'text-indigo-600';
-            const zoneBg = isFG ? 'bg-fuchsia-50 border-fuchsia-200' : 'bg-indigo-50 border-indigo-200';
-            const zoneText = isFG ? 'ส่งออกสินค้า (FG)' : 'รับวัตถุดิบ (RM)';
-            
             overlay.className = "fixed inset-0 z-50 flex flex-col items-center justify-center p-4 md:p-8 bg-emerald-500 fade-in";
             overlay.innerHTML = `
                 <div class="bg-white rounded-[3rem] shadow-[0_30px_60px_rgba(0,0,0,0.4)] p-8 md:p-12 w-full max-w-3xl text-center relative overflow-hidden flex flex-col items-center">
@@ -649,18 +710,16 @@
                        </div>
                     </div>
                     
-                    <div class="w-full text-2xl md:text-4xl font-black ${zoneColor} ${zoneBg} py-5 px-6 rounded-2xl border-4 mb-10 shadow-sm">
-                        มุ่งหน้าโซน: ${zoneText}
-                    </div>
-                    
                     <button type="button" onclick="closeGuardResult()" class="w-full bg-slate-900 hover:bg-black text-white text-2xl md:text-3xl font-bold py-6 md:py-8 rounded-3xl shadow-xl active:scale-95 transition-transform uppercase tracking-wider cursor-pointer">
                         สแกนคันถัดไป
                     </button>
                 </div>
             `;
         } else if (match.status === 'waiting') {
+            // 🛑 ยังไม่เรียก
             showGuardErrorResult("🛑 รออยู่ด้านนอก", "พนักงานคลังสินค้า ยังไม่ได้เรียกคิวนี้", "bg-amber-500", match);
         } else {
+            // ⚠️ ถูกใช้แล้ว/ยกเลิก
             showGuardErrorResult("⚠️ เข้าไม่ได้", `คิวนี้ถูกใช้งานหรือยกเลิกไปแล้ว<br><span class="text-lg opacity-80">(สถานะ: ${match.status === 'completed' ? 'เสร็จสิ้น' : 'ยกเลิก'})</span>`, "bg-rose-600", match);
         }
     }
@@ -695,30 +754,14 @@
     // ==========================================
     // ส่วน ซัพพลายเออร์ และคลังสินค้า
     // ==========================================
-    function updateSupplierTypeTheme() {
-        const typeEl = document.querySelector('input[name="contact_type"]:checked');
-        if(!typeEl) return;
-        const type = typeEl.value;
-        const btn = document.getElementById('checkin-btn');
-        if(!btn) return;
-        
-        if (type === 'FG') {
-            btn.className = "w-full bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold py-5 rounded-2xl shadow-lg transition-all text-lg cursor-pointer";
-        } else {
-            btn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-2xl shadow-lg transition-all text-lg cursor-pointer";
-        }
-    }
-
     function supplierCheckin() {
       const nameInput = document.getElementById('supplier-name');
       const licenseInput = document.getElementById('supplier-license');
-      const typeInput = document.querySelector('input[name="contact_type"]:checked');
       
-      if (!nameInput || !licenseInput || !typeInput) return;
+      if (!nameInput || !licenseInput) return;
 
       const name = nameInput.value.trim();
       const license = licenseInput.value.trim();
-      const type = typeInput.value;
 
       if (!name) return alert('กรุณากรอกชื่อบริษัท');
       if (!license) return alert('กรุณากรอกทะเบียนรถ');
@@ -729,7 +772,7 @@
           btn.innerText = 'กำลังประมวลผล...';
       }
 
-      callAPI('createRecord', { companyName: name, licensePlate: license, contactType: type }).then(res => {
+      callAPI('createRecord', { companyName: name, licensePlate: license }).then(res => {
         if (res.success) { 
           currentSupplierRecord = res.record; 
           safeSetLocal('my_active_queue', JSON.stringify(res.record)); 
@@ -751,7 +794,7 @@
     }
 
     function updateSupplierStatusDisplay(record) {
-      if (currentSupplierRecord && String(currentSupplierRecord.queue_number) === String(record.queue_number) && currentSupplierRecord.type === record.type) {
+      if (currentSupplierRecord && String(currentSupplierRecord.queue_number) === String(record.queue_number)) {
           currentSupplierRecord = record;
           safeSetLocal('my_active_queue', JSON.stringify(record));
           if (record.status === 'completed' || record.status === 'cancelled') {
@@ -760,16 +803,11 @@
           }
       }
 
-      const isFG = record.type === 'FG';
       const qDisplay = document.getElementById('queue-number-display');
       if(qDisplay) { 
           qDisplay.innerText = record.queue_number; 
-          qDisplay.className = isFG ? "text-8xl font-black text-fuchsia-600 mb-2 tracking-tighter" : "text-8xl font-black text-blue-600 mb-2 tracking-tighter"; 
       }
 
-      const tDisplay = document.getElementById('display-type'); 
-      if(tDisplay) tDisplay.innerText = isFG ? 'ประเภท: รับสินค้า (FG)' : 'ประเภท: ส่งวัตถุดิบ (RM)';
-      
       const cDisplay = document.getElementById('display-company'); 
       if(cDisplay) cDisplay.innerText = record.company_name;
       
@@ -783,7 +821,7 @@
       const icon = document.getElementById('status-icon');
       const today = getThaiDate();
       
-      const inFrontCount = allData.filter(r => r.date === today && r.status === 'waiting' && (r.type || 'RM') === (record.type || 'RM') && parseInt(r.queue_number) < parseInt(record.queue_number)).length;
+      const inFrontCount = allData.filter(r => r.date === today && r.status === 'waiting' && parseInt(r.queue_number) < parseInt(record.queue_number)).length;
       
       const remainingContainer = document.getElementById('remaining-queues-container');
       const qrContainer = document.getElementById('supplier-qr-container');
@@ -806,7 +844,7 @@
           if (record.status === 'loading') {
               if(qrContainer) qrContainer.classList.remove('hidden');
               if (typeof QRCode !== 'undefined') {
-                  const qrText = `${record.date}|${record.queue_number}|${record.type || 'RM'}`;
+                  const qrText = `${record.date}|${record.queue_number}`;
                   new QRCode(qrBox, { 
                       text: qrText, 
                       width: 200, 
@@ -852,11 +890,11 @@
       if (nextStatus === 'cancelled' && !confirm('ต้องการยกเลิกคิวนี้?')) return;
       
       const today = getThaiDate();
-      const recordIdx = allData.findIndex(r => String(r.queue_number) === String(qNum) && r.date === today && (r.type || 'RM') === currentStaffType && r.status !== 'cancelled');
+      const recordIdx = allData.findIndex(r => String(r.queue_number) === String(qNum) && r.date === today && r.status !== 'cancelled');
       if (recordIdx === -1) return;
       
       const record = allData[recordIdx];
-      const updateId = `${record.date}-${record.queue_number}-${record.type}`;
+      const updateId = `${record.date}-${record.queue_number}`;
       const now = new Date().toISOString();
       const updates = { ...record, status: nextStatus };
       
@@ -871,8 +909,7 @@
       callAPI('updateRecord', {
         jsonString: JSON.stringify(updates), 
         originalDate: record.date, 
-        originalQueue: record.queue_number, 
-        contactType: record.type || 'RM'
+        originalQueue: record.queue_number
       }).then(res => {
         pendingUpdates.delete(updateId); 
         if (!res || !res.success) alert('Error: ' + res.message); 
@@ -892,6 +929,7 @@
     function updateStaffUI() {
       const today = getThaiDate();
       
+      // อัปเดตแถบแผนงาน Daily Plan
       const banner = document.getElementById('plan-summary-banner');
       if (globalPlanData && globalPlanData.length > 0 && banner) {
           banner.classList.remove('hidden');
@@ -930,7 +968,8 @@
           banner.classList.add('hidden'); 
       }
 
-      const myData = allData.filter(r => (r.type || 'RM') === currentStaffType && r.date === today);
+      // กรองและอัปเดตกระดานจัดการคิว
+      const myData = allData.filter(r => r.date === today);
       const waitList = myData.filter(r => r.status === 'waiting');
       const loadList = myData.filter(r => r.status === 'loading');
       const compList = myData.filter(r => r.status === 'completed');
@@ -943,8 +982,8 @@
       if(cLoad) cLoad.innerText = loadList.length; 
       if(cComp) cComp.innerText = compList.length;
 
-      const btnBg = currentStaffType === 'FG' ? 'bg-fuchsia-600 hover:bg-fuchsia-700' : 'bg-indigo-600 hover:bg-indigo-700';
-      const numColor = currentStaffType === 'FG' ? 'text-fuchsia-800' : 'text-slate-800';
+      const btnBg = 'bg-indigo-600 hover:bg-indigo-700';
+      const numColor = 'text-slate-800';
 
       const renderWaitCard = (r) => `
         <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 fade-in relative pt-10 text-left">
@@ -1028,7 +1067,7 @@
         
         if(p) p.classList.toggle('hidden', t !== tab);
         
-        const activeClass = currentStaffType === 'FG' ? 'tab-active-fg' : 'tab-active-rm';
+        const activeClass = 'tab-active-rm';
         if(b) {
             b.className = t === tab ? activeClass + ' px-6 py-2.5 rounded-xl text-xs font-bold shadow-md cursor-pointer' : 'bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold cursor-pointer';
         }
@@ -1069,8 +1108,7 @@
        const currentValue = sel.value;
        sel.innerHTML = '<option value="ALL">ทั้งหมด (All)</option>';
        
-       const myData = allData.filter(r => (r.type || 'RM') === currentStaffType);
-       const uniqueSups =[...new Set(myData.map(r => r.company_name))].filter(Boolean).sort();
+       const uniqueSups =[...new Set(allData.map(r => r.company_name))].filter(Boolean).sort();
        
        uniqueSups.forEach(s => sel.add(new Option(s, s)));
        
@@ -1091,7 +1129,7 @@
        const kLabel = document.getElementById('kpi-total-label');
        if(kLabel) kLabel.innerText = mVal === 'ALL' ? 'จำนวน (ทั้งหมด)' : 'จำนวน (เดือนนี้)';
 
-       const myData = allData.filter(r => (r.type || 'RM') === currentStaffType && r.date && r.status !== 'cancelled');
+       const myData = allData.filter(r => r.date && r.status !== 'cancelled');
        
        const filtered = myData.filter(r => {
           if (mVal !== 'ALL') {
@@ -1139,8 +1177,8 @@
            supplierAllTime = myData.filter(r => r.company_name === sVal).length; 
        }
        
-       const allTimePctColor = currentStaffType === 'FG' ? 'text-fuchsia-600' : 'text-indigo-600';
-       const allTimeTxtColor = currentStaffType === 'FG' ? 'text-fuchsia-400' : 'text-indigo-400';
+       const allTimePctColor = 'text-indigo-600';
+       const allTimeTxtColor = 'text-indigo-400';
        
        const kPct = document.getElementById('kpi-alltime-pct'); 
        const kTxt = document.getElementById('kpi-alltime-text');
@@ -1257,12 +1295,13 @@
       if (!container) return;
       
       let html = '<h3 class="font-bold text-slate-800 mt-10 mb-6">รายละเอียดประวัติ (7 วันล่าสุด)</h3>';
-      const myData = allData.filter(r => (r.type || 'RM') === currentStaffType);
+      const myData = allData;
       
       for (let i = 0; i < 7; i++) {
         const d = new Date(); 
         d.setDate(d.getDate() - i);
         
+        // แก้ไขการดึงวันที่ 7 วันย้อนหลังให้เสถียร
         const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
         const bkk = new Date(utc + (3600000 * 7));
         const y = bkk.getFullYear();
@@ -1312,7 +1351,7 @@
       const month = parts[1];
       
       const mData = allData.filter(r => {
-        if(!r.date || r.status === 'cancelled' || (r.type || 'RM') !== currentStaffType) return false;
+        if(!r.date || r.status === 'cancelled') return false;
         const dParts = r.date.split('-');
         return dParts[0] === year && dParts[1] === month;
       });
@@ -1325,7 +1364,7 @@
       if(tbody) {
           tbody.innerHTML = sorted.length ? sorted.map(([name, count], i) => {
             const pct = mData.length > 0 ? ((count / mData.length) * 100).toFixed(1) : 0;
-            const barColor = currentStaffType === 'FG' ? 'bg-fuchsia-600' : 'bg-indigo-600';
+            const barColor = 'bg-indigo-600';
             return `<tr>
                 <td class="p-5 font-black text-slate-300 text-lg">${i+1}</td>
                 <td class="p-5 font-bold text-slate-700">${name}</td>
@@ -1367,8 +1406,8 @@
 
       if (monthlyChart) monthlyChart.destroy();
       
-      const chartColor = currentStaffType === 'FG' ? '#d946ef' : '#4f46e5';
-      const chartBg = currentStaffType === 'FG' ? 'rgba(217, 70, 239, 0.05)' : 'rgba(79,70,229,0.05)';
+      const chartColor = '#4f46e5';
+      const chartBg = 'rgba(79,70,229,0.05)';
       const labels =[]; 
       for(let i=1; i<=days; i++) labels.push(i);
 
@@ -1403,6 +1442,7 @@
         const d = new Date(); 
         d.setDate(d.getDate() - i);
         
+        // แก้ไขการดึงวันที่ 7 วันย้อนหลังให้เสถียร
         const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
         const bkk = new Date(utc + (3600000 * 7));
         const y = bkk.getFullYear();
@@ -1411,11 +1451,11 @@
         const dateStr = `${y}-${m}-${day}`;
         
         labels.push(bkk.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }));
-        counts.push(allData.filter(r => r.date === dateStr && r.status !== 'cancelled' && (r.type || 'RM') === currentStaffType).length);
+        counts.push(allData.filter(r => r.date === dateStr && r.status !== 'cancelled').length);
       }
       
       if (dailyChart) dailyChart.destroy();
-      const chartColor = currentStaffType === 'FG' ? '#d946ef' : '#4f46e5';
+      const chartColor = '#4f46e5';
       
       dailyChart = new Chart(ctx, { 
           type:'bar', 
