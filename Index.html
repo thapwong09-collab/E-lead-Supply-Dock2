@@ -8,7 +8,6 @@
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
-  <!-- โหลดไลบรารีที่จำเป็นทั้งหมด -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
@@ -41,7 +40,6 @@
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* ปรับแต่งกล้องสำหรับ Tablet */
     #qr-reader { 
         width: 100%; 
         border: none !important; 
@@ -60,7 +58,6 @@
   
   <div id="debug-error" class="hidden fixed top-0 w-full bg-rose-600 text-white font-bold p-3 z-[9999] text-xs text-center shadow-lg"></div>
 
-  <!-- รับค่า URL Parameter อย่างปลอดภัย -->
   <input type="hidden" id="gas-company" value="">
   <input type="hidden" id="gas-license" value="">
 
@@ -136,7 +133,7 @@
 
           <div id="current-status-text" class="px-6 py-2 rounded-full inline-block font-bold mb-6 shadow-sm"></div>
           
-          <!-- แสดง QR Code เพื่อใช้สแกนผ่าน รปภ. -->
+          <!-- QR Code สำหรับสแกนผ่าน รปภ. -->
           <div id="supplier-qr-container" class="hidden flex flex-col items-center justify-center bg-emerald-50 p-6 rounded-[2rem] border-4 border-emerald-400 border-dashed mb-6 shadow-lg">
              <p id="qr-instruction" class="text-xs font-black text-emerald-600 uppercase tracking-widest mb-4 pulse-dot">นำ QR Code สแกนที่ป้อม รปภ.</p>
              <div id="supplier-qrcode" class="p-2 bg-white rounded-xl shadow-sm flex justify-center w-full"></div>
@@ -146,6 +143,11 @@
             <div class="flex justify-between items-center"><span class="text-slate-400 font-bold">บริษัท:</span><span id="display-company" class="font-bold text-slate-700"></span></div>
             <div class="flex justify-between items-center"><span class="text-slate-400 font-bold">ทะเบียนรถ:</span><span id="display-license" class="font-bold text-slate-700 bg-yellow-100 px-2 py-0.5 rounded border border-yellow-300"></span></div>
             <div class="flex justify-between items-center"><span class="text-slate-400 font-bold">เวลาเช็คอิน:</span><span id="display-checkin-time" class="font-medium text-slate-700 tracking-tight"></span></div>
+            <!-- แสดงโรงงานปลายทาง -->
+            <div id="row-factory" class="hidden flex justify-between items-center">
+              <span class="text-indigo-400 font-bold">ส่งที่:</span>
+              <span id="display-factory" class="font-black text-indigo-700 text-lg bg-indigo-50 px-3 py-1 rounded-xl border border-indigo-200"></span>
+            </div>
             <div id="row-loading" class="flex justify-between items-center hidden"><span class="text-blue-400 font-bold">เริ่มเข้าพื้นที่:</span><span id="display-loading-time" class="font-bold text-blue-600 tracking-tight"></span></div>
             <div id="row-completed" class="flex justify-between items-center hidden"><span class="text-green-400 font-bold">เสร็จสิ้นเมื่อ:</span><span id="display-completed-time" class="font-bold text-green-600 tracking-tight"></span></div>
           </div>
@@ -171,7 +173,6 @@
 
       <!-- Tab: จัดการคิว -->
       <div id="page-queue" class="max-w-6xl mx-auto p-4 text-left">
-        <!-- แถบสรุป Daily Plan -->
         <div id="plan-summary-banner" class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row gap-4 justify-between items-center hidden">
            <div class="flex items-center gap-4 w-full md:w-auto">
               <div class="bg-indigo-50 text-indigo-600 p-3 rounded-2xl text-xl flex-shrink-0">📅</div>
@@ -361,7 +362,7 @@
       </div>
     </div>
 
-    <!-- ================= ส่วน Guard (รปภ.) กล้อง Tablet จอใหญ่ ================= -->
+    <!-- ================= ส่วน Guard (รปภ.) ================= -->
     <div id="guard-view" class="min-h-full hidden flex-col bg-slate-900 w-full h-full fade-in">
       <div id="guard-camera-container" class="flex-1 flex flex-col w-full h-full">
          <div class="bg-emerald-600 backdrop-blur-md border-b border-emerald-500 shadow-lg text-center p-4 flex justify-between items-center z-10">
@@ -378,9 +379,7 @@
                <div class="text-white font-bold text-lg mb-6 flex items-center justify-center gap-3 bg-slate-900 py-3 px-6 rounded-full border border-slate-600 shadow-inner">
                   <span class="pulse-dot w-4 h-4 bg-rose-500 rounded-full"></span> นำ QR Code มาส่องที่กล้อง
                </div>
-               
                <div id="qr-reader" class="mx-auto w-full max-w-lg min-h-[300px] md:min-h-[400px] rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-black relative"></div>
-               
                <button type="button" id="btn-start-camera" onclick="initGuardScanner()" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg hidden w-full max-w-sm cursor-pointer transition-colors">
                  เปิดกล้องใหม่อีกครั้ง
                </button>
@@ -388,10 +387,7 @@
          </div>
       </div>
 
-      <!-- Overlay ผลลัพธ์เต็มจอสำหรับ รปภ. -->
-      <div id="guard-result-overlay" class="fixed inset-0 z-50 hidden flex-col items-center justify-center p-4 md:p-8 transition-all duration-300">
-         <!-- เนื้อหาจะถูกแทรกด้วย JavaScript -->
-      </div>
+      <div id="guard-result-overlay" class="fixed inset-0 z-50 hidden flex-col items-center justify-center p-4 md:p-8 transition-all duration-300"></div>
     </div>
 
     <!-- ================= Login ================= -->
@@ -406,11 +402,33 @@
       </div>
     </div>
 
-  </div>
+    <!-- ================= Modal เลือกโรงงาน ================= -->
+    <div id="factory-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm fade-in">
+      <div class="bg-white rounded-[2.5rem] p-8 w-full max-w-sm mx-4 text-center shadow-2xl">
+        <div class="text-4xl mb-3">🏭</div>
+        <h3 class="text-xl font-black text-slate-800 mb-1">เลือกโรงงานปลายทาง</h3>
+        <p id="factory-modal-company" class="text-sm text-slate-400 font-bold mb-8 truncate"></p>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <button type="button" onclick="confirmFactory('โรงงาน 1')"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-8 rounded-2xl text-lg shadow-lg active:scale-95 transition-transform cursor-pointer leading-relaxed">
+            🏭<br><span class="text-base">โรงงาน 1</span>
+          </button>
+          <button type="button" onclick="confirmFactory('โรงงาน 2')"
+            class="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-8 rounded-2xl text-lg shadow-lg active:scale-95 transition-transform cursor-pointer leading-relaxed">
+            🏭<br><span class="text-base">โรงงาน 2</span>
+          </button>
+        </div>
+        <button type="button" onclick="closeFactoryModal()"
+          class="text-slate-400 text-sm font-bold hover:text-slate-600 cursor-pointer mt-2 w-full py-3">
+          ยกเลิก
+        </button>
+      </div>
+    </div>
+
+  </div><!-- end #app -->
 
   <!-- ==================== JAVASCRIPT ==================== -->
   <script>
-    // !!! สำคัญมาก: ใส่ URL ของ Web App คุณตรงนี้ !!!
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwvu_FiWEZOX1UEmo85MloZEt93jUhQ0dfJiVAPX27BV2UVnqV1eJaIJOkMWoWcMyU/exec";
 
     async function callAPI(action, payload = {}) {
@@ -427,7 +445,6 @@
         }
     }
 
-    // ดักจับ Error ไม่ให้เว็บค้าง
     window.addEventListener('error', function(e) {
         console.error("System Error: ", e.message);
         const errDiv = document.getElementById('debug-error');
@@ -445,26 +462,25 @@
     function safeSetSession(key, val) { try { sessionStorage.setItem(key, val); } catch(e) {} }
     function safeRemoveSession(key) { try { sessionStorage.removeItem(key); } catch(e) {} }
 
-    let allData =[];
-    let globalPlanData =[]; 
+    let allData = [];
+    let globalPlanData = []; 
     let currentSupplierRecord = null;
     let isStaffLoggedIn = false;
     let isGuardLoggedIn = false;
     let dailyChart = null, monthlyChart = null, kpiPieChart = null;
     let pendingUpdates = new Set(); 
     let html5QrCode = null;
+    let pendingQueueNum = null; // สำหรับ Modal เลือกโรงงาน
 
-    // การดึง Parameter จาก URL
     const urlParams = new URLSearchParams(window.location.search);
     const COMPANY_FROM_URL = urlParams.get('company') || '';
     const LICENSE_FROM_URL = urlParams.get('license') || urlParams.get('plate') || '';
 
     function fetchAll() {
       if(typeof google === 'undefined' && GAS_API_URL === 'YOUR_WEB_APP_URL') return; 
-      
       callAPI('readAllData').then(res => {
         if (res && res.success) {
-          allData = res.data ||[];
+          allData = res.data || [];
           if (res.plans) globalPlanData = res.plans;
           refreshUI();
         }
@@ -472,7 +488,6 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      
       const savedQueue = safeGetLocal('my_active_queue');
       if (savedQueue) {
          try {
@@ -491,12 +506,7 @@
          showSupplierView();
          const nameInput = document.getElementById('supplier-name');
          const licenseInput = document.getElementById('supplier-license');
-         
-         if(nameInput) { 
-             nameInput.value = COMPANY_FROM_URL; 
-             nameInput.readOnly = true; 
-         }
-         
+         if(nameInput) { nameInput.value = COMPANY_FROM_URL; nameInput.readOnly = true; }
          if (LICENSE_FROM_URL && licenseInput) {
             licenseInput.value = LICENSE_FROM_URL; 
             licenseInput.readOnly = true;
@@ -504,9 +514,7 @@
                 safeSetSession('qr_auto_triggered', 'true');
                 supplierCheckin();
             }
-         } else if(licenseInput) { 
-             licenseInput.focus(); 
-         }
+         } else if(licenseInput) { licenseInput.focus(); }
       }
 
       fetchAll(); 
@@ -523,7 +531,7 @@
     }
 
     function hideAll() {
-      const views =['role-selection','supplier-view','unified-login','staff-view','guard-view'];
+      const views = ['role-selection','supplier-view','unified-login','staff-view','guard-view'];
       views.forEach(id => {
          const el = document.getElementById(id); 
          if(el) {
@@ -533,67 +541,61 @@
       });
     }
     
-    function showRoleSelection() { 
-        hideAll(); 
-        stopGuardScanner(); 
-        document.getElementById('role-selection').classList.remove('hidden'); 
-    }
-    
-    function showSupplierView() { 
-        hideAll(); 
-        document.getElementById('supplier-view').classList.remove('hidden'); 
-    }
-    
+    function showRoleSelection() { hideAll(); stopGuardScanner(); document.getElementById('role-selection').classList.remove('hidden'); }
+    function showSupplierView() { hideAll(); document.getElementById('supplier-view').classList.remove('hidden'); }
     function showLogin() {
       hideAll(); 
-      
       const loginContainer = document.getElementById('unified-login');
       if(loginContainer) loginContainer.classList.remove('hidden');
-      
       const pwdInput = document.getElementById('unified-password');
       if(pwdInput) pwdInput.value = '';
     }
-    
     function enterGuardView() {
         isGuardLoggedIn = true; 
         hideAll(); 
         const gView = document.getElementById('guard-view');
-        if(gView) {
-            gView.classList.remove('hidden'); 
-            gView.classList.add('flex'); 
-            setTimeout(() => { initGuardScanner(); }, 800); 
-        }
+        if(gView) { gView.classList.remove('hidden'); gView.classList.add('flex'); setTimeout(() => { initGuardScanner(); }, 800); }
     }
-    
-    function staffLogout() { 
-        isStaffLoggedIn = false; 
-        showRoleSelection(); 
-    }
-    
-    function guardLogout() { 
-        isGuardLoggedIn = false; 
-        showRoleSelection(); 
-    }
+    function staffLogout() { isStaffLoggedIn = false; showRoleSelection(); }
+    function guardLogout() { isGuardLoggedIn = false; showRoleSelection(); }
 
     function processLogin() {
       const pwdInput = document.getElementById('unified-password');
       const pwd = pwdInput ? pwdInput.value : '';
       const err = document.getElementById('login-error-msg');
-      
       if (pwd === '1234') {
          isStaffLoggedIn = true; 
-         
          hideAll(); 
          const sView = document.getElementById('staff-view');
          if(sView) sView.classList.remove('hidden'); 
          showStaffTab('queue');
-         
       } else {
-         if(err) {
-             err.classList.remove('hidden'); 
-             setTimeout(() => err.classList.add('hidden'), 2000);
-         }
+         if(err) { err.classList.remove('hidden'); setTimeout(() => err.classList.add('hidden'), 2000); }
       }
+    }
+
+    // ==========================================
+    // FACTORY MODAL LOGIC (ใหม่)
+    // ==========================================
+    function callQueueWithFactory(qNum, companyName) {
+      pendingQueueNum = qNum;
+      const compEl = document.getElementById('factory-modal-company');
+      if (compEl) compEl.innerText = companyName;
+      const modal = document.getElementById('factory-modal');
+      if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+    }
+
+    function closeFactoryModal() {
+      pendingQueueNum = null;
+      const modal = document.getElementById('factory-modal');
+      if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    }
+
+    function confirmFactory(factory) {
+      if (!pendingQueueNum) return;
+      const qNum = pendingQueueNum;
+      closeFactoryModal();
+      updateStatus(qNum, 'loading', factory);
     }
 
     // ==========================================
@@ -602,10 +604,8 @@
     function initGuardScanner() {
         const btnRetry = document.getElementById('btn-start-camera');
         if(btnRetry) btnRetry.classList.add('hidden');
-        
         const overlay = document.getElementById('guard-result-overlay');
         if(overlay) overlay.classList.add('hidden'); 
-        
         const camContainer = document.getElementById('guard-camera-container');
         if(camContainer) camContainer.classList.remove('hidden');
         
@@ -614,30 +614,15 @@
             if(btnRetry) btnRetry.classList.remove('hidden');
             return;
         }
-
-        if (!html5QrCode) { 
-            html5QrCode = new Html5Qrcode("qr-reader"); 
-        }
-        
+        if (!html5QrCode) { html5QrCode = new Html5Qrcode("qr-reader"); }
         const config = { fps: 10, qrbox: { width: 300, height: 300 }, aspectRatio: 1.0 };
-        
         html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure)
-        .then(() => {
-            if(btnRetry) btnRetry.classList.add('hidden'); 
-        })
+        .then(() => { if(btnRetry) btnRetry.classList.add('hidden'); })
         .catch(err => {
-            console.log("Rear camera failed", err);
             html5QrCode.start({ facingMode: "user" }, config, onScanSuccess, onScanFailure)
-            .then(() => {
-                if(btnRetry) btnRetry.classList.add('hidden');
-            })
+            .then(() => { if(btnRetry) btnRetry.classList.add('hidden'); })
             .catch(err2 => {
-                 console.log("Camera failed completely", err2);
-                 if(btnRetry) {
-                     btnRetry.classList.remove('hidden');
-                     btnRetry.disabled = false;
-                     btnRetry.innerText = "ลองเปิดกล้องใหม่อีกครั้ง";
-                 }
+                 if(btnRetry) { btnRetry.classList.remove('hidden'); btnRetry.disabled = false; btnRetry.innerText = "ลองเปิดกล้องใหม่อีกครั้ง"; }
                  alert("ไม่สามารถเปิดกล้องได้ กรุณากดอนุญาตให้เบราว์เซอร์ใช้งานกล้อง");
             });
         });
@@ -652,62 +637,42 @@
     function closeGuardResult() {
         const overlay = document.getElementById('guard-result-overlay');
         if(overlay) overlay.classList.add('hidden');
-        
         const camContainer = document.getElementById('guard-camera-container');
         if(camContainer) camContainer.classList.remove('hidden');
-        
         lastScannedText = ""; 
     }
 
-    // ยืนยันออกพื้นที่ (รปภ. กด)
-    window.confirmExit = function(qNum) {
-        updateStatus(qNum, 'exited'); 
-        closeGuardResult();
-    };
+    window.confirmExit = function(qNum) { updateStatus(qNum, 'exited'); closeGuardResult(); };
 
     let lastScannedText = "";
     function onScanSuccess(decodedText) {
         if(decodedText === lastScannedText) return; 
         lastScannedText = decodedText;
-        
         try { new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play(); } catch(e){}
         processScanResult(decodedText);
     }
-    
-    function onScanFailure(error) { 
-        // Ignore
-    }
+    function onScanFailure(error) { /* ignore */ }
 
     function processScanResult(text) {
         const camContainer = document.getElementById('guard-camera-container');
         if(camContainer) camContainer.classList.add('hidden');
-        
         const overlay = document.getElementById('guard-result-overlay');
         if(!overlay) return;
         overlay.classList.remove('hidden');
-        
         const parts = text.split('|');
-        // รองรับทั้งแบบ 2 ค่า (Date|Queue) และ 3 ค่า (Date|Queue|Type เผื่อหลงเหลือ)
-        if(parts.length < 2) {
-            showGuardErrorResult("❌ ข้อมูลไม่ถูกต้อง", "ไม่ใช่ QR Code ของระบบเช็คอินนี้", "bg-rose-600"); 
-            return;
-        }
-        
+        if(parts.length < 2) { showGuardErrorResult("❌ ข้อมูลไม่ถูกต้อง", "ไม่ใช่ QR Code ของระบบเช็คอินนี้", "bg-rose-600"); return; }
         const date = parts[0];
         const qNum = parts[1];
-
         const match = allData.find(r => r.date === date && String(r.queue_number) === String(qNum));
         
         if(!match) {
             showGuardErrorResult("❓ ไม่พบข้อมูล", "ไม่พบประวัติคิวนี้ในระบบ", "bg-slate-600");
         } else if (match.status === 'loading') {
-            // ✅ ขาเข้า (สีเขียว)
             overlay.className = "fixed inset-0 z-50 flex flex-col items-center justify-center p-4 md:p-8 bg-emerald-500 fade-in";
             overlay.innerHTML = `
                 <div class="bg-white rounded-[3rem] shadow-[0_30px_60px_rgba(0,0,0,0.4)] p-8 md:p-12 w-full max-w-3xl text-center relative overflow-hidden flex flex-col items-center">
                     <div class="w-32 h-32 md:w-40 md:h-40 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-7xl md:text-8xl mx-auto mb-6 shadow-inner pulse-dot">✅</div>
                     <h2 class="text-4xl md:text-6xl font-black text-emerald-600 mb-8 tracking-tight">อนุญาตให้เข้าได้</h2>
-                    
                     <div class="w-full space-y-4 mb-10 text-left bg-slate-50 p-6 md:p-8 rounded-3xl border-2 border-slate-100">
                        <div>
                            <div class="text-sm md:text-base font-bold text-slate-400 uppercase tracking-widest mb-1">บริษัท</div>
@@ -717,21 +682,23 @@
                            <div class="text-sm md:text-base font-bold text-slate-400 uppercase tracking-widest mb-2">ทะเบียนรถ</div>
                            <div class="text-4xl md:text-6xl font-black text-slate-900 bg-yellow-300 border-4 border-yellow-400 px-8 py-4 inline-block rounded-2xl shadow-md tracking-widest">${match.license_plate || '-'}</div>
                        </div>
+                       ${match.factory ? `
+                       <div class="pt-4 border-t-2 border-slate-200">
+                           <div class="text-sm md:text-base font-bold text-slate-400 uppercase tracking-widest mb-2">ส่งที่</div>
+                           <div class="text-3xl md:text-5xl font-black text-indigo-700 bg-indigo-100 border-4 border-indigo-300 px-8 py-4 inline-block rounded-2xl shadow-md">🏭 ${match.factory}</div>
+                       </div>` : ''}
                     </div>
-                    
                     <button type="button" onclick="closeGuardResult()" class="w-full bg-slate-900 hover:bg-black text-white text-2xl md:text-3xl font-bold py-6 md:py-8 rounded-3xl shadow-xl active:scale-95 transition-transform uppercase tracking-wider cursor-pointer">
                         สแกนคันถัดไป
                     </button>
                 </div>
             `;
         } else if (match.status === 'completed') {
-            // 👋 ขาออก (สีฟ้า)
             overlay.className = "fixed inset-0 z-50 flex flex-col items-center justify-center p-4 md:p-8 bg-blue-500 fade-in";
             overlay.innerHTML = `
                 <div class="bg-white rounded-[3rem] shadow-[0_30px_60px_rgba(0,0,0,0.4)] p-8 md:p-12 w-full max-w-3xl text-center relative overflow-hidden flex flex-col items-center">
                     <div class="w-32 h-32 md:w-40 md:h-40 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-7xl md:text-8xl mx-auto mb-6 shadow-inner pulse-dot">👋</div>
                     <h2 class="text-4xl md:text-6xl font-black text-blue-600 mb-8 tracking-tight">อนุญาตให้ออกได้</h2>
-                    
                     <div class="w-full space-y-4 mb-10 text-left bg-slate-50 p-6 md:p-8 rounded-3xl border-2 border-slate-100">
                        <div>
                            <div class="text-sm md:text-base font-bold text-slate-400 uppercase tracking-widest mb-1">บริษัท</div>
@@ -742,14 +709,9 @@
                            <div class="text-4xl md:text-6xl font-black text-slate-900 bg-yellow-300 border-4 border-yellow-400 px-8 py-4 inline-block rounded-2xl shadow-md tracking-widest">${match.license_plate || '-'}</div>
                        </div>
                     </div>
-                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                        <button type="button" onclick="closeGuardResult()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 text-2xl md:text-3xl font-bold py-6 md:py-8 rounded-3xl shadow-sm active:scale-95 transition-transform uppercase tracking-wider cursor-pointer">
-                            ยกเลิก
-                        </button>
-                        <button type="button" onclick="confirmExit('${match.queue_number}')" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-2xl md:text-3xl font-bold py-6 md:py-8 rounded-3xl shadow-xl active:scale-95 transition-transform uppercase tracking-wider cursor-pointer">
-                            ยืนยันรถออก
-                        </button>
+                        <button type="button" onclick="closeGuardResult()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 text-2xl md:text-3xl font-bold py-6 md:py-8 rounded-3xl shadow-sm active:scale-95 transition-transform uppercase tracking-wider cursor-pointer">ยกเลิก</button>
+                        <button type="button" onclick="confirmExit('${match.queue_number}')" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-2xl md:text-3xl font-bold py-6 md:py-8 rounded-3xl shadow-xl active:scale-95 transition-transform uppercase tracking-wider cursor-pointer">ยืนยันรถออก</button>
                     </div>
                 </div>
             `;
@@ -765,7 +727,6 @@
     function showGuardErrorResult(title, subtitle, bgColorClass, match = null) {
         const overlay = document.getElementById('guard-result-overlay');
         overlay.className = `fixed inset-0 z-50 flex flex-col items-center justify-center p-4 md:p-8 ${bgColorClass} fade-in`;
-        
         let detailHtml = "";
         if (match) {
             detailHtml = `
@@ -775,51 +736,37 @@
                <div class="text-3xl md:text-4xl font-black text-yellow-300 tracking-widest">${match.license_plate || '-'}</div>
             </div>`;
         }
-
         overlay.innerHTML = `
             <div class="bg-white rounded-[3rem] shadow-[0_30px_60px_rgba(0,0,0,0.4)] p-8 md:p-12 w-full max-w-2xl text-center">
                 <div class="text-[100px] md:text-[140px] mb-4 leading-none">${title.includes('🛑') ? '🛑' : (title.includes('⚠️') ? '⚠️' : '❌')}</div>
                 <h2 class="text-4xl md:text-6xl font-black text-slate-800 mb-6 tracking-tight">${title.replace(/🛑|⚠️|❌/g, '').trim()}</h2>
                 <p class="text-2xl md:text-3xl font-bold text-slate-500 mb-8 leading-snug">${subtitle}</p>
                 ${detailHtml}
-                <button type="button" onclick="closeGuardResult()" class="w-full bg-slate-900 hover:bg-black text-white text-2xl md:text-3xl font-bold py-6 md:py-8 rounded-3xl shadow-xl active:scale-95 transition-transform uppercase tracking-wider cursor-pointer">
-                    สแกนคันถัดไป
-                </button>
+                <button type="button" onclick="closeGuardResult()" class="w-full bg-slate-900 hover:bg-black text-white text-2xl md:text-3xl font-bold py-6 md:py-8 rounded-3xl shadow-xl active:scale-95 transition-transform uppercase tracking-wider cursor-pointer">สแกนคันถัดไป</button>
             </div>
         `;
     }
 
     // ==========================================
-    // ส่วน ซัพพลายเออร์ และคลังสินค้า
+    // ซัพพลายเออร์ และคลังสินค้า
     // ==========================================
-
     function supplierCheckin() {
       const nameInput = document.getElementById('supplier-name');
       const licenseInput = document.getElementById('supplier-license');
-      
       if (!nameInput || !licenseInput) return;
-
       const name = nameInput.value.trim();
       const license = licenseInput.value.trim();
-
       if (!name) return alert('กรุณากรอกชื่อบริษัท');
       if (!license) return alert('กรุณากรอกทะเบียนรถ');
-      
       const btn = document.getElementById('checkin-btn');
-      if(btn) {
-          btn.disabled = true; 
-          btn.innerText = 'กำลังประมวลผล...';
-      }
-
+      if(btn) { btn.disabled = true; btn.innerText = 'กำลังประมวลผล...'; }
       callAPI('createRecord', { companyName: name, licensePlate: license }).then(res => {
         if (res.success) { 
           currentSupplierRecord = res.record; 
           safeSetLocal('my_active_queue', JSON.stringify(res.record)); 
           fetchAll(); 
           showSupplierStatus(res.record); 
-        } else { 
-            alert('Error: ' + res.message); 
-        }
+        } else { alert('Error: ' + res.message); }
         if(btn) { btn.disabled = false; btn.innerText = 'รับหมายเลขคิว'; }
       }); 
     }
@@ -833,7 +780,6 @@
     }
 
     function updateSupplierStatusDisplay(record) {
-      // ซิงก์ LocalStorage เพื่อให้มือถือจำคิวไว้
       if (currentSupplierRecord && String(currentSupplierRecord.queue_number) === String(record.queue_number)) {
           currentSupplierRecord = record;
           safeSetLocal('my_active_queue', JSON.stringify(record));
@@ -844,60 +790,52 @@
       }
 
       const qDisplay = document.getElementById('queue-number-display');
-      if(qDisplay) { 
-          qDisplay.innerText = record.queue_number; 
-      }
-
+      if(qDisplay) qDisplay.innerText = record.queue_number; 
       const cDisplay = document.getElementById('display-company'); 
       if(cDisplay) cDisplay.innerText = record.company_name;
-      
       const lDisplay = document.getElementById('display-license'); 
       if(lDisplay) lDisplay.innerText = record.license_plate || '-';
-      
       const ciDisplay = document.getElementById('display-checkin-time'); 
       if(ciDisplay) ciDisplay.innerText = formatThaiTime(record.checkin_time);
-      
+
+      // แสดงโรงงานปลายทาง
+      const rFactory = document.getElementById('row-factory');
+      const dFactory = document.getElementById('display-factory');
+      if (rFactory && dFactory) {
+        if (record.factory && record.status !== 'cancelled' && record.status !== 'waiting') {
+          rFactory.classList.remove('hidden');
+          dFactory.innerText = '🏭 ' + record.factory;
+        } else {
+          rFactory.classList.add('hidden');
+        }
+      }
+
       const st = document.getElementById('current-status-text');
       const icon = document.getElementById('status-icon');
       const today = getThaiDate();
-      
       const inFrontCount = allData.filter(r => r.date === today && r.status === 'waiting' && parseInt(r.queue_number) < parseInt(record.queue_number)).length;
-      
       const remainingContainer = document.getElementById('remaining-queues-container');
       const qrContainer = document.getElementById('supplier-qr-container');
       const qrBox = document.getElementById('supplier-qrcode');
       const qrInstruction = document.getElementById('qr-instruction');
-
       const rLoad = document.getElementById('row-loading'); 
       if(rLoad) rLoad.classList.toggle('hidden', !record.loading_time || record.status === 'cancelled');
-      
       const rComp = document.getElementById('row-completed'); 
       if(rComp) rComp.classList.toggle('hidden', !record.completed_time || record.status === 'cancelled');
-      
       const ldDisplay = document.getElementById('display-loading-time'); 
       if(ldDisplay && record.loading_time) ldDisplay.innerText = formatThaiTime(record.loading_time);
-      
       const cdDisplay = document.getElementById('display-completed-time'); 
       if(cdDisplay && record.completed_time) cdDisplay.innerText = formatThaiTime(record.completed_time);
 
       if (qrBox) {
           qrBox.innerHTML = ''; 
-          // โชว์ QR Code เฉพาะตอน โดนเรียกเข้า(loading) และ ลงของเสร็จรอออก(completed)
           if (record.status === 'loading' || record.status === 'completed') {
               if(qrContainer) qrContainer.classList.remove('hidden');
               if(qrInstruction) {
                   qrInstruction.innerText = record.status === 'loading' ? 'นำ QR Code สแกนที่ป้อม รปภ. (ขาเข้า)' : 'นำ QR Code สแกนที่ป้อม รปภ. (ขาออก)';
               }
               if (typeof QRCode !== 'undefined') {
-                  const qrText = `${record.date}|${record.queue_number}`;
-                  new QRCode(qrBox, { 
-                      text: qrText, 
-                      width: 200, 
-                      height: 200, 
-                      colorDark : "#000000", 
-                      colorLight : "#ffffff", 
-                      correctLevel : QRCode.CorrectLevel.H 
-                  });
+                  new QRCode(qrBox, { text: `${record.date}|${record.queue_number}`, width: 200, height: 200, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
               }
           } else { 
               if(qrContainer) qrContainer.classList.add('hidden'); 
@@ -914,7 +852,8 @@
         const remText = document.getElementById('remaining-queues-text'); 
         if(remText) remText.innerHTML = inFrontCount === 0 ? "<b>คุณคือคิวถัดไป</b>" : `เหลืออีก <b>${inFrontCount}</b> คิวจะถึงคุณ`;
       } else if (record.status === 'loading') {
-        st.innerText = '📢 คลังเรียกแล้ว (นำ QR สแกนเข้า)'; 
+        const factoryLabel = record.factory ? ` → ${record.factory}` : '';
+        st.innerText = `📢 คลังเรียกแล้ว${factoryLabel} (นำ QR สแกนเข้า)`; 
         st.className = 'status-loading px-6 py-2 rounded-full text-sm font-bold shadow-sm'; 
         icon.innerHTML = '🚚';
         remainingContainer.classList.add('hidden');
@@ -936,26 +875,22 @@
       }
     }
 
-    function updateStatus(qNum, nextStatus) {
+    // *** แก้ไข: เพิ่ม parameter factory ***
+    function updateStatus(qNum, nextStatus, factory = null) {
       if (nextStatus === 'cancelled' && !confirm('ต้องการยกเลิกคิวนี้?')) return;
-      
       const today = getThaiDate();
       const recordIdx = allData.findIndex(r => String(r.queue_number) === String(qNum) && r.date === today && r.status !== 'cancelled');
       if (recordIdx === -1) return;
-      
       const record = allData[recordIdx];
       const updateId = `${record.date}-${record.queue_number}`;
       const now = new Date().toISOString();
       const updates = { ...record, status: nextStatus };
-      
       if (nextStatus === 'loading') updates.loading_time = now;
+      if (nextStatus === 'loading' && factory) updates.factory = factory; // บันทึกโรงงาน
       if (nextStatus === 'completed') updates.completed_time = now;
-      
       pendingUpdates.add(updateId); 
       allData[recordIdx] = updates;
-      
       if (isStaffLoggedIn) updateStaffUI(); 
-
       callAPI('updateRecord', {
         jsonString: JSON.stringify(updates), 
         originalDate: record.date, 
@@ -979,46 +914,31 @@
     function updateStaffUI() {
       const today = getThaiDate();
       
-      // แผนงาน Daily Plan
+      // Daily Plan Banner
       const banner = document.getElementById('plan-summary-banner');
       if (globalPlanData && globalPlanData.length > 0 && banner) {
           banner.classList.remove('hidden');
           const todayPlans = globalPlanData.filter(p => p.length >= 3 && String(p[0]).replace(/\//g, '-').trim() === today);
           const totalPlanned = todayPlans.length;
-          
           const arrivedToday = allData.filter(r => r.date === today && r.status !== 'cancelled');
           const arrivedCompanies = arrivedToday.map(r => String(r.company_name).trim().toLowerCase());
-          
-          let arrivedCount = 0; 
-          let pendingList =[];
-          
+          let arrivedCount = 0; let pendingList = [];
           todayPlans.forEach(p => {
-              const comp = String(p[2]).trim(); 
-              const planTime = String(p[1]).trim();
-              if (arrivedCompanies.includes(comp.toLowerCase())) {
-                  arrivedCount++;
-              } else {
-                  pendingList.push(`${comp} (${planTime})`);
-              }
+              const comp = String(p[2]).trim(); const planTime = String(p[1]).trim();
+              if (arrivedCompanies.includes(comp.toLowerCase())) { arrivedCount++; } else { pendingList.push(`${comp} (${planTime})`); }
           });
-          
           const pTotal = document.getElementById('plan-total'); 
           const pArrived = document.getElementById('plan-arrived'); 
           const pPending = document.getElementById('plan-pending-list');
-          
           if(pTotal) pTotal.innerText = totalPlanned; 
           if(pArrived) pArrived.innerText = arrivedCount;
-          
           if(pPending) {
               pPending.innerHTML = pendingList.length > 0 
                 ? pendingList.map(c => `<span class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-rose-200 shadow-sm">${c}</span>`).join('') 
                 : `<span class="text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">✅ มาครบตามแผนแล้ว</span>`;
           }
-      } else if (banner) { 
-          banner.classList.add('hidden'); 
-      }
+      } else if (banner) { banner.classList.add('hidden'); }
 
-      // กรองคิว (ในแท็บเสร็จสิ้น จะรวมคนที่ยังไม่ออก(completed) และคนที่ออกแล้ว(exited))
       const myData = allData.filter(r => r.date === today);
       const waitList = myData.filter(r => r.status === 'waiting');
       const loadList = myData.filter(r => r.status === 'loading');
@@ -1027,11 +947,11 @@
       const cWait = document.getElementById('count-waiting'); 
       const cLoad = document.getElementById('count-loading'); 
       const cComp = document.getElementById('count-completed');
-      
       if(cWait) cWait.innerText = waitList.length; 
       if(cLoad) cLoad.innerText = loadList.length; 
       if(cComp) cComp.innerText = compList.length;
 
+      // *** แก้ไข: ปุ่มเรียกคิวเปิด Modal เลือกโรงงาน ***
       const renderWaitCard = (r) => `
         <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 fade-in relative pt-10 text-left">
           <button type="button" onclick="updateStatus('${r.queue_number}', 'cancelled')" class="absolute top-2 left-1/2 -translate-x-1/2 text-slate-300 hover:text-rose-500 transition-colors p-1 cursor-pointer" title="ยกเลิก">
@@ -1046,12 +966,12 @@
           </div>
           <div class="text-sm font-bold text-slate-500 mb-1 truncate">${r.company_name}</div>
           <div class="text-[10px] font-bold text-slate-700 mb-4 bg-yellow-100 inline-block px-2 py-1 rounded-md border border-yellow-200">ทะเบียน: ${r.license_plate || '-'}</div>
-          
-          <button type="button" onclick="updateStatus('${r.queue_number}', 'loading')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white active:scale-95 shadow-lg py-2.5 rounded-2xl text-[10px] font-black tracking-widest transition-all uppercase cursor-pointer">
-              เรียกเข้าพื้นที่ (สร้าง QR ขาเข้า)
+          <button type="button" onclick="callQueueWithFactory('${r.queue_number}', '${r.company_name.replace(/'/g, "\\'")}')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white active:scale-95 shadow-lg py-2.5 rounded-2xl text-[10px] font-black tracking-widest transition-all uppercase cursor-pointer">
+              🏭 เรียกเข้าพื้นที่ (เลือกโรงงาน)
           </button>
         </div>`;
 
+      // การ์ด loading — แสดงโรงงานที่เลือกไว้
       const renderLoadCard = (r) => `
         <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 fade-in relative pt-10 text-left">
           <button type="button" onclick="updateStatus('${r.queue_number}', 'cancelled')" class="absolute top-2 left-1/2 -translate-x-1/2 text-slate-300 hover:text-rose-500 transition-colors p-1 cursor-pointer" title="ยกเลิก">
@@ -1065,8 +985,8 @@
              <span class="text-[9px] font-black text-slate-300 uppercase">${formatThaiTime(r.loading_time)}</span>
           </div>
           <div class="text-sm font-bold text-slate-500 mb-1 truncate">${r.company_name}</div>
-          <div class="text-[10px] font-bold text-slate-700 mb-4 bg-yellow-100 inline-block px-2 py-1 rounded-md border border-yellow-200">ทะเบียน: ${r.license_plate || '-'}</div>
-          
+          <div class="text-[10px] font-bold text-slate-700 mb-1 bg-yellow-100 inline-block px-2 py-1 rounded-md border border-yellow-200">ทะเบียน: ${r.license_plate || '-'}</div>
+          ${r.factory ? `<div class="text-[10px] font-black text-indigo-700 mb-4 bg-indigo-50 inline-block px-2 py-1 rounded-md border border-indigo-200 ml-1">🏭 ${r.factory}</div>` : '<div class="mb-4"></div>'}
           <button type="button" onclick="updateStatus('${r.queue_number}', 'completed')" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-2xl text-[10px] font-black active:scale-95 transition-all uppercase shadow-lg cursor-pointer">
               ลงของเสร็จ (สร้าง QR ขาออก)
           </button>
@@ -1075,25 +995,21 @@
       const lWait = document.getElementById('list-waiting'); 
       const lLoad = document.getElementById('list-loading'); 
       const lComp = document.getElementById('list-completed');
-      
       if(lWait) lWait.innerHTML = waitList.length ? waitList.map(r => renderWaitCard(r)).join('') : '<div class="text-center py-10 text-[9px] text-slate-300 font-bold uppercase tracking-widest">ไม่มีคิว</div>';
       if(lLoad) lLoad.innerHTML = loadList.length ? loadList.map(r => renderLoadCard(r)).join('') : '<div class="text-center py-10 text-[9px] text-slate-300 font-bold uppercase tracking-widest">ไม่มีคิว</div>';
-      
       if(lComp) lComp.innerHTML = compList.length ? compList.slice().reverse().map(r => {
         const statusBadge = r.status === 'exited' 
             ? `<span class="text-[8px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">ออกแล้ว</span>`
             : `<span class="text-[8px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200 pulse-dot">รอสแกนออก</span>`;
-            
         return `
         <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 opacity-80 fade-in text-left">
           <div class="flex justify-between items-center mb-1">
-             <div class="flex items-center gap-2">
-                 <span class="font-black text-slate-400">#${r.queue_number}</span>
-             </div>
+             <div class="flex items-center gap-2"><span class="font-black text-slate-400">#${r.queue_number}</span></div>
              ${statusBadge}
           </div>
           <div class="text-sm font-bold text-slate-600 mb-1">${r.company_name}</div>
-          <div class="text-[9px] font-bold text-slate-500 mb-3">ทะเบียน: <span class="text-slate-700">${r.license_plate || '-'}</span></div>
+          <div class="text-[9px] font-bold text-slate-500 mb-1">ทะเบียน: <span class="text-slate-700">${r.license_plate || '-'}</span></div>
+          ${r.factory ? `<div class="text-[9px] font-black text-indigo-600 mb-3">🏭 ${r.factory}</div>` : '<div class="mb-3"></div>'}
           <div class="grid grid-cols-2 gap-1 text-[8px] font-bold text-slate-400 border-t pt-2">
             <div>เช็คอิน: <span class="text-slate-800">${formatThaiTime(r.checkin_time)}</span></div>
             <div>เริ่มเข้า: <span class="text-blue-500">${formatThaiTime(r.loading_time)}</span></div>
@@ -1105,25 +1021,19 @@
       const stTotal = document.getElementById('stat-today-total'); 
       const stDone = document.getElementById('stat-today-done'); 
       const stWait = document.getElementById('stat-today-wait');
-      
       if(stTotal) stTotal.innerText = myData.filter(r => r.status !== 'cancelled').length;
       if(stDone) stDone.innerText = compList.length;
       if(stWait) stWait.innerText = waitList.length + loadList.length;
     }
 
     function showStaffTab(tab) {
-      const tabs =['queue','daily','monthly','kpi'];
+      const tabs = ['queue','daily','monthly','kpi'];
       tabs.forEach(t => {
         const p = document.getElementById('page-' + t); 
         const b = document.getElementById('tab-' + t);
-        
         if(p) p.classList.toggle('hidden', t !== tab);
-        
-        if(b) {
-            b.className = t === tab ? 'tab-active-rm px-6 py-2.5 rounded-xl text-xs font-bold shadow-md cursor-pointer' : 'bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold cursor-pointer';
-        }
+        if(b) { b.className = t === tab ? 'tab-active px-6 py-2.5 rounded-xl text-xs font-bold shadow-md cursor-pointer' : 'bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold cursor-pointer'; }
       });
-      
       if (tab === 'daily') { updateDailyChart(); updateDailyHistoryList(); }
       if (tab === 'monthly') { populateMonthSelector('month-selector'); updateMonthlySummary(); }
       if (tab === 'kpi') { populateMonthSelector('kpi-month'); populateSupplierSelector('kpi-supplier'); updateKPIUI(); }
@@ -1132,9 +1042,7 @@
     function populateMonthSelector(elementId) {
        const sel = document.getElementById(elementId);
        if (sel && sel.options.length === 0) {
-         if (elementId === 'kpi-month') { 
-             sel.add(new Option('ทุกเดือน (ตั้งแต่เริ่มต้น)', 'ALL')); 
-         }
+         if (elementId === 'kpi-month') { sel.add(new Option('ทุกเดือน (ตั้งแต่เริ่มต้น)', 'ALL')); }
          const now = new Date();
          for (let i = 0; i < 24; i++) {
            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -1148,39 +1056,25 @@
        if(!sel) return;
        const currentValue = sel.value;
        sel.innerHTML = '<option value="ALL">ทั้งหมด (All)</option>';
-       
-       const uniqueSups =[...new Set(allData.map(r => r.company_name))].filter(Boolean).sort();
+       const uniqueSups = [...new Set(allData.map(r => r.company_name))].filter(Boolean).sort();
        uniqueSups.forEach(s => sel.add(new Option(s, s)));
-       
-       if(currentValue && uniqueSups.includes(currentValue)) {
-           sel.value = currentValue;
-       }
+       if(currentValue && uniqueSups.includes(currentValue)) { sel.value = currentValue; }
     }
 
     function updateKPIUI() {
        const mEl = document.getElementById('kpi-month'); 
        const sEl = document.getElementById('kpi-supplier');
        if(!mEl || !sEl) return;
-       
-       const mVal = mEl.value; 
-       const sVal = sEl.value;
+       const mVal = mEl.value; const sVal = sEl.value;
        if(!mVal) return;
-
        const kLabel = document.getElementById('kpi-total-label');
        if(kLabel) kLabel.innerText = mVal === 'ALL' ? 'จำนวน (ทั้งหมด)' : 'จำนวน (เดือนนี้)';
-
        const myData = allData.filter(r => r.date && r.status !== 'cancelled');
-       
        const filtered = myData.filter(r => {
-          if (mVal !== 'ALL') {
-              const parts = mVal.split('-'); 
-              const dParts = r.date.split('-');
-              if (dParts[0] !== parts[0] || dParts[1] !== parts[1]) return false;
-          }
+          if (mVal !== 'ALL') { const parts = mVal.split('-'); const dParts = r.date.split('-'); if (dParts[0] !== parts[0] || dParts[1] !== parts[1]) return false; }
           if (sVal !== 'ALL' && r.company_name !== sVal) return false;
           return true;
        });
-
        let counts = { ontime:0, late:0, early:0, unplanned:0, pickup:0 };
        filtered.forEach(r => {
           const st = r.plan_status || '';
@@ -1189,63 +1083,32 @@
           else if (st.includes('นอกแผน')) counts.unplanned++;
           else if (st.includes('Pickup')) counts.pickup++;
        });
-
        const totalFiltered = filtered.length;
        const getPct = (val, total) => total > 0 ? ((val / total) * 100).toFixed(1) + '%' : '0%';
-
-       const tTot = document.getElementById('kpi-total');
-       const tOn = document.getElementById('kpi-ontime');
-       const tOnP = document.getElementById('kpi-ontime-pct');
-       const tLt = document.getElementById('kpi-late');
-       const tLtP = document.getElementById('kpi-late-pct');
-       const tUp = document.getElementById('kpi-unplanned');
-       const tUpP = document.getElementById('kpi-unplanned-pct');
-
+       const tTot = document.getElementById('kpi-total'); const tOn = document.getElementById('kpi-ontime'); const tOnP = document.getElementById('kpi-ontime-pct');
+       const tLt = document.getElementById('kpi-late'); const tLtP = document.getElementById('kpi-late-pct'); const tUp = document.getElementById('kpi-unplanned'); const tUpP = document.getElementById('kpi-unplanned-pct');
        if(tTot) tTot.innerText = totalFiltered;
-       if(tOn) tOn.innerText = counts.ontime; 
-       if(tOnP) tOnP.innerText = getPct(counts.ontime, totalFiltered);
-       
-       if(tLt) tLt.innerText = counts.late; 
-       if(tLtP) tLtP.innerText = getPct(counts.late, totalFiltered);
-       
-       if(tUp) tUp.innerText = counts.unplanned; 
-       if(tUpP) tUpP.innerText = getPct(counts.unplanned, totalFiltered);
-
+       if(tOn) tOn.innerText = counts.ontime; if(tOnP) tOnP.innerText = getPct(counts.ontime, totalFiltered);
+       if(tLt) tLt.innerText = counts.late; if(tLtP) tLtP.innerText = getPct(counts.late, totalFiltered);
+       if(tUp) tUp.innerText = counts.unplanned; if(tUpP) tUpP.innerText = getPct(counts.unplanned, totalFiltered);
        const totalAllTime = myData.length;
        let supplierAllTime = totalAllTime;
-       if (sVal !== 'ALL') { 
-           supplierAllTime = myData.filter(r => r.company_name === sVal).length; 
-       }
-       
-       const kPct = document.getElementById('kpi-alltime-pct'); 
-       const kTxt = document.getElementById('kpi-alltime-text');
-       
-       if(kPct) { 
-           kPct.innerText = getPct(supplierAllTime, totalAllTime); 
-           kPct.className = `text-4xl font-black text-indigo-600`; 
-       }
-       if(kTxt) { 
-           kTxt.innerText = `${supplierAllTime} จาก ${totalAllTime} ครั้ง`; 
-           kTxt.className = `text-[10px] font-bold text-indigo-400 mt-1`; 
-       }
-
+       if (sVal !== 'ALL') { supplierAllTime = myData.filter(r => r.company_name === sVal).length; }
+       const kPct = document.getElementById('kpi-alltime-pct'); const kTxt = document.getElementById('kpi-alltime-text');
+       if(kPct) { kPct.innerText = getPct(supplierAllTime, totalAllTime); kPct.className = `text-4xl font-black text-indigo-600`; }
+       if(kTxt) { kTxt.innerText = `${supplierAllTime} จาก ${totalAllTime} ครั้ง`; kTxt.className = `text-[10px] font-bold text-indigo-400 mt-1`; }
        updateKPIChart(counts.ontime, counts.late, counts.unplanned, counts.pickup);
-
        const tbody = document.getElementById('kpi-history-table');
        if(tbody) {
            tbody.innerHTML = filtered.length ? filtered.sort((a,b) => new Date(b.date) - new Date(a.date)).map(r => `
               <tr class="hover:bg-slate-50 transition-colors border-t border-slate-100">
-                 <td class="p-4">
-                     <div class="font-bold text-slate-700">${new Date(r.date).toLocaleDateString('th-TH', {day:'numeric',month:'short'})}</div>
-                     <div class="text-[10px] text-slate-400">คิว #${r.queue_number}</div>
-                 </td>
+                 <td class="p-4"><div class="font-bold text-slate-700">${new Date(r.date).toLocaleDateString('th-TH', {day:'numeric',month:'short'})}</div><div class="text-[10px] text-slate-400">คิว #${r.queue_number}</div></td>
                  <td class="p-4 font-bold text-slate-600">${r.company_name}</td>
                  <td class="p-4 text-center text-slate-500 font-medium">${formatThaiTime(r.checkin_time)}</td>
                  <td class="p-4 text-center">${getPlanBadge(r.plan_status)}</td>
               </tr>
            `).join('') : '<tr><td colspan="4" class="p-10 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">ไม่มีข้อมูลในเดือนนี้</td></tr>';
        }
-
        generateAllSuppliersTable(myData);
     }
 
@@ -1253,39 +1116,25 @@
         const supStats = {};
         validData.forEach(r => {
             const name = r.company_name;
-            if (!supStats[name]) {
-                supStats[name] = { total: 0, ontime: 0, late: 0, unplanned: 0, pickup: 0 };
-            }
+            if (!supStats[name]) supStats[name] = { total: 0, ontime: 0, late: 0, unplanned: 0, pickup: 0 };
             supStats[name].total++;
-            
             const st = r.plan_status || '';
             if (st.includes('ตรงเวลา') || st.includes('มาก่อนเวลา')) supStats[name].ontime++; 
             else if (st.includes('ล่าช้า')) supStats[name].late++;
             else if (st.includes('นอกแผน')) supStats[name].unplanned++;
             else if (st.includes('Pickup')) supStats[name].pickup++;
         });
-
         const sorted = Object.entries(supStats).sort((a, b) => b[1].total - a[1].total);
         const tbody = document.getElementById('kpi-all-suppliers-table');
         const getP = (val, tot) => tot > 0 ? ((val/tot)*100).toFixed(1) + '%' : '0%';
-
         if(tbody) {
             tbody.innerHTML = sorted.length ? sorted.map(([name, stats]) => `
                 <tr class="hover:bg-slate-50 transition-colors border-t border-slate-50">
                     <td class="p-5 font-bold text-slate-700">${name}</td>
                     <td class="p-5 text-center font-black text-slate-700">${stats.total}</td>
-                    <td class="p-5 text-center">
-                        <div class="font-bold text-emerald-600">${stats.ontime}</div>
-                        <div class="text-[10px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-md inline-block mt-0.5">${getP(stats.ontime, stats.total)}</div>
-                    </td>
-                    <td class="p-5 text-center">
-                        <div class="font-bold text-rose-600">${stats.late}</div>
-                        <div class="text-[10px] font-bold text-rose-500 bg-rose-50 px-2 py-0.5 rounded-md inline-block mt-0.5">${getP(stats.late, stats.total)}</div>
-                    </td>
-                    <td class="p-5 text-center">
-                        <div class="font-bold text-amber-500">${stats.unplanned}</div>
-                        <div class="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md inline-block mt-0.5">${getP(stats.unplanned, stats.total)}</div>
-                    </td>
+                    <td class="p-5 text-center"><div class="font-bold text-emerald-600">${stats.ontime}</div><div class="text-[10px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-md inline-block mt-0.5">${getP(stats.ontime, stats.total)}</div></td>
+                    <td class="p-5 text-center"><div class="font-bold text-rose-600">${stats.late}</div><div class="text-[10px] font-bold text-rose-500 bg-rose-50 px-2 py-0.5 rounded-md inline-block mt-0.5">${getP(stats.late, stats.total)}</div></td>
+                    <td class="p-5 text-center"><div class="font-bold text-amber-500">${stats.unplanned}</div><div class="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md inline-block mt-0.5">${getP(stats.unplanned, stats.total)}</div></td>
                 </tr>
             `).join('') : '<tr><td colspan="5" class="p-10 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">ไม่มีข้อมูลซัพพลายเออร์</td></tr>';
         }
@@ -1295,59 +1144,26 @@
       const canvas = document.getElementById('kpiPieChart');
       if(!canvas || typeof Chart === 'undefined') return;
       const ctx = canvas.getContext('2d');
-      
       if (kpiPieChart) kpiPieChart.destroy();
-      
       if(ontime === 0 && late === 0 && unplanned === 0 && pickup === 0) {
-          kpiPieChart = new Chart(ctx, { 
-              type:'doughnut', 
-              data:{ labels:['ไม่มีข้อมูล'], datasets:[{ data:[1], backgroundColor:['#f1f5f9'] }] }, 
-              options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } } } 
-          });
+          kpiPieChart = new Chart(ctx, { type:'doughnut', data:{ labels:['ไม่มีข้อมูล'], datasets:[{ data:[1], backgroundColor:['#f1f5f9'] }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } } } });
           return;
       }
-      
-      kpiPieChart = new Chart(ctx, { 
-         type:'doughnut', 
-         data:{ 
-             labels:['ตรงเวลา/ก่อนเวลา', 'ล่าช้า', 'นอกแผน', 'Pickup'], 
-             datasets:[{ 
-                 data:[ontime, late, unplanned, pickup], 
-                 backgroundColor:['#10b981', '#f43f5e', '#f59e0b', '#3b82f6'], 
-                 borderWidth:0, 
-                 hoverOffset: 4 
-             }] 
-         }, 
-         options:{ 
-             responsive:true, 
-             maintainAspectRatio:false, 
-             plugins:{ legend:{ position:'bottom', labels:{ font:{ family:'Prompt' } } } }, 
-             cutout: '70%' 
-         } 
-      });
+      kpiPieChart = new Chart(ctx, { type:'doughnut', data:{ labels:['ตรงเวลา/ก่อนเวลา', 'ล่าช้า', 'นอกแผน', 'Pickup'], datasets:[{ data:[ontime, late, unplanned, pickup], backgroundColor:['#10b981', '#f43f5e', '#f59e0b', '#3b82f6'], borderWidth:0, hoverOffset: 4 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ font:{ family:'Prompt' } } } }, cutout: '70%' } });
     }
 
     function updateDailyHistoryList() {
       const container = document.getElementById('daily-history-list');
       if (!container) return;
-      
       let html = '<h3 class="font-bold text-slate-800 mt-10 mb-6">รายละเอียดประวัติ (7 วันล่าสุด)</h3>';
-      
       for (let i = 0; i < 7; i++) {
-        const d = new Date(); 
-        d.setDate(d.getDate() - i);
-        
+        const d = new Date(); d.setDate(d.getDate() - i);
         const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
         const bkk = new Date(utc + (3600000 * 7));
-        const y = bkk.getFullYear();
-        const m = String(bkk.getMonth() + 1).padStart(2, '0');
-        const day = String(bkk.getDate()).padStart(2, '0');
+        const y = bkk.getFullYear(); const m = String(bkk.getMonth() + 1).padStart(2, '0'); const day = String(bkk.getDate()).padStart(2, '0');
         const dateStr = `${y}-${m}-${day}`;
-        
         const label = bkk.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
-        
         const dayRecords = allData.filter(r => r.date === dateStr && (r.status === 'completed' || r.status === 'exited' || r.status === 'cancelled')).sort((a,b) => parseInt(b.queue_number) - parseInt(a.queue_number));
-        
         if (dayRecords.length > 0) {
           html += `
             <div class="bg-white rounded-3xl shadow-sm overflow-hidden border border-slate-100 mb-4">
@@ -1362,7 +1178,7 @@
                       <span class="font-black text-slate-300 w-8 text-center text-sm">#${r.queue_number}</span>
                       <div>
                         <div class="font-bold text-slate-700 text-sm tracking-tight">${r.company_name} <span class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">${r.license_plate || '-'}</span></div>
-                        <div class="text-[10px] text-slate-400 font-medium">เข้า: ${formatThaiTime(r.checkin_time)}</div>
+                        <div class="text-[10px] text-slate-400 font-medium">เข้า: ${formatThaiTime(r.checkin_time)}${r.factory ? ` · 🏭 ${r.factory}` : ''}</div>
                       </div>
                     </div>
                     <div class="flex flex-col items-end gap-1 text-right">
@@ -1380,50 +1196,29 @@
     function updateMonthlySummary() {
       const selValue = document.getElementById('month-selector').value;
       if(!selValue) return;
-      
-      const parts = selValue.split('-');
-      const year = parts[0]; 
-      const month = parts[1];
-      
+      const parts = selValue.split('-'); const year = parts[0]; const month = parts[1];
       const mData = allData.filter(r => {
         if(!r.date || r.status === 'cancelled') return false;
         const dParts = r.date.split('-');
         return dParts[0] === year && dParts[1] === month;
       });
-      
       const countsMap = {};
       mData.forEach(r => countsMap[r.company_name] = (countsMap[r.company_name] || 0) + 1);
       const sorted = Object.entries(countsMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
-      
       const tbody = document.getElementById('top-suppliers-table');
       if(tbody) {
           tbody.innerHTML = sorted.length ? sorted.map(([name, count], i) => {
             const pct = mData.length > 0 ? ((count / mData.length) * 100).toFixed(1) : 0;
-            const barColor = 'bg-indigo-600';
             return `<tr>
                 <td class="p-5 font-black text-slate-300 text-lg">${i+1}</td>
                 <td class="p-5 font-bold text-slate-700">${name}</td>
                 <td class="p-5 text-center font-black">${count}</td>
-                <td class="p-5">
-                    <div class="flex items-center gap-2">
-                        <div class="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                            <div class="${barColor} h-full" style="width:${pct}%"></div>
-                        </div>
-                        <span class="text-[9px] font-bold text-slate-400">${pct}%</span>
-                    </div>
-                </td>
+                <td class="p-5"><div class="flex items-center gap-2"><div class="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden"><div class="bg-indigo-600 h-full" style="width:${pct}%"></div></div><span class="text-[9px] font-bold text-slate-400">${pct}%</span></div></td>
             </tr>`;
           }).join('') : '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[9px]">ไม่มีข้อมูลสถิติ</td></tr>';
       }
-      
-      const mc = document.getElementById('month-count'); 
-      const mu = document.getElementById('month-unique'); 
-      const mt = document.getElementById('month-top-supplier');
-      
-      if(mc) mc.innerText = mData.length; 
-      if(mu) mu.innerText = Object.keys(countsMap).length; 
-      if(mt) mt.innerText = sorted[0] ? sorted[0][0] : '-';
-      
+      const mc = document.getElementById('month-count'); const mu = document.getElementById('month-unique'); const mt = document.getElementById('month-top-supplier');
+      if(mc) mc.innerText = mData.length; if(mu) mu.innerText = Object.keys(countsMap).length; if(mt) mt.innerText = sorted[0] ? sorted[0][0] : '-';
       updateMonthlyChart(year, month, mData);
     }
 
@@ -1431,89 +1226,40 @@
       const canvas = document.getElementById('monthlyChart');
       if(!canvas || typeof Chart === 'undefined') return;
       const ctx = canvas.getContext('2d');
-      
       const days = new Date(parseInt(y), parseInt(m), 0).getDate();
-      const counts =[];
+      const counts = [];
       for(let i = 1; i <= days; i++) {
          const dateStr = `${y}-${String(m).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
          counts.push(data.filter(r => r.date === dateStr).length);
       }
-
       if (monthlyChart) monthlyChart.destroy();
-      
-      const chartColor = '#4f46e5';
-      const chartBg = 'rgba(79,70,229,0.05)';
-      const labels =[]; 
-      for(let i=1; i<=days; i++) labels.push(i);
-
-      monthlyChart = new Chart(ctx, { 
-          type:'line', 
-          data:{ 
-              labels: labels, 
-              datasets:[{ 
-                  label:'คิว', 
-                  data:counts, 
-                  borderColor:chartColor, 
-                  borderWidth:3, 
-                  pointRadius:0, 
-                  fill:true, 
-                  tension:0.4, 
-                  backgroundColor:chartBg 
-              }] 
-          }, 
-          options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 } } } } 
-      });
+      const labels = []; for(let i=1; i<=days; i++) labels.push(i);
+      monthlyChart = new Chart(ctx, { type:'line', data:{ labels, datasets:[{ label:'คิว', data:counts, borderColor:'#4f46e5', borderWidth:3, pointRadius:0, fill:true, tension:0.4, backgroundColor:'rgba(79,70,229,0.05)' }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 } } } } });
     }
 
     function updateDailyChart() {
       const canvas = document.getElementById('dailyChart');
       if(!canvas || typeof Chart === 'undefined') return;
       const ctx = canvas.getContext('2d');
-      
-      const labels =[]; 
-      const counts =[];
-      
+      const labels = []; const counts = [];
       for (let i = 6; i >= 0; i--) {
-        const d = new Date(); 
-        d.setDate(d.getDate() - i);
-        
+        const d = new Date(); d.setDate(d.getDate() - i);
         const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
         const bkk = new Date(utc + (3600000 * 7));
-        const y = bkk.getFullYear();
-        const m = String(bkk.getMonth() + 1).padStart(2, '0');
-        const day = String(bkk.getDate()).padStart(2, '0');
+        const y = bkk.getFullYear(); const m = String(bkk.getMonth() + 1).padStart(2, '0'); const day = String(bkk.getDate()).padStart(2, '0');
         const dateStr = `${y}-${m}-${day}`;
-        
         labels.push(bkk.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }));
         counts.push(allData.filter(r => r.date === dateStr && r.status !== 'cancelled').length);
       }
-      
       if (dailyChart) dailyChart.destroy();
-      const chartColor = '#4f46e5';
-      
-      dailyChart = new Chart(ctx, { 
-          type:'bar', 
-          data:{ 
-              labels, 
-              datasets:[{ 
-                  label:'คิว', 
-                  data:counts, 
-                  backgroundColor:chartColor, 
-                  borderRadius:8 
-              }] 
-          }, 
-          options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 } } } } 
-      });
+      dailyChart = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{ label:'คิว', data:counts, backgroundColor:'#4f46e5', borderRadius:8 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 } } } } });
     }
 
     function getThaiDate() { 
         const d = new Date();
         const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
         const nd = new Date(utc + (3600000 * 7));
-        const y = nd.getFullYear();
-        const m = String(nd.getMonth() + 1).padStart(2, '0');
-        const day = String(nd.getDate()).padStart(2, '0');
-        return `${y}-${m}-${day}`;
+        return `${nd.getFullYear()}-${String(nd.getMonth() + 1).padStart(2, '0')}-${String(nd.getDate()).padStart(2, '0')}`;
     }
     
     function formatThaiTime(iso) { 
@@ -1530,27 +1276,12 @@
       currentSupplierRecord = null; 
       safeRemoveLocal('my_active_queue');
       safeRemoveSession('qr_auto_triggered'); 
-      
-      if (!COMPANY_FROM_URL) { 
-          const sn = document.getElementById('supplier-name');
-          if(sn) { sn.value = ''; sn.readOnly = false; }
-      }
-      if (!LICENSE_FROM_URL) { 
-          const sl = document.getElementById('supplier-license');
-          if(sl) { sl.value = ''; sl.readOnly = false; }
-      }
-      
-      const f = document.getElementById('checkin-form');
-      const s = document.getElementById('queue-status');
-      
-      if(f) f.classList.remove('hidden'); 
-      if(s) s.classList.add('hidden'); 
-      
+      if (!COMPANY_FROM_URL) { const sn = document.getElementById('supplier-name'); if(sn) { sn.value = ''; sn.readOnly = false; } }
+      if (!LICENSE_FROM_URL) { const sl = document.getElementById('supplier-license'); if(sl) { sl.value = ''; sl.readOnly = false; } }
+      const f = document.getElementById('checkin-form'); const s = document.getElementById('queue-status');
+      if(f) f.classList.remove('hidden'); if(s) s.classList.add('hidden'); 
       const btn = document.getElementById('checkin-btn');
-      if(btn) { 
-          btn.disabled = false; 
-          btn.innerText = 'รับหมายเลขคิว'; 
-      }
+      if(btn) { btn.disabled = false; btn.innerText = 'รับหมายเลขคิว'; }
     }
   </script>
 </body>
