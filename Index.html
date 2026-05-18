@@ -594,7 +594,7 @@
       callAPI('readAllData').then(res => {
         if (res && res.success) {
           allData = res.data || [];
-          if (res.plans) globalPlanData = res.plans;
+          if (res.plans) globalPlanData = res.plans; // legacy — ไม่ใช้แล้ว
           if (res.parts) allPartData = res.parts || [];
           refreshUI();
         }
@@ -1823,6 +1823,38 @@
     // ==========================================
     // STAFF UI
     // ==========================================
+    // คำนวณ plan_status จาก PartDetail (แทน WeeklyPlan)
+    function getPlanStatusFromParts(companyName, date) {
+      const parts = allPartData.filter(p => String(p.date||'').trim() === date);
+      if (parts.length === 0) return 'นอกแผน';
+
+      const match = parts.find(p => {
+        const pv = String(p.vendor||'').toLowerCase().trim();
+        const cn = companyName.toLowerCase().trim();
+        if (pv === cn) return true;
+        if (pv.includes(normalizeVendor(cn)) || normalizeVendor(cn).includes(normalizeVendor(pv))) return true;
+        return vendorScore(pv, cn) >= 60;
+      });
+      if (!match) return 'นอกแผน';
+
+      const slot = String(match.time_slot||'').toUpperCase().trim();
+      const now  = new Date();
+      const utc  = now.getTime() + (now.getTimezoneOffset() * 60000);
+      const bkk  = new Date(utc + (3600000 * 7));
+      const tf   = bkk.getHours() + (bkk.getMinutes() / 60);
+
+      if (slot.includes('PICK')) return 'Pickup';
+      if (slot === 'AM') {
+        return tf > 11.5 ? 'AM - ล่าช้า' : 'AM - ตรงเวลา';
+      }
+      if (slot === 'PM') {
+        if (tf < 13.25)  return 'PM - มาก่อนเวลา';
+        if (tf > 17.33)  return 'PM - ล่าช้า';
+        return 'PM - ตรงเวลา';
+      }
+      return 'นอกแผน';
+    }
+
     const getPlanBadge = (planStatus) => {
       if (!planStatus) return '';
       if (planStatus.includes('ตรงเวลา')) return `<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded shadow-sm text-[9px] font-bold border border-emerald-200 whitespace-nowrap">${planStatus}</span>`;
@@ -1895,20 +1927,38 @@
 
       // Banner
       const banner = document.getElementById('plan-summary-banner');
-      if (globalPlanData && globalPlanData.length > 0 && banner) {
+      // อ่านจาก PartDetail (allPartData) แทน WeeklyPlan
+      const todayParts = allPartData.filter(p => String(p.date||'').trim() === today);
+
+      if (todayParts.length > 0 && banner) {
         banner.classList.remove('hidden');
-        const todayPlans = globalPlanData.filter(p => p.length >= 3 && String(p[0]).replace(/\//g, '-').trim() === today);
-        const arrivedToday = allData.filter(r => r.date === today && r.status !== 'cancelled');
+
+        // group vendor unique ตามวันนี้
+        const plannedVendors = [...new Map(todayParts.map(p => [
+          String(p.vendor||'').toLowerCase().trim(),
+          { name: String(p.vendor||'').trim(), time: String(p.time_slot||'').trim() }
+        ])).values()];
+
+        const arrivedToday    = allData.filter(r => r.date === today && r.status !== 'cancelled');
         const arrivedCompanies = arrivedToday.map(r => String(r.company_name).trim().toLowerCase());
-        let arrivedCount = 0; let pendingList = [];
-        todayPlans.forEach(p => {
-          const comp = String(p[2]).trim(); const planTime = String(p[1]).trim();
-          if (arrivedCompanies.includes(comp.toLowerCase())) { arrivedCount++; } else { pendingList.push(`${comp} (${planTime})`); }
+
+        let arrivedCount = 0;
+        const pendingList = [];
+        plannedVendors.forEach(v => {
+          const normV = normalizeVendor(v.name);
+          const came  = arrivedCompanies.some(a => {
+            if (a === v.name.toLowerCase()) return true;
+            if (a.includes(normV) || normV.includes(normalizeVendor(a))) return true;
+            return vendorScore(a, v.name) >= 60;
+          });
+          if (came) { arrivedCount++; }
+          else { pendingList.push(v.name + (v.time ? ' (' + v.time + ')' : '')); }
         });
-        const pTotal = document.getElementById('plan-total');
+
+        const pTotal   = document.getElementById('plan-total');
         const pArrived = document.getElementById('plan-arrived');
         const pPending = document.getElementById('plan-pending-list');
-        if (pTotal) pTotal.innerText = todayPlans.length;
+        if (pTotal)   pTotal.innerText   = plannedVendors.length;
         if (pArrived) pArrived.innerText = arrivedCount;
         if (pPending) {
           pPending.innerHTML = pendingList.length > 0
