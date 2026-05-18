@@ -189,6 +189,7 @@
           <button type="button" onclick="showStaffTab('daily')" id="tab-daily" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">สรุปวันนี้</button>
           <button type="button" onclick="showStaffTab('monthly')" id="tab-monthly" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">สถิติรายเดือน</button>
           <button type="button" onclick="showStaffTab('kpi')" id="tab-kpi" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">สรุปผลภาพรวมทั้งหมด</button>
+          <button type="button" onclick="showStaffTab('parts')" id="tab-parts" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📦 Parts Dashboard</button>
         </div>
       </div>
 
@@ -285,6 +286,115 @@
          </div>
       </div>
     </div>
+
+      <!-- Tab: Parts Dashboard -->
+      <div id="page-parts" class="max-w-6xl mx-auto p-4 hidden space-y-6 text-left fade-in">
+
+        <!-- Filters -->
+        <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex flex-wrap gap-4 items-end">
+          <div>
+            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">เดือน</label>
+            <select id="parts-month" onchange="updatePartsDashboard()" class="border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[160px]"></select>
+          </div>
+          <div>
+            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Supplier</label>
+            <select id="parts-supplier" onchange="updatePartsDashboard()" class="border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[200px]"></select>
+          </div>
+          <button type="button" onclick="updatePartsDashboard()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs cursor-pointer transition-colors">🔄 รีเฟรช</button>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div class="bg-white p-5 rounded-3xl shadow-sm border">
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">พาร์ททั้งหมด</div>
+            <div id="pd-total" class="text-4xl font-black text-slate-700">0</div>
+            <div class="text-[10px] text-slate-400 mt-1">รายการ</div>
+          </div>
+          <div class="bg-emerald-50 p-5 rounded-3xl shadow-sm border border-emerald-100">
+            <div class="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">ได้ครบ</div>
+            <div id="pd-completed" class="text-4xl font-black text-emerald-600">0</div>
+            <div id="pd-completed-pct" class="text-sm font-black text-emerald-400 mt-1">0%</div>
+          </div>
+          <div class="bg-amber-50 p-5 rounded-3xl shadow-sm border border-amber-100">
+            <div class="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">ได้ไม่ครบ</div>
+            <div id="pd-short" class="text-4xl font-black text-amber-500">0</div>
+            <div id="pd-short-pct" class="text-sm font-black text-amber-400 mt-1">0%</div>
+          </div>
+          <div class="bg-rose-50 p-5 rounded-3xl shadow-sm border border-rose-100">
+            <div class="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1">ไม่ได้รับ</div>
+            <div id="pd-missing" class="text-4xl font-black text-rose-500">0</div>
+            <div id="pd-missing-pct" class="text-sm font-black text-rose-400 mt-1">0%</div>
+          </div>
+        </div>
+
+        <!-- Chart + Supplier Table -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+
+          <!-- Donut Chart -->
+          <div class="md:col-span-2 bg-white p-6 rounded-3xl shadow-sm border">
+            <h3 class="font-bold text-slate-700 mb-4 text-sm">สัดส่วนการรับพาร์ท</h3>
+            <div class="h-56 relative"><canvas id="partsDonutChart"></canvas></div>
+            <!-- QTY summary -->
+            <div class="mt-4 grid grid-cols-2 gap-2 text-center text-xs">
+              <div class="bg-slate-50 rounded-xl p-2 border">
+                <div class="font-black text-slate-400 text-[9px] uppercase">QTY แผน</div>
+                <div id="pd-qty-plan" class="font-black text-slate-700 text-lg">0</div>
+              </div>
+              <div class="bg-emerald-50 rounded-xl p-2 border border-emerald-100">
+                <div class="font-black text-emerald-400 text-[9px] uppercase">QTY รับจริง</div>
+                <div id="pd-qty-received" class="font-black text-emerald-600 text-lg">0</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Supplier Summary Table -->
+          <div class="md:col-span-3 bg-white rounded-3xl shadow-sm border overflow-hidden">
+            <h3 class="font-bold text-slate-700 p-5 border-b text-sm">สรุปรายซัพพลายเออร์</h3>
+            <div class="overflow-x-auto max-h-[360px]">
+              <table class="w-full text-left">
+                <thead class="sticky top-0 bg-slate-50">
+                  <tr class="text-slate-400 text-[9px] font-black uppercase tracking-widest">
+                    <th class="px-4 py-3">Supplier</th>
+                    <th class="px-4 py-3 text-center">รายการ</th>
+                    <th class="px-4 py-3 text-center text-emerald-600">ครบ</th>
+                    <th class="px-4 py-3 text-center text-amber-500">ไม่ครบ</th>
+                    <th class="px-4 py-3 text-center text-rose-500">ไม่ได้รับ</th>
+                    <th class="px-4 py-3 text-center">% ครบ</th>
+                  </tr>
+                </thead>
+                <tbody id="pd-supplier-table" class="divide-y divide-slate-50 text-sm"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detail Table -->
+        <div class="bg-white rounded-3xl shadow-sm border overflow-hidden">
+          <div class="p-5 border-b flex items-center justify-between">
+            <h3 class="font-bold text-slate-700 text-sm">รายละเอียดพาร์ทแต่ละรายการ</h3>
+            <span id="pd-detail-count" class="text-[10px] font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">0 รายการ</span>
+          </div>
+          <div class="overflow-x-auto max-h-[500px]">
+            <table class="w-full text-left">
+              <thead class="sticky top-0 bg-slate-50 z-10">
+                <tr class="text-slate-400 text-[9px] font-black uppercase tracking-widest">
+                  <th class="px-4 py-3">วันที่</th>
+                  <th class="px-4 py-3">Supplier</th>
+                  <th class="px-4 py-3">PO No.</th>
+                  <th class="px-4 py-3">Part No.</th>
+                  <th class="px-4 py-3 text-center">แผน</th>
+                  <th class="px-4 py-3 text-center">จริง</th>
+                  <th class="px-4 py-3 text-center">สถานะ</th>
+                  <th class="px-4 py-3">หมายเหตุ</th>
+                </tr>
+              </thead>
+              <tbody id="pd-detail-table" class="divide-y divide-slate-50 text-xs"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- end staff-view -->
 
     <!-- ================= ส่วน PIC / จัดซื้อ ================= -->
     <div id="pic-view" class="min-h-full hidden pb-10 fade-in">
@@ -2146,7 +2256,7 @@
     // STAFF TABS
     // ==========================================
     function showStaffTab(tab) {
-      ['queue','daily','monthly','kpi'].forEach(t => {
+      ['queue','daily','monthly','kpi','parts'].forEach(t => {
         const p = document.getElementById('page-' + t);
         const b = document.getElementById('tab-' + t);
         if (p) p.classList.toggle('hidden', t !== tab);
@@ -2155,6 +2265,7 @@
       if (tab === 'daily') { updateDailyChart(); updateDailyHistoryList(); }
       if (tab === 'monthly') { populateMonthSelector('month-selector'); updateMonthlySummary(); }
       if (tab === 'kpi') { populateMonthSelector('kpi-month'); populateSupplierSelector('kpi-supplier'); updateKPIUI(); }
+      if (tab === 'parts') { populatePartsDashboardFilters(); updatePartsDashboard(); }
     }
 
     function populateMonthSelector(elementId) {
@@ -2368,6 +2479,224 @@
     }
 
     // ==========================================
+    // PARTS DASHBOARD
+    // ==========================================
+    let partsDonutChart = null;
+
+    function populatePartsDashboardFilters() {
+      // Month selector
+      const mSel = document.getElementById('parts-month');
+      if (mSel && mSel.options.length === 0) {
+        mSel.add(new Option('ทุกเดือน', 'ALL'));
+        const now = new Date();
+        for (let i = 0; i < 12; i++) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          mSel.add(new Option(
+            d.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' }),
+            `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
+          ));
+        }
+      }
+
+      // Supplier selector
+      const sSel = document.getElementById('parts-supplier');
+      if (!sSel) return;
+      const currentVal = sSel.value;
+      sSel.innerHTML = '<option value="ALL">ทั้งหมด</option>';
+      const vendors = [...new Set(allPartData.map(p => p.vendor).filter(Boolean))].sort();
+      vendors.forEach(v => sSel.add(new Option(v, v)));
+      if (currentVal && vendors.includes(currentVal)) sSel.value = currentVal;
+    }
+
+    function getPartStatusBadge(status) {
+      const map = {
+        'completed': '<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-lg text-[9px] font-black">ครบ ✅</span>',
+        'short':     '<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-lg text-[9px] font-black">ไม่ครบ ⚠️</span>',
+        'missing':   '<span class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-lg text-[9px] font-black">ไม่ได้รับ ❌</span>',
+        'unplanned': '<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-lg text-[9px] font-black">นอกแผน 📋</span>',
+        'pending':   '<span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded-lg text-[9px] font-black">รอยืนยัน ⏳</span>',
+      };
+      return map[status] || map['pending'];
+    }
+
+    function updatePartsDashboard() {
+      if (!allPartData) return;
+
+      const mVal = document.getElementById('parts-month')?.value || 'ALL';
+      const sVal = document.getElementById('parts-supplier')?.value || 'ALL';
+
+      // Filter
+      const filtered = allPartData.filter(p => {
+        if (mVal !== 'ALL') {
+          const parts = mVal.split('-');
+          const dp = String(p.date||'').split('-');
+          if (dp[0] !== parts[0] || dp[1] !== parts[1]) return false;
+        }
+        if (sVal !== 'ALL' && String(p.vendor||'') !== sVal) return false;
+        return true;
+      });
+
+      // Counts
+      const total     = filtered.length;
+      const completed = filtered.filter(p => p.status === 'completed').length;
+      const short     = filtered.filter(p => p.status === 'short').length;
+      const missing   = filtered.filter(p => p.status === 'missing').length;
+      const pending   = filtered.filter(p => !p.status || p.status === 'pending').length;
+
+      const pct = (v) => total > 0 ? ((v/total)*100).toFixed(1)+'%' : '0%';
+
+      // QTY totals
+      const qtyPlan     = filtered.reduce((s,p) => s + (parseFloat(String(p.qty_plan||'0').replace(/,/g,''))||0), 0);
+      const qtyReceived = filtered.reduce((s,p) => s + (parseFloat(String(p.qty_received||'0').replace(/,/g,''))||0), 0);
+
+      // Update summary cards
+      const set = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
+      set('pd-total',          total);
+      set('pd-completed',      completed);
+      set('pd-completed-pct',  pct(completed));
+      set('pd-short',          short);
+      set('pd-short-pct',      pct(short));
+      set('pd-missing',        missing);
+      set('pd-missing-pct',    pct(missing));
+      set('pd-qty-plan',       qtyPlan.toLocaleString());
+      set('pd-qty-received',   qtyReceived.toLocaleString());
+
+      // Donut chart
+      updatePartsDonutChart(completed, short, missing, pending);
+
+      // Supplier summary table
+      updatePartsSupplierTable(filtered);
+
+      // Detail table
+      updatePartsDetailTable(filtered);
+    }
+
+    function updatePartsDonutChart(completed, short, missing, pending) {
+      const canvas = document.getElementById('partsDonutChart');
+      if (!canvas || typeof Chart === 'undefined') return;
+      const ctx = canvas.getContext('2d');
+      if (partsDonutChart) partsDonutChart.destroy();
+
+      const total = completed + short + missing + pending;
+      if (total === 0) {
+        partsDonutChart = new Chart(ctx, {
+          type: 'doughnut',
+          data: { labels: ['ไม่มีข้อมูล'], datasets: [{ data: [1], backgroundColor: ['#f1f5f9'] }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+        return;
+      }
+
+      partsDonutChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['ครบ', 'ไม่ครบ', 'ไม่ได้รับ', 'รอยืนยัน'],
+          datasets: [{
+            data: [completed, short, missing, pending],
+            backgroundColor: ['#10b981', '#f59e0b', '#f43f5e', '#cbd5e1'],
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '72%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { font: { family: 'Prompt', size: 11 }, padding: 12, boxWidth: 12 }
+            }
+          }
+        }
+      });
+    }
+
+    function updatePartsSupplierTable(filtered) {
+      const tbody = document.getElementById('pd-supplier-table');
+      if (!tbody) return;
+
+      // Group by vendor
+      const map = {};
+      filtered.forEach(p => {
+        const v = p.vendor || '(ไม่ระบุ)';
+        if (!map[v]) map[v] = { total:0, completed:0, short:0, missing:0, pending:0, qtyPlan:0, qtyRecv:0 };
+        map[v].total++;
+        const st = p.status || 'pending';
+        if (st === 'completed') map[v].completed++;
+        else if (st === 'short') map[v].short++;
+        else if (st === 'missing') map[v].missing++;
+        else map[v].pending++;
+        map[v].qtyPlan += parseFloat(String(p.qty_plan||0).replace(/,/g,''))||0;
+        map[v].qtyRecv += parseFloat(String(p.qty_received||0).replace(/,/g,''))||0;
+      });
+
+      const sorted = Object.entries(map).sort((a,b) => b[1].total - a[1].total);
+      if (sorted.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-300 text-xs font-bold uppercase">ไม่มีข้อมูล</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = sorted.map(([vendor, s]) => {
+        const completedPct = s.total > 0 ? ((s.completed / s.total)*100).toFixed(0) : 0;
+        const barColor = completedPct >= 90 ? '#10b981' : completedPct >= 60 ? '#f59e0b' : '#f43f5e';
+        return `<tr class="hover:bg-slate-50 transition-colors">
+          <td class="px-4 py-3 font-bold text-slate-700">${vendor}</td>
+          <td class="px-4 py-3 text-center font-black text-slate-600">${s.total}</td>
+          <td class="px-4 py-3 text-center font-bold text-emerald-600">${s.completed}</td>
+          <td class="px-4 py-3 text-center font-bold text-amber-500">${s.short}</td>
+          <td class="px-4 py-3 text-center font-bold text-rose-500">${s.missing}</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div class="h-full rounded-full transition-all" style="width:${completedPct}%;background:${barColor}"></div>
+              </div>
+              <span class="text-[10px] font-black w-8 text-right" style="color:${barColor}">${completedPct}%</span>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function updatePartsDetailTable(filtered) {
+      const tbody  = document.getElementById('pd-detail-table');
+      const countEl = document.getElementById('pd-detail-count');
+      if (!tbody) return;
+      if (countEl) countEl.innerText = `${filtered.length} รายการ`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-300 text-xs font-bold uppercase">ไม่มีข้อมูล</td></tr>';
+        return;
+      }
+
+      // Sort: date desc, vendor asc
+      const sorted = [...filtered].sort((a,b) => {
+        if (b.date > a.date) return 1;
+        if (b.date < a.date) return -1;
+        return String(a.vendor||'').localeCompare(String(b.vendor||''));
+      });
+
+      tbody.innerHTML = sorted.map(p => {
+        const qtyPlan = parseFloat(String(p.qty_plan||0).replace(/,/g,''))||0;
+        const qtyRecv = parseFloat(String(p.qty_received||0).replace(/,/g,''))||0;
+        const recvColor = !p.status || p.status==='pending' ? 'text-slate-400'
+          : p.status==='completed' ? 'text-emerald-600 font-black'
+          : p.status==='short' ? 'text-amber-500 font-bold'
+          : 'text-rose-500 font-bold';
+        return `<tr class="hover:bg-slate-50 transition-colors">
+          <td class="px-4 py-2.5 text-slate-500 whitespace-nowrap">${p.date||'-'}</td>
+          <td class="px-4 py-2.5 font-bold text-slate-700 max-w-[120px] truncate">${p.vendor||'-'}</td>
+          <td class="px-4 py-2.5 font-mono text-slate-400 text-[10px]">${p.po_no||'-'}</td>
+          <td class="px-4 py-2.5 font-mono font-bold text-violet-700">${p.part_no||'-'}</td>
+          <td class="px-4 py-2.5 text-center font-bold text-slate-600">${qtyPlan.toLocaleString()}</td>
+          <td class="px-4 py-2.5 text-center ${recvColor}">${p.status && p.status!=='pending' ? qtyRecv.toLocaleString() : '-'}</td>
+          <td class="px-4 py-2.5">${getPartStatusBadge(p.status||'pending')}</td>
+          <td class="px-4 py-2.5 text-slate-400 text-[10px] max-w-[120px] truncate">${p.remark||p.approved_by ? (p.approved_by ? '👤 '+p.approved_by : '') + (p.remark ? ' '+p.remark : '') : '-'}</td>
+        </tr>`;
+      }).join('');
+    }
+
+        // ==========================================
     // UTILITIES
     // ==========================================
     function getThaiDate() {
