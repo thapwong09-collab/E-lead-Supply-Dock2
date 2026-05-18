@@ -1571,7 +1571,11 @@
       if (btn) { btn.disabled = false; btn.innerText = '💾 บันทึกแผน'; }
 
       if (result && result.success) {
-        showToast('บันทึกแผนเรียบร้อย ✅');
+        // Auto-sync PIC+Vendor → หน้าความรับผิดชอบ PIC
+        const savedRows = getPICTableData();
+        const synced = syncPicMasterFromRows(savedRows);
+
+        showToast('บันทึกแผนเรียบร้อย ✅' + (synced ? ' · อัปเดตความรับผิดชอบ PIC แล้ว' : ''));
         // Clear table
         picRows.forEach(id => { const tr = document.getElementById(`pic-row-${id}`); if (tr) tr.remove(); });
         picRows = [];
@@ -3172,6 +3176,51 @@
         const d = localStorage.getItem('pic_master_data');
         return d ? JSON.parse(d) : { pics: [] };
       } catch(e) { return { pics: [] }; }
+    }
+
+    // Auto-sync จาก rows ที่ PIC กรอกมา → หน้าความรับผิดชอบ PIC
+    function syncPicMasterFromRows(rows) {
+      if (!rows || rows.length === 0) return;
+      const data = getPmData();
+      let changed = false;
+
+      rows.forEach(r => {
+        const picName    = String(r.pic    || '').trim();
+        const vendorName = String(r.vendor || '').trim();
+        if (!picName || !vendorName) return;
+
+        // หา PIC card ที่มีอยู่ (case-insensitive)
+        let picCard = data.pics.find(p =>
+          p.name.toLowerCase() === picName.toLowerCase()
+        );
+
+        // ถ้ายังไม่มี → สร้างใหม่
+        if (!picCard) {
+          picCard = { name: picName, suppliers: [] };
+          data.pics.push(picCard);
+          changed = true;
+        }
+
+        // ตรวจ Supplier ว่ามีในการ์ดนั้นแล้วไหม
+        const alreadyHas = picCard.suppliers.some(s =>
+          s.toLowerCase() === vendorName.toLowerCase()
+        );
+        if (!alreadyHas) {
+          picCard.suppliers.push(vendorName);
+          changed = true;
+        }
+      });
+
+      if (changed) {
+        savePmData(data);
+        // ถ้าอยู่หน้า pic-master อยู่ให้ refresh ทันที
+        const masterPage = document.getElementById('pic-page-pic-master');
+        if (masterPage && !masterPage.classList.contains('hidden')) {
+          updatePicMaster();
+        }
+      }
+
+      return changed;
     }
     function savePmData(data) {
       try { localStorage.setItem('pic_master_data', JSON.stringify(data)); } catch(e) {}
