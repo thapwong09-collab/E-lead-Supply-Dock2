@@ -1843,14 +1843,31 @@
 
     // ดึง Parts ของ Supplier โดย match ชื่อแบบ fuzzy
     function getPartsForSupplier(companyName, date) {
+      if (!allPartData || allPartData.length === 0) {
+        console.log('[Parts] allPartData ว่างเปล่า');
+        return [];
+      }
+      console.log('[Parts] หา:', companyName, 'วันที่:', date, '| มีทั้งหมด:', allPartData.length, 'รายการ');
+      const compLower = (companyName||'').toLowerCase().trim();
       return allPartData.filter(p => {
-        const pDate = p.date || '';
+        // match วันที่
+        const pDate = String(p.date || '').trim();
         if (pDate && date && pDate !== date) return false;
-        const pVendor = p.vendor || p.supplier || p.company_name || '';
-        // exact first
-        if (pVendor.toLowerCase() === companyName.toLowerCase()) return true;
-        // fuzzy
-        return vendorScore(pVendor, companyName) >= 70;
+        // ชื่อ vendor จาก sheet (Backend ส่งมาเป็น field ชื่อ 'vendor')
+        const pVendor = String(p.vendor || p.supplier || p.company_name || '').toLowerCase().trim();
+        if (!pVendor) return false;
+        // exact match
+        if (pVendor === compLower) return true;
+        // contains match (ทั้งสองทาง)
+        if (pVendor.includes(compLower) || compLower.includes(pVendor)) return true;
+        // normalize แล้ว contains
+        const normP = normalizeVendor(pVendor);
+        const normC = normalizeVendor(compLower);
+        if (normP && normC && (normP.includes(normC) || normC.includes(normP))) return true;
+        // fuzzy score
+        const score = vendorScore(pVendor, compLower);
+        console.log('[Parts] vendor:', pVendor, 'vs', compLower, '| score:', score);
+        return score >= 50;
       });
     }
 
@@ -1865,9 +1882,9 @@
         </div>
         ${parts.slice(0,4).map(p => `
           <div class="flex items-center gap-2 px-3 py-1 text-[9px] border-b border-violet-50 last:border-0">
-            <span class="font-mono text-slate-400 w-16 truncate">${p.po_no||p.po_number||'-'}</span>
+            <span class="font-mono text-slate-300 w-16 truncate">${p.po_no||p.po_number||'-'}</span>
             <span class="font-bold text-violet-700 flex-1 truncate">${p.part_no||p.part_number||'-'}</span>
-            <span class="font-black text-slate-600">${p.qty_plan||p.qty||'-'}</span>
+            <span class="font-black text-slate-600 w-10 text-right">${Number(p.qty_plan||p.qty||0).toLocaleString()}</span>
           </div>`).join('')}
         ${parts.length > 4 ? `<div class="px-3 py-1 text-[9px] text-slate-400 font-bold text-center">+${parts.length-4} รายการ</div>` : ''}
       </div>`;
