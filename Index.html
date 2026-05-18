@@ -885,6 +885,17 @@
     // ==========================================
     let _fetchFailCount = 0;
     let allPicMaster = []; // PIC_Master จาก Sheet
+
+    // Hash สำหรับเปรียบเทียบข้อมูล — ป้องกัน render ซ้ำเมื่อข้อมูลไม่เปลี่ยน
+    let _hashCheckin  = '';
+    let _hashParts    = '';
+    let _hashPicMaster= '';
+    let _hashSupplier = '';
+
+    function _quickHash(obj) {
+      // hash แบบเร็ว — JSON string แต่ตัดช่องว่างออก
+      try { return JSON.stringify(obj); } catch(e) { return ''; }
+    }
     function fetchAll() {
       callAPI('readAllData').then(res => {
         if (res && res.success) {
@@ -946,28 +957,67 @@
     });
 
     function refreshUI() {
-      if (isStaffLoggedIn) updateStaffUI();
+      const today = getThaiDate();
+
+      // ─── Staff ───────────────────────────────────────────
+      if (isStaffLoggedIn) {
+        // เปรียบเทียบ checkin + parts ของวันนี้เท่านั้น (เร็วกว่า hash ทั้งหมด)
+        const todayCheckin = allData.filter(r => r.date === today);
+        const todayParts   = allPartData.filter(p => String(p.date||'') === today);
+        const newHashC = _quickHash(todayCheckin);
+        const newHashP = _quickHash(todayParts);
+        if (newHashC !== _hashCheckin || newHashP !== _hashParts) {
+          _hashCheckin = newHashC;
+          _hashParts   = newHashP;
+          updateStaffUI();
+        }
+      }
+
+      // ─── PIC ─────────────────────────────────────────────
       if (isPICLoggedIn) {
-        // โหลด saved list เฉพาะตอนอยู่หน้า plan เท่านั้น
         const planPage = document.getElementById('pic-page-plan');
         if (planPage && !planPage.classList.contains('hidden')) {
-          loadTodayPICParts();
+          // saved list — เปรียบเทียบ parts วันนี้
+          const todayParts = allPartData.filter(p => String(p.date||'') === today);
+          const newHashP   = _quickHash(todayParts);
+          if (newHashP !== _hashParts) {
+            _hashParts = newHashP;
+            loadTodayPICParts();
+          }
         }
-        // refresh tab ที่ active อยู่ (ป้องกันปนหน้าอื่น)
         const activeTab = ['responsibility','pic-master'].find(t => {
           const el = document.getElementById('pic-page-' + t);
           return el && !el.classList.contains('hidden');
         });
         if (activeTab === 'responsibility') {
-          _populatePicRespFilter();
-          updatePicResponsibility();
+          const newHashP = _quickHash(allPartData);
+          if (newHashP !== _hashParts) {
+            _hashParts = newHashP;
+            _populatePicRespFilter();
+            updatePicResponsibility();
+          }
         }
-        if (activeTab === 'pic-master')     updatePicMaster();
+        if (activeTab === 'pic-master') {
+          const newHashM = _quickHash(allPicMaster);
+          if (newHashM !== _hashPicMaster) {
+            _hashPicMaster = newHashM;
+            updatePicMaster();
+          }
+        }
       }
+
+      // ─── Supplier ─────────────────────────────────────────
       if (currentSupplierRecord) {
-        const today = getThaiDate();
-        const match = allData.find(r => String(r.queue_number) === String(currentSupplierRecord.queue_number) && r.date === today);
-        if (match) updateSupplierStatusDisplay(match);
+        const match = allData.find(r =>
+          String(r.queue_number) === String(currentSupplierRecord.queue_number) && r.date === today
+        );
+        if (match) {
+          const newHashS = _quickHash(match);
+          if (newHashS !== _hashSupplier) {
+            _hashSupplier = newHashS;
+            updateSupplierStatusDisplay(match);
+          }
+        }
       }
     }
 
@@ -2409,9 +2459,16 @@
       const lWait = document.getElementById('list-waiting');
       const lLoad = document.getElementById('list-loading');
       const lComp = document.getElementById('list-completed');
-      if (lWait) lWait.innerHTML = waitList.length ? waitList.map(renderWaitCard).join('') : '<div class="text-center py-10 text-[9px] text-slate-300 font-bold uppercase tracking-widest">ไม่มีคิว</div>';
-      if (lLoad) lLoad.innerHTML = loadList.length ? loadList.map(renderLoadCard).join('') : '<div class="text-center py-10 text-[9px] text-slate-300 font-bold uppercase tracking-widest">ไม่มีคิว</div>';
-      if (lComp) lComp.innerHTML = compList.length ? compList.slice().reverse().map(r => {
+
+      // render เฉพาะ column ที่เปลี่ยน
+      const waitHTML = waitList.length ? waitList.map(renderWaitCard).join('') : '<div class="text-center py-10 text-[9px] text-slate-300 font-bold uppercase tracking-widest">ไม่มีคิว</div>';
+      const loadHTML = loadList.length ? loadList.map(renderLoadCard).join('') : '<div class="text-center py-10 text-[9px] text-slate-300 font-bold uppercase tracking-widest">ไม่มีคิว</div>';
+      if (lWait && lWait.innerHTML !== waitHTML) lWait.innerHTML = waitHTML;
+      if (lLoad && lLoad.innerHTML !== loadHTML) lLoad.innerHTML = loadHTML;
+      const compKey = compList.map(r=>r.queue_number+r.status).join('|');
+      if (lComp && (lComp.dataset.key !== compKey)) {
+        lComp.dataset.key = compKey;
+        lComp.innerHTML = compList.length ? compList.slice().reverse().map(r => {
         const statusBadge = r.status === 'exited'
           ? `<span class="text-[8px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">ออกแล้ว</span>`
           : `<span class="text-[8px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200 pulse-dot">รอสแกนออก</span>`;
@@ -2431,13 +2488,15 @@
           </div>
         </div>`;
       }).join('') : '<div class="text-center py-10 text-[9px] text-slate-300 font-bold tracking-widest uppercase">ไม่มีประวัติ</div>';
+      }
 
       const stTotal = document.getElementById('stat-today-total');
-      const stDone = document.getElementById('stat-today-done');
-      const stWait = document.getElementById('stat-today-wait');
-      if (stTotal) stTotal.innerText = myData.filter(r => r.status !== 'cancelled').length;
-      if (stDone) stDone.innerText = compList.length;
-      if (stWait) stWait.innerText = waitList.length + loadList.length;
+      const stDone  = document.getElementById('stat-today-done');
+      const stWait  = document.getElementById('stat-today-wait');
+      const _setIfChanged = (el, val) => { if (el && el.innerText !== String(val)) el.innerText = val; };
+      _setIfChanged(stTotal, myData.filter(r => r.status !== 'cancelled').length);
+      _setIfChanged(stDone,  compList.length);
+      _setIfChanged(stWait,  waitList.length + loadList.length);
     }
 
     // Complete flow — เปิด Parts Modal สำหรับ loading → completed
