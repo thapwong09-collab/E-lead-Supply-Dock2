@@ -3193,6 +3193,58 @@
     // ==========================================
     let pmCurrentPic = null; // ชื่อ PIC ที่กำลังเพิ่ม Supplier
 
+    // แปลง allPicMaster (flat rows จาก Sheet) → { pics: [{name, suppliers:[]}] }
+    function buildPicStructure(rows) {
+      const map = {};
+      (rows || []).forEach(r => {
+        const pic = String(r.pic_name || '').trim();
+        const sup = String(r.supplier || '').trim();
+        if (!pic) return;
+        if (!map[pic]) map[pic] = { name: pic, suppliers: [] };
+        if (sup && !map[pic].suppliers.includes(sup)) map[pic].suppliers.push(sup);
+      });
+      return { pics: Object.values(map) };
+    }
+
+    // Batch queue สำหรับ syncPicMasterToSheet (ป้องกัน call ถี่เกิน)
+    let _syncQueue = [];
+    let _syncTimer = null;
+
+    function syncPicMasterToSheet(rows) {
+      if (!rows || rows.length === 0) return;
+      rows.forEach(r => {
+        const pic    = String(r.pic    || '').trim();
+        const vendor = String(r.vendor || '').trim();
+        if (!pic || !vendor) return;
+        const exists = allPicMaster.some(m =>
+          String(m.pic_name||'').toLowerCase() === pic.toLowerCase() &&
+          String(m.supplier||'').toLowerCase() === vendor.toLowerCase()
+        );
+        if (!exists) _syncQueue.push({ pic, vendor });
+      });
+      if (_syncQueue.length === 0) return;
+      if (_syncTimer) clearTimeout(_syncTimer);
+      _syncTimer = setTimeout(flushSyncQueue, 3000);
+    }
+
+    async function flushSyncQueue() {
+      if (_syncQueue.length === 0) return;
+      const toSync = [...new Map(_syncQueue.map(r => [r.pic + '|' + r.vendor, r])).values()];
+      _syncQueue = [];
+      _syncTimer = null;
+      for (const item of toSync) {
+        const res = await callAPI('savePicMasterEntry', { picName: item.pic, supplier: item.vendor });
+        if (res && res.success && !res.skipped) {
+          allPicMaster.push({ pic_name: item.pic, supplier: item.vendor, created_at: new Date().toISOString() });
+        }
+      }
+      const masterPage = document.getElementById('pic-page-pic-master');
+      if (masterPage && !masterPage.classList.contains('hidden')) updatePicMaster();
+    }
+
+    // ลบ localStorage เก่าถ้ายังมีค้างอยู่
+    try { localStorage.removeItem('pic_master_data'); } catch(e) {}
+
     function updatePicMaster() {
       const data = buildPicStructure(allPicMaster);
       const grid = document.getElementById('pm-cards-grid');
