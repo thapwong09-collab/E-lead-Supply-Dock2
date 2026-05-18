@@ -456,6 +456,9 @@
 
       <div id="pic-page-plan" class="max-w-6xl mx-auto p-4 space-y-6">
 
+        <!-- Access Banner -->
+        <div id="pic-access-banner" class="hidden"></div>
+
         <!-- Header Controls -->
         <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex flex-wrap gap-3 items-center">
           <button type="button" onclick="pastePICTable()" title="วาง Excel ที่ Copy ไว้" class="flex items-center gap-2 bg-amber-50 hover:bg-amber-100 border-2 border-amber-200 text-amber-700 px-5 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer">
@@ -572,7 +575,7 @@
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-wrap gap-3 items-end">
           <div>
             <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">วันที่</label>
-            <input type="date" id="pic-resp-date" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer">
+            <input type="date" id="pic-resp-date" onchange="updatePicResponsibility()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer">
           </div>
           <div>
             <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">PIC</label>
@@ -954,6 +957,8 @@
 
       fetchAll();
       setInterval(fetchAll, 6000);
+      // อัปเดต PIC access banner ทุก 1 นาที
+      setInterval(() => { if (isPICLoggedIn) updatePICAccessUI(); }, 60000);
     });
 
     function refreshUI() {
@@ -1070,6 +1075,7 @@
           document.getElementById('pic-view').classList.remove('hidden');
           showPicTab('plan');
           loadTodayPICParts();
+          updatePICAccessUI();
         } else {
           isStaffLoggedIn = true;
           hideAll();
@@ -1661,7 +1667,137 @@
       showToast(`รวม ${mergedCount} แถวที่ซ้ำกัน (PO + Part No. เดียวกัน) ✅`);
     }
 
-    async function savePICParts() {
+    // ==========================================
+    // PIC ACCESS WINDOW — ตรวจสอบสิทธิ์กรอกข้อมูล
+    // ==========================================
+    function getThaiNow() {
+      const now = new Date();
+      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+      return new Date(utc + (3600000 * 7)); // Bangkok TZ
+    }
+
+    function getCurrentWeekRange() {
+      const now = getThaiNow();
+      const day = now.getDay(); // 0=อาทิตย์
+      const diffToMon = (day === 0) ? -6 : 1 - day;
+      const mon = new Date(now); mon.setDate(now.getDate() + diffToMon); mon.setHours(0,0,0,0);
+      const fri = new Date(mon); fri.setDate(mon.getDate() + 4); fri.setHours(23,59,59,999);
+      return { mon, fri };
+    }
+
+    function checkPICAccessWindow() {
+      const now  = getThaiNow();
+      const day  = now.getDay();   // 1 = จันทร์
+      const hour = now.getHours();
+      const min  = now.getMinutes();
+      const { mon, fri } = getCurrentWeekRange();
+      const isMonday      = day === 1;
+      const pastDeadline  = (hour > 8) || (hour === 8 && min >= 30);
+      const nextMon       = new Date(fri.getTime() + 86400000 * 3);
+
+      // สัปดาห์นี้กรอกได้ถ้า: วันจันทร์ AND ก่อน 08:30
+      const currentWeekAllowed = isMonday && !pastDeadline;
+
+      // minAllowedDate:
+      //   - วันจันทร์ก่อน 08:30 → กรอกได้ตั้งแต่วันจันทร์นี้
+      //   - อื่นๆ              → กรอกได้ตั้งแต่จันทร์หน้า
+      const minAllowedDate = currentWeekAllowed ? mon : nextMon;
+
+      return { pastDeadline, isMonday, currentWeekAllowed, mon, fri, nextMon, minAllowedDate };
+    }
+
+    function isDateInLockedRange(dateStr) {
+      if (!dateStr) return false;
+      const { currentWeekAllowed, mon, fri } = checkPICAccessWindow();
+      const d = new Date(dateStr + 'T00:00:00');
+      // ถ้าอยู่ในสัปดาห์นี้ → lock ถ้า currentWeekAllowed = false
+      if (d >= mon && d <= fri) return !currentWeekAllowed;
+      // ถ้าอยู่ก่อนสัปดาห์นี้ → lock เสมอ
+      if (d < mon) return true;
+      return false;
+    }
+
+    function updatePICAccessUI() {
+      const { pastDeadline, isMonday, currentWeekAllowed, mon, fri, nextMon } = checkPICAccessWindow();
+      const saveBtn  = document.getElementById('pic-save-btn');
+      const bannerEl = document.getElementById('pic-access-banner');
+      const fmt = d => d.toLocaleDateString('th-TH', { day:'numeric', month:'short', year:'numeric' });
+      const fmtShort = d => d.toLocaleDateString('th-TH', { day:'numeric', month:'short' });
+
+      // ── Case 1: วันจันทร์ + ก่อน 08:30 → กรอกได้ทั้งสัปดาห์นี้ ──
+      if (currentWeekAllowed) {
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove('opacity-40','cursor-not-allowed'); saveBtn.classList.add('cursor-pointer'); }
+        if (bannerEl) {
+          bannerEl.className = 'bg-emerald-50 border-2 border-emerald-200 rounded-2xl px-5 py-3 flex items-center gap-3 text-sm mb-4';
+          bannerEl.innerHTML = `
+            <span class="text-2xl flex-shrink-0">✅</span>
+            <div>
+              <div class="font-black text-emerald-700">กรอกข้อมูลสัปดาห์นี้ได้</div>
+              <div class="text-emerald-600 text-xs mt-0.5">
+                ปิดรับ <b>08:30 น.</b> วันนี้ · สัปดาห์นี้ ${fmtShort(mon)} – ${fmtShort(fri)}
+              </div>
+            </div>`;
+          bannerEl.classList.remove('hidden');
+        }
+        return;
+      }
+
+      // ── Case 2: วันจันทร์ + หลัง 08:30 → Lock สัปดาห์นี้ ──
+      if (isMonday && pastDeadline) {
+        if (saveBtn) { saveBtn.disabled = true; saveBtn.classList.add('opacity-40','cursor-not-allowed'); saveBtn.classList.remove('cursor-pointer'); }
+        if (bannerEl) {
+          bannerEl.className = 'bg-rose-50 border-2 border-rose-200 rounded-2xl px-5 py-3 flex items-center gap-3 text-sm mb-4';
+          bannerEl.innerHTML = `
+            <span class="text-2xl flex-shrink-0">🔒</span>
+            <div>
+              <div class="font-black text-rose-700">หมดเวลากรอกสัปดาห์นี้แล้ว</div>
+              <div class="text-rose-500 text-xs mt-0.5">
+                เลย <b>08:30 น.</b> แล้ว · กรอกสัปดาห์นี้ได้แค่วันจันทร์ก่อน 08:30 น. เท่านั้น
+                <br>กรอกได้ตั้งแต่ <b>${fmt(nextMon)}</b> เป็นต้นไป
+              </div>
+            </div>`;
+          bannerEl.classList.remove('hidden');
+        }
+        return;
+      }
+
+      // ── Case 3: วันอื่นๆ (อังคาร–อาทิตย์) → กรอกสัปดาห์หน้าได้ ──
+      if (pastDeadline) {
+        // เลย 08:30 → disable
+        if (saveBtn) { saveBtn.disabled = true; saveBtn.classList.add('opacity-40','cursor-not-allowed'); saveBtn.classList.remove('cursor-pointer'); }
+        if (bannerEl) {
+          bannerEl.className = 'bg-rose-50 border-2 border-rose-200 rounded-2xl px-5 py-3 flex items-center gap-3 text-sm mb-4';
+          bannerEl.innerHTML = `
+            <span class="text-2xl flex-shrink-0">🔒</span>
+            <div>
+              <div class="font-black text-rose-700">ปิดรับการกรอกข้อมูลแล้ว</div>
+              <div class="text-rose-500 text-xs mt-0.5">
+                กรอกได้ก่อน <b>08:30 น.</b> เท่านั้น
+                · กรอกสัปดาห์หน้า (${fmt(nextMon)}) เป็นต้นไป
+              </div>
+            </div>`;
+          bannerEl.classList.remove('hidden');
+        }
+      } else {
+        // ก่อน 08:30 → กรอกได้แต่เฉพาะสัปดาห์หน้า
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove('opacity-40','cursor-not-allowed'); saveBtn.classList.add('cursor-pointer'); }
+        if (bannerEl) {
+          bannerEl.className = 'bg-amber-50 border-2 border-amber-200 rounded-2xl px-5 py-3 flex items-center gap-3 text-sm mb-4';
+          bannerEl.innerHTML = `
+            <span class="text-2xl flex-shrink-0">📅</span>
+            <div>
+              <div class="font-black text-amber-700">กรอกได้เฉพาะสัปดาห์หน้าเป็นต้นไป</div>
+              <div class="text-amber-600 text-xs mt-0.5">
+                สัปดาห์นี้ (${fmtShort(mon)} – ${fmtShort(fri)}) ล็อคแล้ว
+                · กรอกได้ตั้งแต่ <b>${fmt(nextMon)}</b>
+              </div>
+            </div>`;
+          bannerEl.classList.remove('hidden');
+        }
+      }
+    }
+
+        async function savePICParts() {
       const rows = getPICTableData();
       if (rows.length === 0) return alert('ยังไม่มีรายการพาร์ท');
       const invalid = rows.filter(r => !r.vendor || !r.part_no || !r.qty);
@@ -3117,6 +3253,9 @@
           ? 'tab-active px-6 py-2.5 rounded-xl text-xs font-bold shadow-md cursor-pointer'
           : 'bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer';
       });
+      if (tab === 'plan') {
+        updatePICAccessUI();
+      }
       if (tab === 'responsibility') {
         initPicResponsibility();
         updatePicResponsibility();
@@ -3156,6 +3295,8 @@
       const filterEl = document.getElementById('pic-resp-filter');
       const dateVal = dateEl?.value || getThaiDate();
       const picFilter = filterEl?.value || 'ALL';
+      // reset hash เพื่อให้ refreshUI ไม่ block
+      _hashParts = '';
 
       // กรองข้อมูล
       const filtered = allPartData.filter(p => {
