@@ -868,13 +868,16 @@
           if (res.plans) globalPlanData = res.plans; // legacy — ไม่ใช้แล้ว
           if (res.parts) {
             allPartData = res.parts || [];
-            // auto-sync PIC+Vendor เข้า localStorage ทุกครั้งที่ได้ข้อมูลใหม่
+            // auto-sync PIC+Vendor → PIC_Master Sheet
             if (allPartData.length > 0) {
-              syncPicMasterFromRows(allPartData.map(p => ({
+              syncPicMasterToSheet(allPartData.map(p => ({
                 pic:    p.pic    || '',
                 vendor: p.vendor || ''
               })));
             }
+          }
+          if (res.picMaster) {
+            allPicMaster = res.picMaster || [];
           }
           refreshUI();
         } else {
@@ -1600,9 +1603,28 @@
       if (btn) { btn.disabled = false; btn.innerText = '💾 บันทึกแผน'; }
 
       if (result && result.success) {
-        // Auto-sync PIC+Vendor → PIC_Master Sheet
+        // Auto-sync PIC+Vendor → PIC_Master Sheet ทันที (ไม่รอ debounce)
         const savedRows = getPICTableData();
-        syncPicMasterToSheet(savedRows.map(r => ({ pic: r.pic, vendor: r.vendor })));
+        const newPairs = savedRows
+          .map(r => ({ pic: String(r.pic||'').trim(), vendor: String(r.vendor||'').trim() }))
+          .filter(r => r.pic && r.vendor);
+        // flush ทันทีไม่รอ debounce
+        if (newPairs.length > 0) {
+          (async () => {
+            for (const item of newPairs) {
+              const exists = allPicMaster.some(m =>
+                String(m.pic_name||'').toLowerCase() === item.pic.toLowerCase() &&
+                String(m.supplier||'').toLowerCase() === item.vendor.toLowerCase()
+              );
+              if (!exists) {
+                const res = await callAPI('savePicMasterEntry', { picName: item.pic, supplier: item.vendor });
+                if (res && res.success && !res.skipped) {
+                  allPicMaster.push({ pic_name: item.pic, supplier: item.vendor, created_at: new Date().toISOString() });
+                }
+              }
+            }
+          })();
+        }
         showToast('บันทึกแผนเรียบร้อย ✅');
         // Clear table
         picRows.forEach(id => { const tr = document.getElementById(`pic-row-${id}`); if (tr) tr.remove(); });
@@ -3256,8 +3278,8 @@
           allPicMaster.push({ pic_name: item.pic, supplier: item.vendor, created_at: new Date().toISOString() });
         }
       }
-      const masterPage = document.getElementById('pic-page-pic-master');
-      if (masterPage && !masterPage.classList.contains('hidden')) updatePicMaster();
+      // fetch ใหม่เพื่อให้ allPicMaster sync กับ Sheet จริง
+      fetchAll();
     }
 
     // ลบ localStorage เก่าถ้ายังมีค้างอยู่
