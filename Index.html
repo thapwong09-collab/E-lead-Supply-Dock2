@@ -659,17 +659,42 @@
 
       <!-- Modal เพิ่ม Supplier ให้ PIC -->
       <div id="pm-add-sup-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl">
-          <div class="font-black text-slate-700 mb-1">+ เพิ่ม Supplier</div>
-          <div id="pm-add-sup-pic-label" class="text-xs text-violet-600 font-bold mb-4"></div>
-          <input type="text" id="pm-new-sup-name" placeholder="ชื่อ Supplier" maxlength="100"
-            class="w-full border-2 border-slate-100 rounded-xl px-4 py-3 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm mb-2">
-          <div id="pm-sup-suggestions" class="mb-3 flex flex-wrap gap-1.5 max-h-24 overflow-y-auto"></div>
-          <div class="flex gap-3">
+        <div class="bg-white rounded-2xl w-full max-w-md mx-4 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+          <!-- Header -->
+          <div class="px-6 py-4 border-b">
+            <div class="font-black text-slate-700">+ เพิ่ม Supplier</div>
+            <div id="pm-add-sup-pic-label" class="text-xs text-violet-600 font-bold mt-0.5"></div>
+          </div>
+          <!-- Body -->
+          <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+            <!-- Search + Add -->
+            <div class="flex gap-2">
+              <input type="text" id="pm-new-sup-name" placeholder="พิมพ์ชื่อ Supplier แล้วกด Enter หรือ +"
+                maxlength="100" oninput="filterPmSuggestions()"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();addPmSupToSelected()}"
+                class="flex-1 border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm">
+              <button type="button" onclick="addPmSupToSelected()"
+                class="bg-violet-600 hover:bg-violet-700 text-white px-4 rounded-xl font-black text-lg cursor-pointer">+</button>
+            </div>
+            <!-- Selected list -->
+            <div id="pm-selected-list" class="hidden">
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">เลือกแล้ว</div>
+              <div id="pm-selected-chips" class="flex flex-wrap gap-1.5 min-h-[32px]"></div>
+            </div>
+            <!-- Suggestions -->
+            <div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">เลือกจากรายการ</div>
+              <div id="pm-sup-suggestions" class="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto"></div>
+            </div>
+          </div>
+          <!-- Footer -->
+          <div class="px-6 py-4 border-t flex gap-3">
             <button type="button" onclick="closePmSupModal()"
               class="flex-1 bg-slate-100 text-slate-500 py-3 rounded-xl font-bold text-sm cursor-pointer">ยกเลิก</button>
-            <button type="button" onclick="savePicSup()"
-              class="flex-1 bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">เพิ่ม</button>
+            <button type="button" onclick="savePicSup()" id="pm-save-sup-btn"
+              class="flex-1 bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">
+              เพิ่ม (<span id="pm-selected-count">0</span>)
+            </button>
           </div>
         </div>
       </div>
@@ -3298,16 +3323,13 @@
       }
       if (empty) empty.classList.add('hidden');
 
-      // รวม Supplier จาก PartDetail ด้วย (auto-suggest)
       grid.innerHTML = data.pics.map((pic, pi) => {
         const sups = pic.suppliers || [];
-        // ตรวจว่า supplier ไหนเช็คอินวันนี้แล้ว
-        const today = getThaiDate();
         return `
         <div class="bg-white rounded-2xl shadow-sm border overflow-hidden fade-in" id="pm-card-${pi}">
           <!-- Card Header -->
           <div class="bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-3 flex items-center justify-between">
-            <div class="font-black text-white">${pic.name}</div>
+            <div class="font-black text-white">👤 ${pic.name}</div>
             <div class="flex gap-2">
               <button type="button" onclick="openAddSupModal(${pi})"
                 class="bg-white/20 hover:bg-white/30 text-white text-[10px] font-black px-2.5 py-1 rounded-lg cursor-pointer">+ Supplier</button>
@@ -3316,34 +3338,20 @@
             </div>
           </div>
           <!-- Supplier List -->
-          <div class="divide-y divide-slate-50 ${sups.length > 6 ? 'max-h-64 overflow-y-auto' : ''}">
+          <div class="divide-y divide-slate-50 ${sups.length > 8 ? 'max-h-72 overflow-y-auto' : ''}">
             ${sups.length === 0
               ? '<div class="px-4 py-5 text-center text-slate-300 text-xs font-bold">ยังไม่มี Supplier<br>กด "+ Supplier" เพื่อเพิ่ม</div>'
-              : sups.map((s, si) => {
-                  const todayCheckin = allData.some(r =>
-                    r.date === today && (r.company_name === s || vendorScore(r.company_name, s) >= 70)
-                    && r.status !== 'cancelled'
-                  );
-                  const todayParts = allPartData.filter(p =>
-                    p.date === today && (p.vendor === s || vendorScore(p.vendor, s) >= 70)
-                  ).length;
-                  return `
+              : sups.map((s, si) => `
                   <div class="flex items-center justify-between px-4 py-2.5 hover:bg-violet-50 transition-colors group">
-                    <div class="flex items-center gap-2 min-w-0">
-                      <span class="font-bold text-slate-700 text-sm truncate">${s}</span>
-                      ${todayCheckin ? '<span class="text-[9px] bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded font-black flex-shrink-0">✅ วันนี้</span>' : ''}
-                      ${todayParts > 0 ? `<span class="text-[9px] bg-violet-100 text-violet-600 px-1.5 py-0.5 rounded font-black flex-shrink-0">${todayParts} พาร์ท</span>` : ''}
-                    </div>
+                    <span class="font-bold text-slate-700 text-sm">${s}</span>
                     <button type="button" onclick="deleteSupFromPic(${pi},${si})"
-                      class="opacity-0 group-hover:opacity-100 text-slate-200 hover:text-rose-500 transition-all cursor-pointer flex-shrink-0 ml-2 text-base leading-none">✕</button>
-                  </div>`;
-                }).join('')
+                      class="opacity-0 group-hover:opacity-100 text-slate-200 hover:text-rose-500 transition-all cursor-pointer ml-2 text-base leading-none flex-shrink-0">✕</button>
+                  </div>`).join('')
             }
           </div>
           <!-- Card Footer -->
-          <div class="px-4 py-2 bg-slate-50 border-t flex justify-between items-center">
+          <div class="px-4 py-2 bg-slate-50 border-t">
             <span class="text-[9px] font-bold text-slate-400">${sups.length} Supplier</span>
-            ${sups.length > 0 ? `<span class="text-[9px] font-bold text-slate-400">${sups.filter(s => allData.some(r => r.date===today && (r.company_name===s || vendorScore(r.company_name,s)>=70) && r.status!=='cancelled')).length} เช็คอินแล้ววันนี้</span>` : ''}
           </div>
         </div>`;
       }).join('');
@@ -3390,60 +3398,140 @@
       }
     }
 
+    let _pmSelectedSups = new Set(); // ชื่อ Supplier ที่เลือกไว้ใน modal
+    let _pmAllSuggestions = [];      // รายการ suggestions ทั้งหมด
+
     function openAddSupModal(pi) {
       pmCurrentPic = pi;
+      _pmSelectedSups = new Set();
       const data = buildPicStructure(allPicMaster);
       const pic = data.pics[pi];
       const label = document.getElementById('pm-add-sup-pic-label');
       if (label) label.innerText = '👤 ' + (pic?.name || '');
-      document.getElementById('pm-new-sup-name').value = '';
+      const inp = document.getElementById('pm-new-sup-name');
+      if (inp) inp.value = '';
 
-      // Suggestions จาก allData ที่ยังไม่มีใน card นี้
+      // รายการ Supplier ที่ยังไม่มีใน card นี้
       const existing = new Set((pic?.suppliers || []).map(s => s.toLowerCase()));
       const fromCheckin = [...new Set(allData.map(r => r.company_name).filter(Boolean))];
       const fromParts   = [...new Set(allPartData.map(p => p.vendor).filter(Boolean))];
-      const suggestions = [...new Set([...fromCheckin, ...fromParts])]
+      _pmAllSuggestions = [...new Set([...fromCheckin, ...fromParts])]
         .filter(s => !existing.has(s.toLowerCase()))
-        .sort().slice(0, 30);
-      const sugDiv = document.getElementById('pm-sup-suggestions');
-      if (sugDiv) {
-        sugDiv.innerHTML = suggestions.map(s =>
-          `<button type="button" onclick="document.getElementById('pm-new-sup-name').value='${s.replace(/'/g,"\'")}'"
-            class="bg-slate-100 hover:bg-violet-100 hover:text-violet-700 text-slate-600 px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition-colors">${s}</button>`
-        ).join('');
-      }
+        .sort();
+
+      _renderPmSuggestions(_pmAllSuggestions);
+      _renderPmSelected();
 
       const modal = document.getElementById('pm-add-sup-modal');
       if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
-      setTimeout(() => document.getElementById('pm-new-sup-name')?.focus(), 100);
+      setTimeout(() => inp?.focus(), 100);
+    }
+
+    function filterPmSuggestions() {
+      const q = (document.getElementById('pm-new-sup-name')?.value || '').toLowerCase().trim();
+      const filtered = q
+        ? _pmAllSuggestions.filter(s => s.toLowerCase().includes(q))
+        : _pmAllSuggestions;
+      _renderPmSuggestions(filtered);
+    }
+
+    function _renderPmSuggestions(list) {
+      const sugDiv = document.getElementById('pm-sup-suggestions');
+      if (!sugDiv) return;
+      if (list.length === 0) {
+        sugDiv.innerHTML = '<span class="text-[10px] text-slate-300 font-bold">ไม่พบรายการ</span>';
+        return;
+      }
+      sugDiv.innerHTML = list.map(s => {
+        const selected = _pmSelectedSups.has(s);
+        return `<button type="button" onclick="togglePmSup('${s.replace(/'/g,"\'")}')"
+          class="px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition-colors border
+            ${selected
+              ? 'bg-violet-600 text-white border-violet-600'
+              : 'bg-slate-100 hover:bg-violet-50 hover:text-violet-700 text-slate-600 border-transparent'}"
+          id="pm-sug-${s.replace(/[^a-zA-Z0-9]/g,'_')}">${s}</button>`;
+      }).join('');
+    }
+
+    function togglePmSup(name) {
+      if (_pmSelectedSups.has(name)) {
+        _pmSelectedSups.delete(name);
+      } else {
+        _pmSelectedSups.add(name);
+      }
+      filterPmSuggestions(); // re-render สี
+      _renderPmSelected();
+    }
+
+    function addPmSupToSelected() {
+      const inp = document.getElementById('pm-new-sup-name');
+      const name = inp?.value.trim();
+      if (!name) return;
+      _pmSelectedSups.add(name);
+      if (inp) inp.value = '';
+      filterPmSuggestions();
+      _renderPmSelected();
+    }
+
+    function removePmSelected(name) {
+      _pmSelectedSups.delete(name);
+      filterPmSuggestions();
+      _renderPmSelected();
+    }
+
+    function _renderPmSelected() {
+      const container = document.getElementById('pm-selected-list');
+      const chips     = document.getElementById('pm-selected-chips');
+      const countEl   = document.getElementById('pm-selected-count');
+      const saveBtn   = document.getElementById('pm-save-sup-btn');
+      if (!chips) return;
+      const arr = [..._pmSelectedSups];
+      if (container) container.classList.toggle('hidden', arr.length === 0);
+      if (countEl)   countEl.innerText = arr.length;
+      if (saveBtn)   saveBtn.disabled  = arr.length === 0;
+      chips.innerHTML = arr.map(s =>
+        `<span class="flex items-center gap-1 bg-violet-100 text-violet-700 px-2.5 py-1 rounded-lg text-[10px] font-bold">
+          ${s}
+          <button type="button" onclick="removePmSelected('${s.replace(/'/g,"\'")}')"
+            class="text-violet-400 hover:text-rose-500 font-black cursor-pointer leading-none">✕</button>
+        </span>`
+      ).join('');
     }
 
     function closePmSupModal() {
       pmCurrentPic = null;
+      _pmSelectedSups = new Set();
       const modal = document.getElementById('pm-add-sup-modal');
       if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+      const inp = document.getElementById('pm-new-sup-name');
+      if (inp) inp.value = '';
     }
 
     async function savePicSup() {
       if (pmCurrentPic === null) return;
-      const name = document.getElementById('pm-new-sup-name')?.value.trim();
-      if (!name) return alert('กรุณากรอกชื่อ Supplier');
+      const toAdd = [..._pmSelectedSups];
+      if (toAdd.length === 0) return alert('กรุณาเลือกหรือพิมพ์ชื่อ Supplier อย่างน้อย 1 รายการ');
       const data = buildPicStructure(allPicMaster);
       const pic  = data.pics[pmCurrentPic];
       if (!pic) return;
-      if (pic.suppliers.some(s => s.toLowerCase() === name.toLowerCase())) {
-        return alert('มี Supplier นี้อยู่แล้วใน PIC คนนี้');
+
+      const btn = document.getElementById('pm-save-sup-btn');
+      if (btn) { btn.disabled = true; btn.innerHTML = '⏳ กำลังบันทึก...'; }
+
+      let added = 0;
+      for (const name of toAdd) {
+        // ข้ามถ้ามีอยู่แล้ว
+        if (pic.suppliers.some(s => s.toLowerCase() === name.toLowerCase())) continue;
+        const res = await callAPI('savePicMasterEntry', { picName: pic.name, supplier: name });
+        if (res && res.success && !res.skipped) {
+          allPicMaster.push({ pic_name: pic.name, supplier: name, created_at: new Date().toISOString() });
+          added++;
+        }
       }
-      showToast('⏳ กำลังบันทึก...');
-      const res = await callAPI('savePicMasterEntry', { picName: pic.name, supplier: name });
-      if (res && res.success) {
-        allPicMaster.push({ pic_name: pic.name, supplier: name, created_at: new Date().toISOString() });
-        closePmSupModal();
-        updatePicMaster();
-        showToast(`เพิ่ม "${name}" ให้ ${pic.name} แล้ว ✅`);
-      } else {
-        alert('เกิดข้อผิดพลาด: ' + (res?.message || ''));
-      }
+
+      closePmSupModal();
+      updatePicMaster();
+      if (added > 0) showToast(`เพิ่ม ${added} Supplier ให้ ${pic.name} แล้ว ✅`);
     }
 
     async function deleteSupFromPic(pi, si) {
