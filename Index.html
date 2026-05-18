@@ -930,7 +930,10 @@
           const el = document.getElementById('pic-page-' + t);
           return el && !el.classList.contains('hidden');
         });
-        if (activeTab === 'responsibility') updatePicResponsibility();
+        if (activeTab === 'responsibility') {
+          _populatePicRespFilter();
+          updatePicResponsibility();
+        }
         if (activeTab === 'pic-master')     updatePicMaster();
       }
       if (currentSupplierRecord) {
@@ -1615,8 +1618,13 @@
 
     async function loadTodayPICParts() {
       const date = getThaiDate();
-      const result = await callAPI('getPartsByDate', { date });
-      const parts = (result && result.success) ? (result.parts || []) : [];
+      // ใช้ allPartData local ที่ sync มาจาก fetchAll ทุก 6 วิ
+      // ถ้าว่างอยู่ให้ fetch ก่อน
+      if (!allPartData || allPartData.length === 0) {
+        const result = await callAPI('getPartsByDate', { date });
+        if (result && result.success) allPartData = result.parts || [];
+      }
+      const parts = allPartData.filter(p => String(p.date||'').trim() === date);
 
       const listEl = document.getElementById('pic-saved-list');
       const emptyEl = document.getElementById('pic-saved-empty');
@@ -3019,10 +3027,15 @@
       // ตั้ง date default = วันนี้ (ตั้งเฉพาะครั้งแรก)
       const dateEl = document.getElementById('pic-resp-date');
       if (dateEl && !dateEl.value) dateEl.value = getThaiDate();
-      // sync allPartData ก่อนแสดง
-      if (!allPartData || allPartData.length === 0) fetchAll();
 
-      // populate PIC filter
+      // populate PIC filter จาก allPartData ที่มีอยู่ก่อน
+      _populatePicRespFilter();
+
+      // fetch ใหม่เสมอ แล้ว update filter + content หลัง fetch
+      fetchAll().then ? fetchAll() : null;
+    }
+
+    function _populatePicRespFilter() {
       const sel = document.getElementById('pic-resp-filter');
       if (!sel) return;
       const cur = sel.value;
