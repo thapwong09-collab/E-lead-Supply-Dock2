@@ -614,15 +614,18 @@
       <div id="pic-page-pic-master" class="hidden max-w-6xl mx-auto p-4 fade-in">
 
         <!-- Header + ปุ่มเพิ่ม PIC -->
-        <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
           <div>
             <div class="font-black text-slate-700 text-lg">👤 ความรับผิดชอบ PIC</div>
             <div class="text-xs text-slate-400 mt-0.5">จัดการว่า PIC แต่ละคนดูแล Supplier ไหนบ้าง</div>
           </div>
-          <button type="button" onclick="addPicCard()"
-            class="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md cursor-pointer transition-colors">
-            + เพิ่ม PIC
-          </button>
+          <div class="flex gap-2 flex-wrap">
+
+            <button type="button" onclick="addPicCard()"
+              class="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md cursor-pointer transition-colors">
+              + เพิ่ม PIC
+            </button>
+          </div>
         </div>
 
         <!-- PIC Cards Grid -->
@@ -692,7 +695,7 @@
     </div>
 
     <!-- ================= Login ================= -->
-    <div id="unified-login" class="min-h-full flex items-center justify-center p-4 hidden text-center fade-in">
+    <div id="unified-login" class="flex items-center justify-center p-4 hidden text-center fade-in">
       <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-sm border border-white">
         <div id="login-icon" class="text-4xl mb-4">🏢</div>
         <h2 id="login-title" class="text-2xl font-bold mb-8 text-slate-800">เข้าสู่ระบบ</h2>
@@ -791,8 +794,6 @@
       </div>
     </div>
 
-  </div><!-- end #app -->
-
   <!-- ==================== JAVASCRIPT ==================== -->
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwvu_FiWEZOX1UEmo85MloZEt93jUhQ0dfJiVAPX27BV2UVnqV1eJaIJOkMWoWcMyU/exec";
@@ -852,14 +853,34 @@
     // ==========================================
     // FETCH ALL DATA
     // ==========================================
+    let _fetchFailCount = 0;
+    let allPicMaster = []; // PIC_Master จาก Sheet
     function fetchAll() {
       callAPI('readAllData').then(res => {
         if (res && res.success) {
+          _fetchFailCount = 0;
           allData = res.data || [];
           if (res.plans) globalPlanData = res.plans; // legacy — ไม่ใช้แล้ว
-          if (res.parts) allPartData = res.parts || [];
+          if (res.parts) {
+            allPartData = res.parts || [];
+            // auto-sync PIC+Vendor เข้า localStorage ทุกครั้งที่ได้ข้อมูลใหม่
+            if (allPartData.length > 0) {
+              syncPicMasterFromRows(allPartData.map(p => ({
+                pic:    p.pic    || '',
+                vendor: p.vendor || ''
+              })));
+            }
+          }
           refreshUI();
+        } else {
+          _fetchFailCount++;
+          if (_fetchFailCount > 5) {
+            console.warn('[fetchAll] ล้มเหลว ' + _fetchFailCount + ' ครั้งติดต่อกัน');
+          }
         }
+      }).catch(function(err) {
+        _fetchFailCount++;
+        console.warn('[fetchAll] error:', err.message || err);
       });
     }
 
@@ -1571,11 +1592,10 @@
       if (btn) { btn.disabled = false; btn.innerText = '💾 บันทึกแผน'; }
 
       if (result && result.success) {
-        // Auto-sync PIC+Vendor → หน้าความรับผิดชอบ PIC
+        // Auto-sync PIC+Vendor → PIC_Master Sheet
         const savedRows = getPICTableData();
-        const synced = syncPicMasterFromRows(savedRows);
-
-        showToast('บันทึกแผนเรียบร้อย ✅' + (synced ? ' · อัปเดตความรับผิดชอบ PIC แล้ว' : ''));
+        syncPicMasterToSheet(savedRows.map(r => ({ pic: r.pic, vendor: r.vendor })));
+        showToast('บันทึกแผนเรียบร้อย ✅');
         // Clear table
         picRows.forEach(id => { const tr = document.getElementById(`pic-row-${id}`); if (tr) tr.remove(); });
         picRows = [];
@@ -2847,7 +2867,7 @@
     function updatePdQtyChart(comp, short, missing, pending) {
       const canvas = document.getElementById('pd-qty-chart');
       if (!canvas || typeof Chart === 'undefined') return;
-      if (pdQtyChart) pdQtyChart.destroy();
+      if (pdQtyChart) { pdQtyChart.destroy(); pdQtyChart = null; }
       pdQtyChart = new Chart(canvas.getContext('2d'), {
         type: 'doughnut',
         data: {
@@ -2864,7 +2884,7 @@
     function updatePdBarChart(checkinData, partsData) {
       const canvas = document.getElementById('pd-bar-chart');
       if (!canvas || typeof Chart === 'undefined') return;
-      if (pdBarChart) pdBarChart.destroy();
+      if (pdBarChart) { pdBarChart.destroy(); pdBarChart = null; }
 
       // รวมชื่อ vendor ทั้งหมด
       const vendors = [...new Set([
@@ -3168,68 +3188,13 @@
     }
 
         // ==========================================
-    // PIC MASTER — Card-based editable
     // ==========================================
-    // เก็บข้อมูลใน localStorage: { pics: [{name, suppliers:[]}] }
-    function getPmData() {
-      try {
-        const d = localStorage.getItem('pic_master_data');
-        return d ? JSON.parse(d) : { pics: [] };
-      } catch(e) { return { pics: [] }; }
-    }
-
-    // Auto-sync จาก rows ที่ PIC กรอกมา → หน้าความรับผิดชอบ PIC
-    function syncPicMasterFromRows(rows) {
-      if (!rows || rows.length === 0) return;
-      const data = getPmData();
-      let changed = false;
-
-      rows.forEach(r => {
-        const picName    = String(r.pic    || '').trim();
-        const vendorName = String(r.vendor || '').trim();
-        if (!picName || !vendorName) return;
-
-        // หา PIC card ที่มีอยู่ (case-insensitive)
-        let picCard = data.pics.find(p =>
-          p.name.toLowerCase() === picName.toLowerCase()
-        );
-
-        // ถ้ายังไม่มี → สร้างใหม่
-        if (!picCard) {
-          picCard = { name: picName, suppliers: [] };
-          data.pics.push(picCard);
-          changed = true;
-        }
-
-        // ตรวจ Supplier ว่ามีในการ์ดนั้นแล้วไหม
-        const alreadyHas = picCard.suppliers.some(s =>
-          s.toLowerCase() === vendorName.toLowerCase()
-        );
-        if (!alreadyHas) {
-          picCard.suppliers.push(vendorName);
-          changed = true;
-        }
-      });
-
-      if (changed) {
-        savePmData(data);
-        // ถ้าอยู่หน้า pic-master อยู่ให้ refresh ทันที
-        const masterPage = document.getElementById('pic-page-pic-master');
-        if (masterPage && !masterPage.classList.contains('hidden')) {
-          updatePicMaster();
-        }
-      }
-
-      return changed;
-    }
-    function savePmData(data) {
-      try { localStorage.setItem('pic_master_data', JSON.stringify(data)); } catch(e) {}
-    }
-
+    // PIC MASTER — Card-based (ใช้ Google Sheet แทน localStorage)
+    // ==========================================
     let pmCurrentPic = null; // ชื่อ PIC ที่กำลังเพิ่ม Supplier
 
     function updatePicMaster() {
-      const data = getPmData();
+      const data = buildPicStructure(allPicMaster);
       const grid = document.getElementById('pm-cards-grid');
       const empty = document.getElementById('pm-empty');
       if (!grid) return;
@@ -3304,31 +3269,38 @@
       if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
     }
 
-    function savePicCard() {
+    async function savePicCard() {
       const name = document.getElementById('pm-new-pic-name')?.value.trim();
       if (!name) return alert('กรุณากรอกชื่อ PIC');
-      const data = getPmData();
-      if (data.pics.some(p => p.name.toLowerCase() === name.toLowerCase())) {
-        return alert('มี PIC ชื่อนี้อยู่แล้ว');
-      }
-      data.pics.push({ name, suppliers: [] });
-      savePmData(data);
+      // เช็คซ้ำใน allPicMaster
+      const exists = allPicMaster.some(m => String(m.pic_name||'').toLowerCase() === name.toLowerCase());
+      if (exists) return alert('มี PIC ชื่อนี้อยู่แล้ว');
+      // เพิ่ม placeholder ใน local state (supplier ว่าง = card เปล่า)
+      allPicMaster.push({ pic_name: name, supplier: '', created_at: new Date().toISOString() });
       closePmModal();
       updatePicMaster();
+      showToast(`เพิ่ม PIC "${name}" แล้ว ✅`);
     }
 
-    function deletePicCard(pi) {
-      const data = getPmData();
+    async function deletePicCard(pi) {
+      const data = buildPicStructure(allPicMaster);
       const picName = data.pics[pi]?.name || '';
+      if (!picName) return;
       if (!confirm(`ลบ PIC "${picName}" และ Supplier ทั้งหมดออก?`)) return;
-      data.pics.splice(pi, 1);
-      savePmData(data);
-      updatePicMaster();
+      showToast('⏳ กำลังลบ...');
+      const res = await callAPI('deletePicMasterAll', { picName });
+      if (res && res.success) {
+        allPicMaster = allPicMaster.filter(m => String(m.pic_name||'').toLowerCase() !== picName.toLowerCase());
+        updatePicMaster();
+        showToast(`ลบ PIC "${picName}" แล้ว ✅`);
+      } else {
+        alert('เกิดข้อผิดพลาด: ' + (res?.message || ''));
+      }
     }
 
     function openAddSupModal(pi) {
       pmCurrentPic = pi;
-      const data = getPmData();
+      const data = buildPicStructure(allPicMaster);
       const pic = data.pics[pi];
       const label = document.getElementById('pm-add-sup-pic-label');
       if (label) label.innerText = '👤 ' + (pic?.name || '');
@@ -3336,9 +3308,11 @@
 
       // Suggestions จาก allData ที่ยังไม่มีใน card นี้
       const existing = new Set((pic?.suppliers || []).map(s => s.toLowerCase()));
-      const suggestions = [...new Set(allData.map(r => r.company_name).filter(Boolean))]
+      const fromCheckin = [...new Set(allData.map(r => r.company_name).filter(Boolean))];
+      const fromParts   = [...new Set(allPartData.map(p => p.vendor).filter(Boolean))];
+      const suggestions = [...new Set([...fromCheckin, ...fromParts])]
         .filter(s => !existing.has(s.toLowerCase()))
-        .sort().slice(0, 20);
+        .sort().slice(0, 30);
       const sugDiv = document.getElementById('pm-sup-suggestions');
       if (sugDiv) {
         sugDiv.innerHTML = suggestions.map(s =>
@@ -3358,31 +3332,47 @@
       if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
     }
 
-    function savePicSup() {
+    async function savePicSup() {
       if (pmCurrentPic === null) return;
       const name = document.getElementById('pm-new-sup-name')?.value.trim();
       if (!name) return alert('กรุณากรอกชื่อ Supplier');
-      const data = getPmData();
-      const pic = data.pics[pmCurrentPic];
+      const data = buildPicStructure(allPicMaster);
+      const pic  = data.pics[pmCurrentPic];
       if (!pic) return;
       if (pic.suppliers.some(s => s.toLowerCase() === name.toLowerCase())) {
         return alert('มี Supplier นี้อยู่แล้วใน PIC คนนี้');
       }
-      pic.suppliers.push(name);
-      savePmData(data);
-      closePmSupModal();
-      updatePicMaster();
+      showToast('⏳ กำลังบันทึก...');
+      const res = await callAPI('savePicMasterEntry', { picName: pic.name, supplier: name });
+      if (res && res.success) {
+        allPicMaster.push({ pic_name: pic.name, supplier: name, created_at: new Date().toISOString() });
+        closePmSupModal();
+        updatePicMaster();
+        showToast(`เพิ่ม "${name}" ให้ ${pic.name} แล้ว ✅`);
+      } else {
+        alert('เกิดข้อผิดพลาด: ' + (res?.message || ''));
+      }
     }
 
-    function deleteSupFromPic(pi, si) {
-      const data = getPmData();
-      const pic = data.pics[pi];
+    async function deleteSupFromPic(pi, si) {
+      const data = buildPicStructure(allPicMaster);
+      const pic  = data.pics[pi];
       if (!pic) return;
       const supName = pic.suppliers[si] || '';
+      if (!supName) return;
       if (!confirm(`ลบ Supplier "${supName}" ออกจาก ${pic.name}?`)) return;
-      pic.suppliers.splice(si, 1);
-      savePmData(data);
-      updatePicMaster();
+      showToast('⏳ กำลังลบ...');
+      const res = await callAPI('deletePicMasterEntry', { picName: pic.name, supplier: supName });
+      if (res && res.success) {
+        allPicMaster = allPicMaster.filter(m =>
+          !(String(m.pic_name||'').toLowerCase() === pic.name.toLowerCase() &&
+            String(m.supplier||'').toLowerCase() === supName.toLowerCase())
+        );
+        updatePicMaster();
+        showToast(`ลบ "${supName}" ออกแล้ว ✅`);
+      } else {
+        alert('เกิดข้อผิดพลาด: ' + (res?.message || ''));
+      }
     }
 
     // ==========================================
