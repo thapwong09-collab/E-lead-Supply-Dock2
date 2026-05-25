@@ -481,8 +481,7 @@
           <button type="button" onclick="picLogout()" class="text-rose-600 px-4 py-2 rounded-xl font-bold text-xs hover:bg-rose-50 transition-colors cursor-pointer">ออกจากระบบ</button>
         </div>
         <div class="max-w-6xl mx-auto px-4 flex gap-2 pb-3 overflow-x-auto hide-scrollbar">
-          <button type="button" onclick="showPicTab('plan')" id="pic-tab-plan" class="tab-active px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all shadow-md cursor-pointer">📋 กรอกแผนรับพาร์ท</button>
-          <button type="button" onclick="showPicTab('upload503')" id="pic-tab-upload503" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📤 Upload 503</button>
+          <button type="button" onclick="showPicTab('upload503')" id="pic-tab-upload503" class="tab-active px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all shadow-md cursor-pointer">📤 Upload 503</button>
           <button type="button" onclick="showPicTab('myparts')" id="pic-tab-myparts" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">🗂️ รายการของฉัน</button>
           <button type="button" onclick="showPicTab('responsibility')" id="pic-tab-responsibility" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📅 แผนรายวัน PIC</button>
           <button type="button" onclick="showPicTab('pic-master')" id="pic-tab-pic-master" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">👤 ความรับผิดชอบ PIC</button>
@@ -491,125 +490,6 @@
 
       <!-- pic pages wrapper -->
       <div id="pic-pages-wrapper">
-
-      <div id="pic-page-plan" class="max-w-6xl mx-auto p-4 space-y-6">
-
-        <!-- Access Banner -->
-        <div id="pic-access-banner" class="hidden"></div>
-
-        <!-- Header Controls -->
-        <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex flex-wrap gap-3 items-center">
-          <button type="button" onclick="pastePICTable()" title="วาง Excel ที่ Copy ไว้" class="flex items-center gap-2 bg-amber-50 hover:bg-amber-100 border-2 border-amber-200 text-amber-700 px-5 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer">
-            📋 Paste จาก Excel
-          </button>
-          <button type="button" onclick="addPICRow()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 px-5 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer">
-            + เพิ่มแถว
-          </button>
-          <button type="button" onclick="mergeDuplicatePICRows()" title="รวมแถวที่มี PO No. + Part No. เดียวกัน" class="flex items-center gap-2 bg-teal-50 hover:bg-teal-100 border-2 border-teal-200 text-teal-700 px-5 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer">
-            🔀 Merge ซ้ำ
-          </button>
-          <button type="button" onclick="savePICParts()" id="pic-save-btn" class="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all cursor-pointer ml-auto">
-            💾 บันทึกแผน
-          </button>
-        </div>
-
-        <!-- Paste Helper -->
-        <div id="pic-paste-helper" class="hidden bg-amber-50 border-2 border-amber-200 rounded-2xl p-5">
-          <div class="text-sm font-black text-amber-700 mb-1">📋 วาง Excel ที่นี่ (Ctrl+C จาก Excel → Ctrl+V ที่นี่)</div>
-          <div class="text-[10px] text-amber-600 mb-3">ระบบจะอ่านเฉพาะคอลัมน์ที่ต้องการจากทุกคอลัมน์ที่ Copy มา</div>
-
-          <!-- Column mapping display -->
-          <div class="bg-white rounded-xl border border-amber-200 overflow-hidden mb-4">
-            <div class="px-4 py-2 bg-amber-100 text-[10px] font-black text-amber-700 uppercase tracking-widest">คอลัมน์ที่ระบบจะอ่าน</div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-[10px]">
-                <thead>
-                  <tr class="bg-slate-50">
-                    <th class="px-3 py-2 text-left font-black text-slate-500 border-b border-slate-100 whitespace-nowrap">คอลัมน์ใน Excel</th>
-                    <th class="px-3 py-2 text-left font-black text-slate-500 border-b border-slate-100 whitespace-nowrap">ข้อมูลที่ระบบใช้</th>
-                    <th class="px-3 py-2 text-left font-black text-slate-500 border-b border-slate-100">หมายเหตุ</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50 font-bold">
-                  <tr><td class="px-3 py-1.5 font-mono text-violet-600">Date</td><td class="px-3 py-1.5 text-slate-700">วันที่</td><td class="px-3 py-1.5 text-slate-400">วันที่ซัพจะเข้ามา</td></tr>
-                  <tr><td class="px-3 py-1.5 font-mono text-violet-600">Time</td><td class="px-3 py-1.5 text-slate-700">ช่วงเวลา</td><td class="px-3 py-1.5 text-slate-400">AM / PM</td></tr>
-                  <tr><td class="px-3 py-1.5 font-mono text-violet-600">Vendor name</td><td class="px-3 py-1.5 text-slate-700">ชื่อ Supplier</td><td class="px-3 py-1.5 text-slate-400">ต้องตรงกับชื่อที่เช็คอิน</td></tr>
-                  <tr><td class="px-3 py-1.5 font-mono text-violet-600">PIC</td><td class="px-3 py-1.5 text-slate-700">PIC ผู้ดูแล</td><td class="px-3 py-1.5 text-slate-400">ชื่อเจ้าหน้าที่จัดซื้อ</td></tr>
-                  <tr><td class="px-3 py-1.5 font-mono text-violet-600">PO No.</td><td class="px-3 py-1.5 text-slate-700">PO Number</td><td class="px-3 py-1.5 text-slate-400">เลข PO ของ Supplier</td></tr>
-                  <tr><td class="px-3 py-1.5 font-mono text-violet-600">Part no.</td><td class="px-3 py-1.5 text-slate-700">Part Number</td><td class="px-3 py-1.5 text-slate-400">รหัสพาร์ท</td></tr>
-                  <tr><td class="px-3 py-1.5 font-mono text-violet-600">QTY</td><td class="px-3 py-1.5 text-slate-700">จำนวน</td><td class="px-3 py-1.5 text-slate-400">จำนวนที่จะส่ง</td></tr>
-                  <tr class="bg-slate-50"><td class="px-3 py-1.5 font-mono text-slate-300">No. , PO No. -</td><td class="px-3 py-1.5 text-slate-300">—</td><td class="px-3 py-1.5 text-slate-300">ข้ามไป ไม่ได้ใช้</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <textarea id="pic-paste-area" rows="7"
-            placeholder="วางข้อมูลจาก Excel ที่นี่...&#10;(รวม Header row ได้เลย ระบบจะหาคอลัมน์เองอัตโนมัติ)"
-            class="w-full border-2 border-amber-200 rounded-xl p-3 text-xs font-mono outline-none focus:border-amber-400 bg-white resize-none"></textarea>
-
-          <!-- Preview -->
-          <div id="paste-preview" class="hidden mt-3 bg-white rounded-xl border border-amber-200 overflow-hidden">
-            <div class="px-4 py-2 bg-amber-100 text-[10px] font-black text-amber-700 flex justify-between items-center">
-              <span>ตัวอย่างข้อมูลที่จะนำเข้า</span>
-              <span id="paste-preview-count" class="text-amber-600"></span>
-            </div>
-            <div id="paste-preview-body" class="overflow-x-auto max-h-48 text-[10px]"></div>
-          </div>
-
-          <div class="flex gap-2 mt-3">
-            <button type="button" onclick="previewPaste()" class="bg-amber-100 hover:bg-amber-200 text-amber-700 px-4 py-2 rounded-xl font-bold text-xs cursor-pointer border border-amber-200 transition-colors">👁 ตรวจสอบก่อน</button>
-            <button type="button" onclick="processPaste()" class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer transition-colors">✅ นำเข้าข้อมูล</button>
-            <button type="button" onclick="closePasteHelper()" class="bg-white text-amber-600 px-4 py-2 rounded-xl font-bold text-xs border border-amber-200 cursor-pointer">ยกเลิก</button>
-          </div>
-        </div>
-
-        <!-- Table -->
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-          <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <span class="font-bold text-slate-700">รายการพาร์ท</span>
-            <span id="pic-row-count" class="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">0 รายการ</span>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="pic-table">
-              <thead>
-                <tr>
-                  <th style="width:32px">#</th>
-                  <th style="min-width:120px">Date *</th>
-                  <th style="min-width:90px">Time</th>
-                  <th style="min-width:180px">Vendor Name *</th>
-                  <th style="min-width:120px">PIC</th>
-                  <th style="min-width:120px">PO No.</th>
-                  <th style="min-width:140px">Part No. *</th>
-                  <th style="min-width:80px">QTY *</th>
-                  <th style="width:40px"></th>
-                </tr>
-              </thead>
-              <tbody id="pic-table-body"></tbody>
-            </table>
-          </div>
-          <div id="pic-empty-state" class="py-16 text-center">
-            <div class="text-3xl mb-3">📄</div>
-            <div class="font-bold text-slate-300 text-sm">ยังไม่มีรายการ</div>
-            <div class="text-slate-300 text-xs mt-1">กด "+ เพิ่มแถว" หรือ "Paste จาก Excel"</div>
-          </div>
-        </div>
-
-        <!-- Saved Plans -->
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-          <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center gap-3 justify-between">
-            <span class="font-bold text-slate-700">📅 แผนที่บันทึกแล้ว</span>
-            <div class="flex items-center gap-2">
-              <label class="text-[9px] font-black text-slate-400 uppercase">วันที่</label>
-              <input type="date" id="pic-saved-date" onchange="loadTodayPICParts()"
-                class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 outline-none focus:border-violet-500 font-bold text-xs cursor-pointer">
-              <button type="button" onclick="loadTodayPICParts()" class="text-xs font-bold text-violet-600 hover:text-violet-800 cursor-pointer">🔄</button>
-            </div>
-          </div>
-          <div id="pic-saved-list" class="divide-y divide-slate-50"></div>
-          <div id="pic-saved-empty" class="py-10 text-center text-slate-300 text-xs font-bold">ยังไม่มีแผนบันทึกไว้</div>
-        </div>
-      </div><!-- end pic-page-plan -->
 
       <!-- ================= PIC Tab: Upload 503 ================= -->
       <div id="pic-page-upload503" class="hidden max-w-6xl mx-auto p-4 space-y-5 fade-in">
@@ -673,7 +553,13 @@
       <!-- ================= PIC Tab: My Parts ================= -->
       <div id="pic-page-myparts" class="hidden max-w-6xl mx-auto p-4 space-y-4 fade-in">
 
-        <!-- Filter Bar -->
+        <!-- Deadline Banner -->
+      <div id="myparts-deadline-banner" class="bg-white rounded-2xl px-5 py-3 shadow-sm border-2 border-amber-200 flex items-center justify-between gap-3">
+        <div id="myparts-deadline-text" class="font-black text-sm text-amber-600"></div>
+        <div class="text-[10px] text-slate-400 font-bold">Confirm ได้ถึง: วันจันทร์ 08:30 น.</div>
+      </div>
+
+      <!-- Filter Bar -->
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-wrap gap-3 items-center justify-between">
           <div class="flex flex-wrap gap-3 items-end">
             <div>
@@ -1284,9 +1170,7 @@
           isPICLoggedIn = true;
           hideAll();
           document.getElementById('pic-view').classList.remove('hidden');
-          showPicTab('plan');
-          loadTodayPICParts();
-          updatePICAccessUI();
+          showPicTab('upload503');
         } else {
           isStaffLoggedIn = true;
           hideAll();
@@ -3592,7 +3476,7 @@
     // PIC TAB NAVIGATION
     // ==========================================
     function showPicTab(tab) {
-      ['plan','upload503','myparts','responsibility','pic-master'].forEach(t => {
+      ['upload503','myparts','responsibility','pic-master'].forEach(t => {
         const p = document.getElementById('pic-page-' + t);
         const b = document.getElementById('pic-tab-' + t);
         if (p) p.classList.toggle('hidden', t !== tab);
@@ -3600,7 +3484,6 @@
           ? 'tab-active px-6 py-2.5 rounded-xl text-xs font-bold shadow-md cursor-pointer'
           : 'bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer';
       });
-      if (tab === 'plan') updatePICAccessUI();
       if (tab === 'myparts') initMyParts();
       if (tab === 'responsibility') { initPicResponsibility(); updatePicResponsibility(); }
       if (tab === 'pic-master') updatePicMaster();
@@ -4726,9 +4609,57 @@
     let myPartsData   = [];
     let myPartsModal  = null; // PIC ที่เปิด modal อยู่
 
+    // ── Deadline Check — จันทร์ก่อน 08:30 ──────────────
+    function getConfirmDeadline() {
+      // หาวันจันทร์ถัดไป (หรือวันนี้ถ้าเป็นจันทร์) เวลา 08:30
+      const now  = new Date();
+      const day  = now.getDay(); // 0=Sun, 1=Mon
+      const daysUntilMonday = day === 1 ? 0 : (8 - day) % 7 || 7;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + daysUntilMonday);
+      monday.setHours(8, 30, 0, 0);
+      return monday;
+    }
+
+    function isConfirmAllowed() {
+      const now      = new Date();
+      const deadline = getConfirmDeadline();
+      // ถ้าวันนี้คือจันทร์และยังไม่เกิน 08:30 → อนุญาต
+      // ถ้าเลย deadline ของสัปดาห์นี้แล้ว → ไม่อนุญาต
+      if (now.getDay() === 1 && now < deadline) return true;
+      if (now.getDay() !== 1) {
+        // ยังไม่ถึงจันทร์ → อนุญาต
+        return now < deadline;
+      }
+      return false;
+    }
+
+    function getDeadlineText() {
+      const deadline = getConfirmDeadline();
+      const now      = new Date();
+      const diff     = deadline - now;
+      if (diff <= 0) return '❌ เลย Deadline แล้ว (จันทร์ 08:30)';
+      const days  = Math.floor(diff / 86400000);
+      const hours = Math.floor((diff % 86400000) / 3600000);
+      const mins  = Math.floor((diff % 3600000) / 60000);
+      if (days > 0)  return `⏰ Deadline: จันทร์ 08:30 (อีก ${days} วัน ${hours} ชม.)`;
+      if (hours > 0) return `⚠️ Deadline: จันทร์ 08:30 (อีก ${hours} ชม. ${mins} นาที)`;
+      return `🔴 Deadline: จันทร์ 08:30 (อีก ${mins} นาที!)`;
+    }
+
     function initMyParts() {
       const dateEl = document.getElementById('myparts-date');
       if (dateEl && !dateEl.value) dateEl.value = getThaiDate();
+      // แสดง deadline banner
+      const bannerEl = document.getElementById('myparts-deadline-banner');
+      const textEl   = document.getElementById('myparts-deadline-text');
+      if (textEl) textEl.innerText = getDeadlineText();
+      if (bannerEl) {
+        const allowed = isConfirmAllowed();
+        bannerEl.className = 'bg-white rounded-2xl px-5 py-3 shadow-sm border-2 flex items-center justify-between gap-3 ' +
+          (allowed ? 'border-amber-200' : 'border-rose-300 bg-rose-50');
+        if (textEl) textEl.className = 'font-black text-sm ' + (allowed ? 'text-amber-600' : 'text-rose-600');
+      }
     }
 
     async function loadMyParts() {
@@ -4944,6 +4875,11 @@
     }
 
     async function confirmMyPartsPic() {
+      // ── Deadline Check ──
+      if (!isConfirmAllowed()) {
+        showToast('❌ เลย Deadline แล้ว — ต้อง Confirm ก่อนวันจันทร์ 08:30 น.');
+        return;
+      }
       const toConfirm = [];
       document.querySelectorAll('#myparts-modal-body input[type="checkbox"]:checked').forEach(function(cb) {
         const id = cb.dataset.id;
@@ -4994,6 +4930,9 @@
 
   <!-- expose functions to window -->
   <script>
+    try { window.getConfirmDeadline      = getConfirmDeadline;      } catch(e){}
+    try { window.isConfirmAllowed        = isConfirmAllowed;        } catch(e){}
+    try { window.getDeadlineText         = getDeadlineText;         } catch(e){}
     try { window.showRoleSelection       = showRoleSelection;       } catch(e){}
     try { window.showSupplierView        = showSupplierView;        } catch(e){}
     try { window.showLogin               = showLogin;               } catch(e){}
