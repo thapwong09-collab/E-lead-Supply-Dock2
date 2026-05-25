@@ -91,22 +91,22 @@
           <p class="text-slate-500 text-sm">E-lead Electronic (Thailand)</p>
         </div>
         <div class="space-y-4">
-          <button type="button" onclick="showSupplierView()" class="w-full bg-white hover:border-blue-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer">
+          <button type="button" data-action="showSupplierView" class="w-full bg-white hover:border-blue-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer">
             <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform flex-shrink-0">🚛</div>
             <div><div class="font-bold text-slate-800 text-lg">Supplier</div><div class="text-slate-500 text-xs">เช็คอินรับคิวส่งวัตถุดิบ</div></div>
           </button>
           
-          <button type="button" onclick="showLogin('staff')" class="w-full bg-white hover:border-indigo-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer">
+          <button type="button" data-action="showLogin" data-target="staff" class="w-full bg-white hover:border-indigo-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer">
             <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform flex-shrink-0">🏢</div>
             <div><div class="font-bold text-slate-800 text-lg">Staff</div><div class="text-slate-500 text-xs">พนักงานคลังสินค้า (จัดการคิว)</div></div>
           </button>
 
-          <button type="button" onclick="showLogin('pic')" class="w-full bg-white hover:border-violet-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer">
+          <button type="button" data-action="showLogin" data-target="pic" class="w-full bg-white hover:border-violet-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer">
             <div class="w-14 h-14 bg-violet-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform flex-shrink-0">📋</div>
             <div><div class="font-bold text-slate-800 text-lg">PIC / จัดซื้อ</div><div class="text-slate-500 text-xs">กรอกแผนรับพาร์ทล่วงหน้า</div></div>
           </button>
 
-          <button type="button" onclick="enterGuardView()" class="w-full bg-white hover:border-emerald-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer">
+          <button type="button" data-action="enterGuardView" class="w-full bg-white hover:border-emerald-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer">
             <div class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform flex-shrink-0">👮‍♂️</div>
             <div><div class="font-bold text-slate-800 text-lg">Guard (รปภ.)</div><div class="text-slate-500 text-xs font-medium">กล้องสแกนตรวจปล่อยรถ (เข้า-ออก)</div></div>
           </button>
@@ -1235,6 +1235,20 @@
 
     window.showRoleSelection = function() { hideAll(); stopGuardScanner(); document.getElementById('role-selection').classList.remove('hidden'); }
     window.showSupplierView  = function() { hideAll(); document.getElementById('supplier-view').classList.remove('hidden'); }
+
+    // ── data-action event delegation (แก้ปัญหา scope) ──
+    document.addEventListener('DOMContentLoaded', function() {
+      document.body.addEventListener('click', function(e) {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        const action = btn.dataset.action;
+        const target = btn.dataset.target;
+        if (action === 'showSupplierView') showSupplierView();
+        else if (action === 'showLogin')    showLogin(target);
+        else if (action === 'enterGuardView') enterGuardView();
+        else if (action === 'showRoleSelection') showRoleSelection();
+      });
+    });
 
     window.showLogin = function(target) {
       loginTarget = target || 'staff';
