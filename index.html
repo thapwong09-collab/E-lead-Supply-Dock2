@@ -695,21 +695,15 @@
       <div id="pic-page-myparts" class="hidden max-w-6xl mx-auto p-4 space-y-4 fade-in">
 
         <!-- Filter Bar -->
-        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-wrap gap-3 items-end justify-between">
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-wrap gap-3 items-center justify-between">
           <div class="flex flex-wrap gap-3 items-end">
             <div>
               <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">วันที่ (Arrival)</label>
-              <input type="date" id="myparts-date" onchange="loadMyParts()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer">
+              <input type="date" id="myparts-date" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer">
             </div>
-            <div>
-              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">PIC</label>
-              <select id="myparts-pic-filter" onchange="loadMyParts()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[180px]">
-                <option value="">-- เลือก PIC --</option>
-              </select>
-            </div>
-            <button type="button" onclick="loadMyParts()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer">🔍 โหลด</button>
+            <button type="button" onclick="loadMyParts()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer mt-4">🔍 โหลด</button>
           </div>
-          <div id="myparts-status-badge" class="hidden text-[10px] font-bold bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-slate-500"></div>
+          <div id="myparts-summary-badge" class="hidden text-[10px] font-bold bg-violet-50 border border-violet-200 rounded-xl px-4 py-2 text-violet-600"></div>
         </div>
 
         <!-- Loading -->
@@ -721,20 +715,35 @@
         <!-- Empty -->
         <div id="myparts-empty" class="hidden bg-white rounded-2xl p-10 text-center shadow-sm border">
           <div class="text-4xl mb-3">📭</div>
-          <div class="font-black text-slate-500">ไม่พบรายการ draft</div>
+          <div class="font-black text-slate-500">ไม่พบรายการที่รอ Confirm</div>
           <div class="text-xs text-slate-400 mt-1">ลองเปลี่ยนวันที่ หรืออัพโหลดไฟล์ 503 ก่อน</div>
         </div>
 
-        <!-- Vendor Cards -->
-        <div id="myparts-vendor-cards" class="space-y-4"></div>
+        <!-- PIC Cards Grid -->
+        <div id="myparts-pic-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
 
-        <!-- Confirm Bar (แสดงเมื่อมีรายการ) -->
-        <div id="myparts-confirm-bar" class="hidden bg-white rounded-2xl p-5 shadow-sm border-2 border-violet-200 flex flex-wrap items-center justify-between gap-4 sticky bottom-4">
-          <div id="myparts-confirm-count" class="text-sm font-black text-slate-600"></div>
-          <button type="button" onclick="confirmMyParts()" id="myparts-confirm-btn"
-            class="bg-violet-600 hover:bg-violet-700 text-white px-8 py-3 rounded-xl font-bold text-sm shadow-md cursor-pointer transition-colors">
-            ✅ Confirm รายการที่เลือก → ส่งให้คลังสินค้า
-          </button>
+        <!-- Modal รายละเอียด PIC -->
+        <div id="myparts-modal" class="fixed inset-0 z-[200] hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl">
+            <div class="flex items-center justify-between px-6 py-4 border-b bg-gradient-to-r from-violet-600 to-purple-500 rounded-t-2xl">
+              <div>
+                <div id="myparts-modal-pic-name" class="font-black text-white text-base"></div>
+                <div id="myparts-modal-pic-sub" class="text-violet-200 text-[10px] mt-0.5"></div>
+              </div>
+              <button type="button" onclick="closeMyPartsModal()" class="text-white/70 hover:text-white text-xl font-black cursor-pointer">✕</button>
+            </div>
+            <div id="myparts-modal-body" class="overflow-y-auto flex-1 p-4 space-y-3"></div>
+            <div class="px-6 py-4 border-t bg-slate-50 rounded-b-2xl flex items-center justify-between gap-3">
+              <div id="myparts-modal-count" class="text-xs font-bold text-slate-500"></div>
+              <div class="flex gap-3">
+                <button type="button" onclick="closeMyPartsModal()" class="bg-slate-200 text-slate-600 px-5 py-2.5 rounded-xl font-bold text-sm cursor-pointer hover:bg-slate-300">ปิด</button>
+                <button type="button" onclick="confirmMyPartsPic()" id="myparts-modal-confirm-btn"
+                  class="bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-md cursor-pointer transition-colors">
+                  ✅ Confirm ของฉัน → ส่งคลัง
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div><!-- end pic-page-myparts -->
@@ -4676,209 +4685,271 @@
     // =====================================================
 
     // =====================================================
-    // MY PARTS — PIC ดู/แก้ไข/Confirm รายการ draft ของตัวเอง
+    // MY PARTS — แสดง Card แยกตาม PIC ทุกคนที่มี draft
     // =====================================================
-    let myPartsData = [];
+    let myPartsData   = [];
+    let myPartsModal  = null; // PIC ที่เปิด modal อยู่
 
     function initMyParts() {
       const dateEl = document.getElementById('myparts-date');
       if (dateEl && !dateEl.value) dateEl.value = getThaiDate();
-      populateMyPartsPicFilter();
-    }
-
-    async function populateMyPartsPicFilter() {
-      const sel = document.getElementById('myparts-pic-filter');
-      if (!sel) return;
-      try {
-        const res = await callAPI('getPicMaster');
-        if (res && res.data) {
-          const pics = [...new Set(res.data.map(r => r.pic_name).filter(Boolean))].sort();
-          sel.innerHTML = '<option value="">-- เลือก PIC --</option>';
-          pics.forEach(function(p) {
-            sel.innerHTML += `<option value="${p}">${p}</option>`;
-          });
-        }
-      } catch(e) {}
     }
 
     async function loadMyParts() {
-      const date = (document.getElementById('myparts-date') || {}).value || getThaiDate();
-      const pic  = (document.getElementById('myparts-pic-filter') || {}).value || '';
+      const date = (document.getElementById('myparts-date')||{}).value || getThaiDate();
       document.getElementById('myparts-loading').classList.remove('hidden');
       document.getElementById('myparts-empty').classList.add('hidden');
-      document.getElementById('myparts-vendor-cards').innerHTML = '';
-      document.getElementById('myparts-confirm-bar').classList.add('hidden');
+      document.getElementById('myparts-pic-cards').innerHTML = '';
+      document.getElementById('myparts-summary-badge').classList.add('hidden');
+
       try {
         const res = await callAPI('getPartsByDate', { date });
         document.getElementById('myparts-loading').classList.add('hidden');
+
         if (!res || !res.data || res.data.length === 0) {
           document.getElementById('myparts-empty').classList.remove('hidden');
           return;
         }
-        myPartsData = res.data.filter(function(r) {
-          const matchPic = !pic || r.pic === pic;
-          const okStatus = ['draft','pending',''].includes(r.status||'');
-          return matchPic && okStatus;
-        });
+
+        // เฉพาะ draft
+        myPartsData = res.data.filter(r => (r.status === 'draft' || r.status === ''));
         if (myPartsData.length === 0) {
           document.getElementById('myparts-empty').classList.remove('hidden');
           return;
         }
-        renderMyParts();
+
+        renderMyPartsPicCards();
+
+        const badge = document.getElementById('myparts-summary-badge');
+        badge.innerText = `${myPartsData.length} รายการ · ${new Set(myPartsData.map(r=>r.pic)).size} PIC รอ Confirm`;
+        badge.classList.remove('hidden');
+
       } catch(err) {
         document.getElementById('myparts-loading').classList.add('hidden');
         showToast('❌ โหลดไม่สำเร็จ: ' + err.message);
       }
     }
 
-    function renderMyParts() {
-      const container = document.getElementById('myparts-vendor-cards');
+    function renderMyPartsPicCards() {
+      const container = document.getElementById('myparts-pic-cards');
       container.innerHTML = '';
-      const byVendor = {};
+
+      // group by PIC
+      const byPic = {};
       myPartsData.forEach(function(r) {
+        const p = r.pic || '(ไม่ระบุ PIC)';
+        if (!byPic[p]) byPic[p] = [];
+        byPic[p].push(r);
+      });
+
+      Object.keys(byPic).sort().forEach(function(pic) {
+        const items    = byPic[pic];
+        const vendors  = [...new Set(items.map(r => r.vendor||'-'))];
+        const picKey   = pic.replace(/[^a-zA-Z0-9]/g,'_');
+
+        const card = document.createElement('div');
+        card.className = 'u503-pic-card cursor-pointer hover:shadow-md transition-shadow';
+        card.id = 'piccard_' + picKey;
+        card.onclick = function() { openMyPartsModal(pic); };
+        card.innerHTML = `
+          <div class="u503-pic-header">
+            <div class="flex-1 min-w-0">
+              <div class="font-black text-sm">👤 ${pic}</div>
+              <div class="text-violet-200 text-[10px] mt-0.5">${items.length} รายการ · ${vendors.length} Supplier</div>
+            </div>
+            <div class="text-right flex-shrink-0">
+              <div class="text-white font-black text-sm bg-amber-400/80 rounded-lg px-3 py-1">⏳ รอ Confirm</div>
+              <div class="text-violet-200 text-[9px] mt-1">คลิกเพื่อจัดการ →</div>
+            </div>
+          </div>
+          <div class="px-4 py-3 bg-white flex flex-wrap gap-2 text-[10px] text-slate-500 font-bold">
+            <span>🏭 ${vendors.slice(0,3).join(', ')}${vendors.length>3?' +'+( vendors.length-3)+' อื่นๆ':''}</span>
+          </div>`;
+        container.appendChild(card);
+      });
+    }
+
+    function openMyPartsModal(pic) {
+      myPartsModal = pic;
+      const items = myPartsData.filter(r => (r.pic||'(ไม่ระบุ PIC)') === pic);
+
+      document.getElementById('myparts-modal-pic-name').innerText = '👤 ' + pic;
+      document.getElementById('myparts-modal-pic-sub').innerText  = items.length + ' รายการ · ' + new Set(items.map(r=>r.vendor)).size + ' Supplier';
+
+      // group by vendor — Accordion
+      const byVendor = {};
+      items.forEach(function(r) {
         const v = r.vendor || '(ไม่ระบุ)';
         if (!byVendor[v]) byVendor[v] = [];
         byVendor[v].push(r);
       });
+
+      const body = document.getElementById('myparts-modal-body');
+      body.innerHTML = '';
+
       Object.keys(byVendor).sort().forEach(function(vendor) {
-        const items     = byVendor[vendor];
-        const vk        = vendor.replace(/[^a-zA-Z0-9]/g,'_');
-        const allDone   = items.every(r => r.status === 'pending' || r.status === 'completed');
-        const card      = document.createElement('div');
-        card.className  = 'bg-white rounded-2xl border-2 ' + (allDone ? 'border-emerald-200' : 'border-slate-100') + ' overflow-hidden shadow-sm';
-        card.innerHTML  = `
-          <div class="px-5 py-3 flex flex-wrap items-center justify-between gap-3 ${allDone?'bg-emerald-50':'bg-slate-50'} border-b">
+        const vItems = byVendor[vendor];
+        const vk     = vendor.replace(/[^a-zA-Z0-9]/g,'_') + '_' + Date.now();
+
+        const section = document.createElement('div');
+        section.className = 'border-2 border-slate-100 rounded-2xl overflow-hidden';
+        section.innerHTML = `
+          <!-- Vendor Accordion Header -->
+          <div class="px-4 py-3 bg-slate-50 border-b flex flex-wrap items-center justify-between gap-3 cursor-pointer select-none"
+               onclick="toggleMpAccordion('${vk}')">
             <div class="flex items-center gap-3">
-              ${allDone ? '' : `<input type="checkbox" id="vchk_${vk}" checked onchange="toggleVendorMyParts('${vk}',this.checked)" class="w-4 h-4 accent-violet-600 cursor-pointer">`}
+              <span id="mpacc_icon_${vk}" class="text-slate-400 font-black text-sm transition-transform">▶</span>
               <div>
                 <div class="font-black text-slate-700 text-sm">🏭 ${vendor}</div>
-                <div class="text-[10px] text-slate-400">${items.length} รายการ</div>
+                <div class="text-[10px] text-slate-400">${vItems.length} รายการ</div>
               </div>
             </div>
-            <div class="flex items-center gap-2 flex-shrink-0">
-              ${allDone
-                ? '<span class="text-[10px] font-black text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full">✅ Confirmed แล้ว</span>'
-                : `<span class="text-[9px] font-black text-slate-400 uppercase">รอบส่ง:</span>
-                   <select id="vampm_${vk}" onchange="applyVendorAmPm('${vk}')"
-                     class="border-2 border-violet-200 bg-white text-violet-700 font-black text-xs rounded-xl px-3 py-1.5 outline-none cursor-pointer">
-                     <option value="">-- เลือก --</option>
-                     <option value="AM">🌅 AM</option>
-                     <option value="PM">🌆 PM</option>
-                     <option value="PICK UP">🚚 PICK UP</option>
-                   </select>`}
+            <div class="flex items-center gap-2" onclick="event.stopPropagation()">
+              <span class="text-[9px] font-black text-slate-400 uppercase">รอบส่ง:</span>
+              <select id="mpvampm_${vk}" onchange="applyMpVendorAmPm('${vk}')"
+                class="border-2 border-violet-200 bg-white text-violet-700 font-black text-xs rounded-xl px-3 py-1.5 outline-none cursor-pointer">
+                <option value="">-- เลือก --</option>
+                <option value="AM">🌅 AM</option>
+                <option value="PM">🌆 PM</option>
+                <option value="PICK UP">🚚 PICK UP</option>
+              </select>
             </div>
           </div>
-          <div id="vbody_${vk}" class="divide-y divide-slate-50"></div>`;
-        const body = card.querySelector('#vbody_' + vk);
-        items.forEach(function(r) {
-          const done = r.status === 'pending' || r.status === 'completed';
-          const row  = document.createElement('div');
-          row.className = 'flex items-start gap-3 px-4 py-3 ' + (done ? 'bg-emerald-50/40' : 'hover:bg-violet-50') + ' transition-colors';
-          row.id = 'mprow_' + r.id;
+          <!-- Accordion Body (hidden by default) -->
+          <div id="mpacc_body_${vk}" class="hidden divide-y divide-slate-50"></div>`;
+
+        const accBody = section.querySelector('#mpacc_body_' + vk);
+        vItems.forEach(function(r) {
+          const row = document.createElement('div');
+          row.className = 'flex items-start gap-3 px-4 py-3 hover:bg-violet-50 transition-colors';
+          row.id = 'mpmodalrow_' + r.id;
           row.innerHTML = `
-            <input type="checkbox" id="mpchk_${r.id}" data-id="${r.id}" ${done?'checked disabled':'checked'}
-              class="w-4 h-4 accent-violet-600 cursor-pointer flex-shrink-0 mt-1 ${done?'opacity-40':''}"
-              onchange="updateMyPartsCount()">
+            <input type="checkbox" id="mpmodalchk_${r.id}" data-id="${r.id}" checked
+              class="w-4 h-4 accent-violet-600 cursor-pointer flex-shrink-0 mt-1"
+              onchange="updateMyPartsModalCount()">
             <div class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-2 text-xs">
+              <div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">No.</div>
+                <div class="font-bold text-slate-500">${r.no||'-'}</div></div>
               <div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">PO No.</div>
                 <div class="font-bold text-slate-700">${r.po_no||'-'}</div></div>
               <div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">Part No.</div>
                 <div class="font-mono text-violet-700 font-bold">${r.part_no||'-'}</div></div>
               <div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">Qty Plan</div>
-                ${done ? `<div class="font-black text-slate-700">${r.qty_plan||0}</div>`
-                       : `<input type="number" id="mpqty_${r.id}" value="${r.qty_plan||0}" class="w-full border border-slate-200 rounded-lg px-2 py-1 font-black text-slate-700 outline-none focus:border-violet-400 text-xs">`}
-              </div>
+                <input type="number" id="mpmodalqty_${r.id}" value="${r.qty_plan||0}"
+                  class="w-full border border-slate-200 rounded-lg px-2 py-1 font-black text-slate-700 outline-none focus:border-violet-400 text-xs"></div>
               <div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">Arrival Date 📅</div>
-                ${done ? `<div class="text-emerald-600 font-bold">${r.date||'-'}</div>`
-                       : `<input type="date" id="mpdate_${r.id}" value="${r.date||''}" class="w-full border border-slate-200 rounded-lg px-2 py-1 font-bold text-emerald-600 outline-none focus:border-violet-400 text-xs cursor-pointer">`}
-              </div>
-              <div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">รอบส่ง (AM/PM)</div>
-                ${done ? `<div class="font-bold text-slate-700">${r.time_slot||'-'}</div>`
-                       : `<select id="mpslot_${r.id}" class="w-full border border-slate-200 rounded-lg px-2 py-1 font-bold text-slate-700 outline-none focus:border-violet-400 text-xs cursor-pointer">
-                            <option value="" ${!r.time_slot?'selected':''}>--</option>
-                            <option value="AM" ${r.time_slot==='AM'?'selected':''}>AM</option>
-                            <option value="PM" ${r.time_slot==='PM'?'selected':''}>PM</option>
-                            <option value="PICK UP" ${r.time_slot==='PICK UP'?'selected':''}>PICK UP</option>
-                          </select>`}
-              </div>
-              <div class="flex items-end gap-2 col-span-2 md:col-span-1">
-                ${done
-                  ? '<span class="text-[9px] font-black text-emerald-600 bg-emerald-100 px-2 py-1 rounded-lg">✅ Confirmed</span>'
-                  : `<button type="button" onclick="deleteMyPart('${r.id}','mprow_${r.id}')" class="text-[9px] font-black text-rose-400 hover:text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2 py-1 rounded-lg cursor-pointer">🗑 ลบ</button>`}
+                <input type="date" id="mpmodaldate_${r.id}" value="${r.date||''}"
+                  class="w-full border border-slate-200 rounded-lg px-2 py-1 font-bold text-emerald-600 outline-none focus:border-violet-400 text-xs cursor-pointer"></div>
+              <div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">AM/PM</div>
+                <select id="mpmodalslot_${r.id}" data-vk="${vk}"
+                  class="w-full border border-slate-200 rounded-lg px-2 py-1 font-bold text-slate-700 outline-none focus:border-violet-400 text-xs cursor-pointer">
+                  <option value="">--</option>
+                  <option value="AM" ${r.time_slot==='AM'?'selected':''}>AM</option>
+                  <option value="PM" ${r.time_slot==='PM'?'selected':''}>PM</option>
+                  <option value="PICK UP" ${r.time_slot==='PICK UP'?'selected':''}>PICK UP</option>
+                </select></div>
+              <div class="flex items-end">
+                <button type="button" onclick="deleteMpModalRow('${r.id}')"
+                  class="text-[9px] font-black text-rose-400 hover:text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2 py-1 rounded-lg cursor-pointer">
+                  🗑 ลบ
+                </button>
               </div>
             </div>`;
-          body.appendChild(row);
+          accBody.appendChild(row);
         });
-        container.appendChild(card);
+
+        body.appendChild(section);
       });
-      updateMyPartsCount();
-      document.getElementById('myparts-confirm-bar').classList.remove('hidden');
+
+      updateMyPartsModalCount();
+      const modal = document.getElementById('myparts-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
     }
 
-    function applyVendorAmPm(vk) {
-      const val = (document.getElementById('vampm_' + vk)||{}).value||'';
+    function toggleMpAccordion(vk) {
+      const body = document.getElementById('mpacc_body_' + vk);
+      const icon = document.getElementById('mpacc_icon_' + vk);
+      if (!body) return;
+      const isOpen = !body.classList.contains('hidden');
+      body.classList.toggle('hidden', isOpen);
+      if (icon) icon.style.transform = isOpen ? '' : 'rotate(90deg)';
+    }
+
+    function applyMpVendorAmPm(vk) {
+      const val = (document.getElementById('mpvampm_' + vk)||{}).value || '';
       if (!val) return;
-      document.querySelectorAll('#vbody_' + vk + ' select[id^="mpslot_"]').forEach(s => s.value = val);
+      document.querySelectorAll(`select[data-vk="${vk}"]`).forEach(s => s.value = val);
     }
 
-    function toggleVendorMyParts(vk, checked) {
-      document.querySelectorAll('#vbody_' + vk + ' input[type="checkbox"]:not([disabled])').forEach(cb => { cb.checked = checked; });
-      updateMyPartsCount();
+    function updateMyPartsModalCount() {
+      const total    = document.querySelectorAll('#myparts-modal-body input[type="checkbox"]').length;
+      const selected = document.querySelectorAll('#myparts-modal-body input[type="checkbox"]:checked').length;
+      const el = document.getElementById('myparts-modal-count');
+      if (el) el.innerText = `เลือก ${selected} / ${total} รายการ`;
     }
 
-    function updateMyPartsCount() {
-      const total    = document.querySelectorAll('#myparts-vendor-cards input[type="checkbox"]:not([disabled])').length;
-      const selected = document.querySelectorAll('#myparts-vendor-cards input[type="checkbox"]:not([disabled]):checked').length;
-      const confirmed= document.querySelectorAll('#myparts-vendor-cards input[disabled]').length;
-      const el = document.getElementById('myparts-confirm-count');
-      if (el) el.innerText = `เลือก ${selected} / ${total} รายการที่จะ Confirm`;
-      const badge = document.getElementById('myparts-status-badge');
-      if (badge) { badge.innerText = `✅ Confirmed แล้ว ${confirmed} รายการ`; badge.classList.toggle('hidden', confirmed === 0); }
-    }
-
-    async function deleteMyPart(id, rowId) {
-      if (!confirm('ลบรายการนี้ออกจากแผน?')) return;
+    async function deleteMpModalRow(id) {
+      if (!confirm('ลบรายการนี้?')) return;
       try {
         const res = await callAPI('deletePartDetail', { id });
         if (res && res.success) {
-          document.getElementById(rowId)?.remove();
+          document.getElementById('mpmodalrow_' + id)?.remove();
           myPartsData = myPartsData.filter(r => r.id !== id);
-          updateMyPartsCount();
+          updateMyPartsModalCount();
           showToast('🗑 ลบแล้ว');
-        } else { showToast('❌ ลบไม่สำเร็จ: '+((res&&res.message)||'')); }
-      } catch(err) { showToast('❌ Error: '+err.message); }
+        } else { showToast('❌ ' + ((res&&res.message)||'ลบไม่สำเร็จ')); }
+      } catch(err) { showToast('❌ ' + err.message); }
     }
 
-    async function confirmMyParts() {
+    function closeMyPartsModal() {
+      document.getElementById('myparts-modal').classList.add('hidden');
+      document.getElementById('myparts-modal').classList.remove('flex');
+    }
+
+    async function confirmMyPartsPic() {
       const toConfirm = [];
-      document.querySelectorAll('#myparts-vendor-cards input[type="checkbox"]:not([disabled]):checked').forEach(function(cb) {
-        const id  = cb.dataset.id;
-        const r   = myPartsData.find(x => x.id === id);
-        if (!r) return;
+      document.querySelectorAll('#myparts-modal-body input[type="checkbox"]:checked').forEach(function(cb) {
+        const id = cb.dataset.id;
         toConfirm.push({
           id,
-          qty_plan:  parseFloat((document.getElementById('mpqty_'+id)||{}).value||r.qty_plan||0),
-          date:      (document.getElementById('mpdate_'+id)||{}).value || r.date,
-          time_slot: (document.getElementById('mpslot_'+id)||{}).value || r.time_slot||'',
+          qty_plan:  parseFloat((document.getElementById('mpmodalqty_' +id)||{}).value||0),
+          date:      (document.getElementById('mpmodaldate_'+id)||{}).value || '',
+          time_slot: (document.getElementById('mpmodalslot_'+id)||{}).value || '',
         });
       });
       if (toConfirm.length === 0) { showToast('⚠️ ยังไม่ได้เลือกรายการ'); return; }
-      const btn = document.getElementById('myparts-confirm-btn');
+
+      const btn = document.getElementById('myparts-modal-confirm-btn');
       btn.disabled = true; btn.innerText = '⏳ กำลัง Confirm...';
+
       try {
         const res = await callAPI('confirmPlanParts', { items: JSON.stringify(toConfirm) });
         if (res && res.success) {
           showToast(`✅ Confirm สำเร็จ ${res.confirmed||0} รายการ`);
-          btn.innerText = '✅ Confirmed!';
-          setTimeout(function() { loadMyParts(); btn.disabled=false; btn.innerText='✅ Confirm รายการที่เลือก → ส่งให้คลังสินค้า'; }, 1500);
+          closeMyPartsModal();
+          // ลบ Card ของ PIC นี้ออก
+          const picKey = (myPartsModal||'').replace(/[^a-zA-Z0-9]/g,'_');
+          document.getElementById('piccard_' + picKey)?.remove();
+          // ลบออกจาก data
+          const confirmedIds = new Set(toConfirm.map(x=>x.id));
+          myPartsData = myPartsData.filter(r => !confirmedIds.has(r.id));
+          // ถ้าไม่มีรายการเหลือ แสดง empty
+          if (myPartsData.length === 0) {
+            document.getElementById('myparts-empty').classList.remove('hidden');
+            document.getElementById('myparts-summary-badge').classList.add('hidden');
+          } else {
+            const badge = document.getElementById('myparts-summary-badge');
+            badge.innerText = `${myPartsData.length} รายการ · ${new Set(myPartsData.map(r=>r.pic)).size} PIC รอ Confirm`;
+          }
           if (typeof loadAllData === 'function') loadAllData();
         } else {
-          showToast('❌ ไม่สำเร็จ: '+((res&&res.message)||''));
-          btn.disabled=false; btn.innerText='✅ Confirm รายการที่เลือก → ส่งให้คลังสินค้า';
+          showToast('❌ ' + ((res&&res.message)||'ไม่สำเร็จ'));
+          btn.disabled = false; btn.innerText = '✅ Confirm ของฉัน → ส่งคลัง';
         }
       } catch(err) {
-        showToast('❌ Error: '+err.message);
-        btn.disabled=false; btn.innerText='✅ Confirm รายการที่เลือก → ส่งให้คลังสินค้า';
+        showToast('❌ ' + err.message);
+        btn.disabled = false; btn.innerText = '✅ Confirm ของฉัน → ส่งคลัง';
       }
     }
     // =====================================================
@@ -4946,6 +5017,13 @@
     window.apply503VendorAmPm      = apply503VendorAmPm;
     window.initMyParts             = initMyParts;
     window.loadMyParts             = loadMyParts;
+    window.openMyPartsModal        = openMyPartsModal;
+    window.closeMyPartsModal       = closeMyPartsModal;
+    window.toggleMpAccordion       = toggleMpAccordion;
+    window.applyMpVendorAmPm       = applyMpVendorAmPm;
+    window.updateMyPartsModalCount = updateMyPartsModalCount;
+    window.deleteMpModalRow        = deleteMpModalRow;
+    window.confirmMyPartsPic       = confirmMyPartsPic;
     window.applyVendorAmPm         = applyVendorAmPm;
     window.toggleVendorMyParts     = toggleVendorMyParts;
     window.updateMyPartsCount      = updateMyPartsCount;
