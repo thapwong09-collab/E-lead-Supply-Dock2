@@ -4502,16 +4502,9 @@
 
     // ─── Save All Selected (ปุ่มหลัก) ──────────────
     async function save503Selected() {
-      // รวบรวมจาก modal checkboxes ที่เคย toggle + default checked
-      const selected = upload503Data.filter(function(r, idx) {
-        const modalCb = document.getElementById('modalchk503_' + idx);
-        if (modalCb) return modalCb.checked;
-        return true; // default = เลือก
-      });
       const filtered = get503Filtered();
-      const finalSelected = selected.filter(function(r) { return filtered.includes(r); });
-      if (finalSelected.length === 0) { showToast('⚠️ ยังไม่ได้เลือกรายการใดเลย'); return; }
-      await _do503Save(finalSelected, 'upload503-save-btn');
+      if (filtered.length === 0) { showToast('⚠️ ไม่มีรายการ'); return; }
+      await _do503Save(filtered, 'upload503-save-btn');
     }
 
     async function _do503Save(selected, btnId) {
