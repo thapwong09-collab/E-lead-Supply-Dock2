@@ -634,32 +634,11 @@
           <div class="font-bold text-slate-500 text-sm">กำลังอ่านไฟล์...</div>
         </div>
 
-        <!-- ปุ่ม Filter (แสดงหลังอัพโหลด) -->
-        <div id="upload503-actions" class="hidden bg-white rounded-2xl p-5 shadow-sm border flex flex-wrap items-center justify-between gap-4">
-          <div class="flex items-center gap-3 flex-wrap">
-            <label class="text-xs font-black text-slate-400 uppercase tracking-widest">กรอง Arrival Date:</label>
-            <input type="date" id="upload503-date-filter" onchange="render503Sections()" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 text-xs font-bold outline-none focus:border-violet-400 cursor-pointer">
-            <button type="button" onclick="document.getElementById('upload503-date-filter').value=''; render503Sections()" class="text-[10px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer">✕ ล้าง</button>
-          </div>
-          <div class="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2">
-            <span class="text-amber-500 text-sm">💡</span>
-            <span class="text-[10px] font-bold text-amber-600">คลิก Card PIC เพื่อเปิดหน้าจัดการและบันทึกของแต่ละคน</span>
-          </div>
-        </div>
-
-        <!-- สรุปภาพรวม — PIC Cards -->
-        <div id="upload503-summary" class="hidden bg-white rounded-2xl shadow-sm border overflow-hidden">
-          <div class="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <div class="font-black text-slate-700">📊 รายการแยกตาม PIC — คลิก Card เพื่อจัดการ</div>
-              <div id="upload503-summary-sub" class="text-[10px] text-slate-400 mt-0.5"></div>
-            </div>
-            <div class="flex gap-2 flex-wrap">
-              <button type="button" onclick="upload503SelectAll(true)" class="text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-emerald-100">✅ เลือกทั้งหมด</button>
-              <button type="button" onclick="upload503SelectAll(false)" class="text-[10px] font-bold bg-rose-50 text-rose-500 border border-rose-200 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-rose-100">☐ ยกเลิกทั้งหมด</button>
-            </div>
-          </div>
-          <div id="upload503-pic-sections" class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        <!-- ผลลัพธ์หลังอัพโหลด -->
+        <div id="upload503-result" class="hidden bg-white rounded-2xl p-6 shadow-sm border text-center">
+          <div class="text-4xl mb-3">✅</div>
+          <div id="upload503-result-text" class="font-black text-slate-700 text-base"></div>
+          <div class="text-xs text-slate-400 mt-2">PIC แต่ละคนสามารถเข้าไปจัดการได้ที่ Tab <strong>"🗂️ รายการของฉัน"</strong></div>
         </div>
 
         <!-- Modal รายละเอียดแต่ละ PIC -->
@@ -4381,9 +4360,8 @@
             return;
           }
 
-          render503Sections();
-          document.getElementById('upload503-summary').classList.remove('hidden');
-          document.getElementById('upload503-actions').classList.remove('hidden');
+          // บันทึกลง Sheet ทันทีเป็น draft — ไม่ต้องแสดง Card
+          await autoSave503ToSheet();
 
         } catch(err) {
           document.getElementById('upload503-loading').classList.add('hidden');
@@ -4394,9 +4372,52 @@
     }
 
     function get503Filtered() {
-      const dateFilter = (document.getElementById('upload503-date-filter') || {}).value || '';
-      if (!dateFilter) return upload503Data;
-      return upload503Data.filter(function(r) { return r.arrival_date === dateFilter; });
+      return upload503Data;
+    }
+
+    // บันทึกทั้งหมดลง Sheet เป็น draft ทันทีหลังอัพโหลด
+    async function autoSave503ToSheet() {
+      const loadingEl = document.getElementById('upload503-loading');
+      const resultEl  = document.getElementById('upload503-result');
+      const resultTxt = document.getElementById('upload503-result-text');
+      if (loadingEl) { loadingEl.classList.remove('hidden'); }
+
+      try {
+        const rows = upload503Data.map(function(r) {
+          return {
+            date:      r.arrival_date || '',
+            vendor:    r.vendor       || '',
+            pic:       r.pic_name     || '',
+            po_no:     r.po_no        || '',
+            part_no:   r.part_no      || '',
+            no:        r.no           || '',
+            qty:       r.undelivered_qty || r.order_qty || 0,
+            time_slot: '',
+            origin:    'import',
+          };
+        });
+
+        // แบ่ง batch ทีละ 300 rows กัน timeout
+        const batchSize = 300;
+        let totalSaved = 0, totalUpdated = 0;
+        for (let i = 0; i < rows.length; i += batchSize) {
+          const batch = rows.slice(i, i + batchSize);
+          const res   = await callAPI('savePlanParts', { rows: JSON.stringify(batch) });
+          if (res && res.success) {
+            totalSaved   += res.saved   || 0;
+            totalUpdated += res.updated || 0;
+          }
+        }
+
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (resultEl)  resultEl.classList.remove('hidden');
+        if (resultTxt) resultTxt.innerText = `บันทึกสำเร็จ ${totalSaved} รายการใหม่, อัพเดต ${totalUpdated} รายการ — รอ PIC แต่ละคน Confirm`;
+        showToast(`✅ บันทึก ${totalSaved} รายการใหม่`);
+
+      } catch(err) {
+        if (loadingEl) loadingEl.classList.add('hidden');
+        showToast('❌ บันทึกไม่สำเร็จ: ' + err.message);
+      }
     }
 
     function render503Sections() {
@@ -5006,8 +5027,7 @@
     window.updateMonthlySummary    = updateMonthlySummary;
     window.updatePicResponsibility = updatePicResponsibility;
     window.handle503Upload         = handle503Upload;
-    window.render503Sections       = render503Sections;
-    window.upload503SelectAll      = upload503SelectAll;
+    window.autoSave503ToSheet      = autoSave503ToSheet;
     window.save503Selected         = save503Selected;
     window.save503ForPic           = save503ForPic;
     window.openModal503            = openModal503;
