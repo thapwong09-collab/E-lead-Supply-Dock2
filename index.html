@@ -4532,7 +4532,13 @@
           };
         });
 
+        // DEBUG — ลบทีหลัง
+        alert('rows ที่จะส่ง:\n' + JSON.stringify(rows[0], null, 2));
+
         const res = await callAPI('savePlanParts', { rows: JSON.stringify(rows) });
+
+        // DEBUG — ลบทีหลัง
+        alert('response:\n' + JSON.stringify(res, null, 2));
         if (res && res.success) {
           showToast(`✅ บันทึกสำเร็จ ${res.saved||0} รายการใหม่, อัพเดต ${res.updated||0} รายการ`);
           if (btn) btn.innerText = '✅ บันทึกแล้ว';
