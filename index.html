@@ -599,7 +599,13 @@
             </div>
             <div id="myparts-modal-body" class="overflow-y-auto flex-1 p-4 space-y-3"></div>
             <div class="px-6 py-4 border-t bg-slate-50 rounded-b-2xl flex items-center justify-between gap-3">
-              <div id="myparts-modal-count" class="text-xs font-bold text-slate-500"></div>
+              <div class="flex items-center gap-3">
+                <div id="myparts-modal-count" class="text-xs font-bold text-slate-500"></div>
+                <button type="button" onclick="bulkDeleteMyParts()"
+                  class="text-[10px] font-black text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-lg cursor-pointer transition-colors">
+                  🗑 ลบที่เลือก
+                </button>
+              </div>
               <div class="flex gap-3">
                 <button type="button" onclick="closeMyPartsModal()" class="bg-slate-200 text-slate-600 px-5 py-2.5 rounded-xl font-bold text-sm cursor-pointer hover:bg-slate-300">ปิด</button>
                 <button type="button" onclick="confirmMyPartsPic()" id="myparts-modal-confirm-btn"
@@ -4611,27 +4617,38 @@
 
     // ── Deadline Check — จันทร์ก่อน 08:30 ──────────────
     function getConfirmDeadline() {
-      // หาวันจันทร์ถัดไป (หรือวันนี้ถ้าเป็นจันทร์) เวลา 08:30
+      // deadline = วันจันทร์ของสัปดาห์ปัจจุบัน เวลา 08:30
+      // ถ้าตอนนี้เลยจันทร์ 08:30 แล้ว deadline = จันทร์หน้า
       const now  = new Date();
       const day  = now.getDay(); // 0=Sun, 1=Mon
-      const daysUntilMonday = day === 1 ? 0 : (8 - day) % 7 || 7;
       const monday = new Date(now);
-      monday.setDate(now.getDate() + daysUntilMonday);
-      monday.setHours(8, 30, 0, 0);
+      if (day === 1) {
+        // วันนี้จันทร์
+        monday.setHours(8, 30, 0, 0);
+        if (now > monday) {
+          // เลย 08:30 แล้ว → deadline = จันทร์หน้า
+          monday.setDate(monday.getDate() + 7);
+        }
+      } else {
+        // ไม่ใช่จันทร์ → หาจันทร์ถัดไป
+        const daysUntil = (8 - day) % 7 || 7;
+        monday.setDate(now.getDate() + daysUntil);
+        monday.setHours(8, 30, 0, 0);
+      }
       return monday;
     }
 
     function isConfirmAllowed() {
       const now      = new Date();
-      const deadline = getConfirmDeadline();
-      // ถ้าวันนี้คือจันทร์และยังไม่เกิน 08:30 → อนุญาต
-      // ถ้าเลย deadline ของสัปดาห์นี้แล้ว → ไม่อนุญาต
-      if (now.getDay() === 1 && now < deadline) return true;
-      if (now.getDay() !== 1) {
-        // ยังไม่ถึงจันทร์ → อนุญาต
-        return now < deadline;
+      const day      = now.getDay();
+      // ล็อกเฉพาะ: วันจันทร์ที่เลย 08:30 แล้ว
+      if (day === 1) {
+        const cutoff = new Date(now);
+        cutoff.setHours(8, 30, 0, 0);
+        return now <= cutoff;
       }
-      return false;
+      // วันอื่นๆ อนุญาตเสมอ
+      return true;
     }
 
     function getDeadlineText() {
@@ -4856,7 +4873,28 @@
       if (el) el.innerText = `เลือก ${selected} / ${total} รายการ`;
     }
 
-    async function deleteMpModalRow(id) {
+    async function bulkDeleteMyParts() {
+      const checked = document.querySelectorAll('#myparts-modal-body input[type="checkbox"]:checked');
+      if (checked.length === 0) { showToast('⚠️ ยังไม่ได้เลือกรายการ'); return; }
+      if (!confirm(`ลบ ${checked.length} รายการที่เลือก?`)) return;
+
+      const ids = [...checked].map(cb => cb.dataset.id);
+      let deleted = 0;
+
+      for (const id of ids) {
+        try {
+          const res = await callAPI('deletePartDetail', { id });
+          if (res && res.success) {
+            document.getElementById('mpmodalrow_' + id)?.remove();
+            myPartsData = myPartsData.filter(r => r.id !== id);
+            deleted++;
+          }
+        } catch(e) {}
+      }
+
+      updateMyPartsModalCount();
+      showToast(`🗑 ลบแล้ว ${deleted} รายการ`);
+    }
       if (!confirm('ลบรายการนี้?')) return;
       try {
         const res = await callAPI('deletePartDetail', { id });
@@ -4930,6 +4968,7 @@
 
   <!-- expose functions to window -->
   <script>
+    try { window.bulkDeleteMyParts        = bulkDeleteMyParts;       } catch(e){}
     try { window.getConfirmDeadline      = getConfirmDeadline;      } catch(e){}
     try { window.isConfirmAllowed        = isConfirmAllowed;        } catch(e){}
     try { window.getDeadlineText         = getDeadlineText;         } catch(e){}
