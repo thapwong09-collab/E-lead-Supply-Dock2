@@ -1130,16 +1130,46 @@
 
     // ── data-action event delegation (แก้ปัญหา scope) ──
     document.addEventListener('DOMContentLoaded', function() {
+      // Map ทุก function ขึ้น window ตรงๆ ก่อน
+      const fnMap = {
+        showRoleSelection, showSupplierView, showLogin, enterGuardView,
+        staffLogout, picLogout, guardLogout, processLogin, supplierCheckin,
+        resetSupplierView, showStaffTab, showPicTab, updateStatus,
+        callQueueWithFactory, closeFactoryModal, confirmFactory,
+        addPICRow, removePICRow, pastePICTable, closePasteHelper,
+        previewPaste, processPaste, mergeDuplicatePICRows, savePICParts,
+        loadTodayPICParts, openPicEditModal, closePicEditModal,
+        checkQtyInput, checkUnplanned, closePartsModal,
+        initGuardScanner, stopGuardScanner, closeGuardResult,
+        updatePicResponsibility, initPicResponsibility, updatePicMaster,
+        addPicCard, closePmModal, savePicCard, openAddSupModal, closePmSupModal,
+        filterPmSuggestions, togglePmSup, removePmSelected,
+        populateMonthSelector, populateSupplierSelector, updateKPIUI,
+        updateMonthlySummary, handle503Upload, autoSave503ToSheet,
+        save503Selected, save503ForPic, openModal503, closeModal503,
+        modal503ToggleAll, sync503Check, apply503VendorAmPm,
+        initMyParts, loadMyParts, openMyPartsModal, closeMyPartsModal,
+        toggleMpAccordion, applyMpVendorAmPm, updateMyPartsModalCount,
+        deleteMpModalRow, confirmMyPartsPic, bulkDeleteMyParts,
+        applyVendorAmPm, toggleVendorMyParts, updateMyPartsCount,
+        deleteMyPart, confirmMyParts, onVendorInput, onVendorBlur,
+        onVendorKeydown, selectVendor, showToast, getThaiDate, formatThaiTime,
+        getWeekRange, isDeadlinePassed, isConfirmAllowed, getDeadlineText,
+      };
+      Object.keys(fnMap).forEach(function(k) {
+        try { if (typeof fnMap[k] === 'function') window[k] = fnMap[k]; } catch(e){}
+      });
+
+      // data-action handler
       document.body.addEventListener('click', function(e) {
         const btn = e.target.closest('[data-action]');
         if (!btn) return;
         const action = btn.dataset.action;
         const target = btn.dataset.target;
-        if (action === 'showSupplierView') showSupplierView();
-        else if (action === 'showLogin')    showLogin(target);
-        else if (action === 'enterGuardView') enterGuardView();
-        else if (action === 'showRoleSelection') showRoleSelection();
-        else if (action === 'bulkDeleteMyParts') bulkDeleteMyParts();
+        if (window[action]) {
+          e.stopPropagation();
+          window[action](target);
+        }
       });
     });
 
@@ -4982,95 +5012,6 @@
 
   </script>
 
-  <!-- expose functions to window -->
-  <script>
-    try { window.bulkDeleteMyParts        = bulkDeleteMyParts;       } catch(e){}
-    try { window.getWeekRange             = getWeekRange;            } catch(e){}
-    try { window.isDeadlinePassed         = isDeadlinePassed;        } catch(e){}
-    try { window.isConfirmAllowed         = isConfirmAllowed;        } catch(e){}
-    try { window.getDeadlineText          = getDeadlineText;         } catch(e){}
-    try { window.showRoleSelection       = showRoleSelection;       } catch(e){}
-    try { window.showSupplierView        = showSupplierView;        } catch(e){}
-    try { window.showLogin               = showLogin;               } catch(e){}
-    try { window.enterGuardView          = enterGuardView;          } catch(e){}
-    try { window.staffLogout             = staffLogout;             } catch(e){}
-    try { window.picLogout               = picLogout;               } catch(e){}
-    try { window.guardLogout             = guardLogout;             } catch(e){}
-    try { window.processLogin            = processLogin;            } catch(e){}
-    try { window.supplierCheckin         = supplierCheckin;         } catch(e){}
-    try { window.resetSupplierView       = resetSupplierView;       } catch(e){}
-    try { window.showStaffTab            = showStaffTab;            } catch(e){}
-    try { window.showPicTab              = showPicTab;              } catch(e){}
-    try { window.updateStatus            = updateStatus;            } catch(e){}
-    try { window.callQueueWithFactory    = callQueueWithFactory;    } catch(e){}
-    try { window.closeFactoryModal       = closeFactoryModal;       } catch(e){}
-    try { window.confirmFactory          = confirmFactory;          } catch(e){}
-    try { window.addPICRow               = addPICRow;               } catch(e){}
-    try { window.removePICRow            = removePICRow;            } catch(e){}
-    try { window.pastePICTable           = pastePICTable;           } catch(e){}
-    try { window.closePasteHelper        = closePasteHelper;        } catch(e){}
-    try { window.previewPaste            = previewPaste;            } catch(e){}
-    try { window.processPaste            = processPaste;            } catch(e){}
-    try { window.mergeDuplicatePICRows   = mergeDuplicatePICRows;   } catch(e){}
-    try { window.savePICParts            = savePICParts;            } catch(e){}
-    try { window.loadTodayPICParts       = loadTodayPICParts;       } catch(e){}
-    try { window.openPicEditModal        = openPicEditModal;        } catch(e){}
-    try { window.closePicEditModal       = closePicEditModal;       } catch(e){}
-    try { window.checkQtyInput           = checkQtyInput;           } catch(e){}
-    try { window.checkUnplanned          = checkUnplanned;          } catch(e){}
-    try { window.closePartsModal         = closePartsModal;         } catch(e){}
-    try { window.initGuardScanner        = initGuardScanner;        } catch(e){}
-    try { window.stopGuardScanner        = stopGuardScanner;        } catch(e){}
-    try { window.closeGuardResult        = closeGuardResult;        } catch(e){}
-    try { window.onScanSuccess           = onScanSuccess;           } catch(e){}
-    try { window.onScanFailure           = onScanFailure;           } catch(e){}
-    try { window.updatePicResponsibility = updatePicResponsibility; } catch(e){}
-    try { window.initPicResponsibility   = initPicResponsibility;   } catch(e){}
-    try { window.updatePicMaster         = updatePicMaster;         } catch(e){}
-    try { window.addPicCard              = addPicCard;              } catch(e){}
-    try { window.closePmModal            = closePmModal;            } catch(e){}
-    try { window.savePicCard             = savePicCard;             } catch(e){}
-    try { window.openAddSupModal         = openAddSupModal;         } catch(e){}
-    try { window.closePmSupModal         = closePmSupModal;         } catch(e){}
-    try { window.filterPmSuggestions     = filterPmSuggestions;     } catch(e){}
-    try { window.togglePmSup             = togglePmSup;             } catch(e){}
-    try { window.removePmSelected        = removePmSelected;        } catch(e){}
-    try { window.populateMonthSelector   = populateMonthSelector;   } catch(e){}
-    try { window.populateSupplierSelector= populateSupplierSelector;} catch(e){}
-    try { window.updateKPIUI             = updateKPIUI;             } catch(e){}
-    try { window.updateMonthlySummary    = updateMonthlySummary;    } catch(e){}
-    try { window.handle503Upload         = handle503Upload;         } catch(e){}
-    try { window.autoSave503ToSheet      = autoSave503ToSheet;      } catch(e){}
-    try { window.save503Selected         = save503Selected;         } catch(e){}
-    try { window.save503ForPic           = save503ForPic;           } catch(e){}
-    try { window.openModal503            = openModal503;            } catch(e){}
-    try { window.closeModal503           = closeModal503;           } catch(e){}
-    try { window.modal503ToggleAll       = modal503ToggleAll;       } catch(e){}
-    try { window.sync503Check            = sync503Check;            } catch(e){}
-    try { window.apply503VendorAmPm      = apply503VendorAmPm;      } catch(e){}
-    try { window.render503Sections       = render503Sections;       } catch(e){}
-    try { window.upload503SelectAll      = upload503SelectAll;      } catch(e){}
-    try { window.initMyParts             = initMyParts;             } catch(e){}
-    try { window.loadMyParts             = loadMyParts;             } catch(e){}
-    try { window.openMyPartsModal        = openMyPartsModal;        } catch(e){}
-    try { window.closeMyPartsModal       = closeMyPartsModal;       } catch(e){}
-    try { window.toggleMpAccordion       = toggleMpAccordion;       } catch(e){}
-    try { window.applyMpVendorAmPm       = applyMpVendorAmPm;       } catch(e){}
-    try { window.updateMyPartsModalCount = updateMyPartsModalCount; } catch(e){}
-    try { window.deleteMpModalRow        = deleteMpModalRow;        } catch(e){}
-    try { window.confirmMyPartsPic       = confirmMyPartsPic;       } catch(e){}
-    try { window.applyVendorAmPm         = applyVendorAmPm;         } catch(e){}
-    try { window.toggleVendorMyParts     = toggleVendorMyParts;     } catch(e){}
-    try { window.updateMyPartsCount      = updateMyPartsCount;      } catch(e){}
-    try { window.deleteMyPart            = deleteMyPart;            } catch(e){}
-    try { window.confirmMyParts          = confirmMyParts;          } catch(e){}
-    try { window.onVendorInput           = onVendorInput;           } catch(e){}
-    try { window.onVendorBlur            = onVendorBlur;            } catch(e){}
-    try { window.onVendorKeydown         = onVendorKeydown;         } catch(e){}
-    try { window.selectVendor            = selectVendor;            } catch(e){}
-    try { window.showToast               = showToast;               } catch(e){}
-    try { window.getThaiDate             = getThaiDate;             } catch(e){}
-    try { window.formatThaiTime          = formatThaiTime;          } catch(e){}
-  </script>
+
 </body>
 </html>
