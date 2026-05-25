@@ -1141,8 +1141,14 @@
       // hash แบบเร็ว — JSON string แต่ตัดช่องว่างออก
       try { return JSON.stringify(obj); } catch(e) { return ''; }
     }
+    let _isFetching = false;
+
     function fetchAll() {
+      if (_isFetching) return; // ถ้ายังรอ response อยู่ ข้ามไป
+      _isFetching = true;
+
       callAPI('readAllData').then(res => {
+        _isFetching = false;
         try {
           if (res && res.success) {
             _fetchFailCount = 0;
@@ -1166,6 +1172,7 @@
           console.warn('[fetchAll] render error:', err.message);
         }
       }).catch(function(err) {
+        _isFetching = false;
         _fetchFailCount++;
         console.warn('[fetchAll] error:', err.message || err);
       });
@@ -1196,7 +1203,7 @@
       }
 
       fetchAll();
-      setInterval(fetchAll, 6000);
+      setInterval(fetchAll, 30000); // ทุก 30 วินาที (GAS ตอบช้า)
       // อัปเดต PIC access banner ทุก 1 นาที
       setInterval(() => { if (isPICLoggedIn) updatePICAccessUI(); }, 60000);
     });
