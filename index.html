@@ -601,7 +601,7 @@
             <div class="px-6 py-4 border-t bg-slate-50 rounded-b-2xl flex items-center justify-between gap-3">
               <div class="flex items-center gap-3">
                 <div id="myparts-modal-count" class="text-xs font-bold text-slate-500"></div>
-                <button type="button" onclick="bulkDeleteMyParts()"
+                <button type="button" data-action="bulkDeleteMyParts"
                   class="text-[10px] font-black text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-lg cursor-pointer transition-colors">
                   🗑 ลบที่เลือก
                 </button>
@@ -1139,6 +1139,7 @@
         else if (action === 'showLogin')    showLogin(target);
         else if (action === 'enterGuardView') enterGuardView();
         else if (action === 'showRoleSelection') showRoleSelection();
+        else if (action === 'bulkDeleteMyParts') bulkDeleteMyParts();
       });
     });
 
@@ -4616,52 +4617,59 @@
     let myPartsModal  = null; // PIC ที่เปิด modal อยู่
 
     // ── Deadline Check — จันทร์ก่อน 08:30 ──────────────
-    function getConfirmDeadline() {
-      // deadline = วันจันทร์ของสัปดาห์ปัจจุบัน เวลา 08:30
-      // ถ้าตอนนี้เลยจันทร์ 08:30 แล้ว deadline = จันทร์หน้า
-      const now  = new Date();
-      const day  = now.getDay(); // 0=Sun, 1=Mon
+    function getWeekRange() {
+      // คืน { start: จันทร์, end: เสาร์ } ของสัปดาห์ปัจจุบัน
+      const now   = new Date();
+      const day   = now.getDay(); // 0=Sun,1=Mon,...,6=Sat
       const monday = new Date(now);
-      if (day === 1) {
-        // วันนี้จันทร์
-        monday.setHours(8, 30, 0, 0);
-        if (now > monday) {
-          // เลย 08:30 แล้ว → deadline = จันทร์หน้า
-          monday.setDate(monday.getDate() + 7);
-        }
-      } else {
-        // ไม่ใช่จันทร์ → หาจันทร์ถัดไป
-        const daysUntil = (8 - day) % 7 || 7;
-        monday.setDate(now.getDate() + daysUntil);
-        monday.setHours(8, 30, 0, 0);
-      }
-      return monday;
+      // ถ้าอาทิตย์ (0) ให้นับเป็นสัปดาห์ถัดไป
+      const diffToMonday = day === 0 ? -6 : 1 - day;
+      monday.setDate(now.getDate() + diffToMonday);
+      monday.setHours(0, 0, 0, 0);
+      const saturday = new Date(monday);
+      saturday.setDate(monday.getDate() + 5);
+      saturday.setHours(23, 59, 59, 999);
+      return { start: monday, end: saturday };
     }
 
-    function isConfirmAllowed() {
-      const now      = new Date();
-      const day      = now.getDay();
-      // ล็อกเฉพาะ: วันจันทร์ที่เลย 08:30 แล้ว
-      if (day === 1) {
-        const cutoff = new Date(now);
-        cutoff.setHours(8, 30, 0, 0);
-        return now <= cutoff;
-      }
-      // วันอื่นๆ อนุญาตเสมอ
+    function isDeadlinePassed() {
+      // Deadline = วันจันทร์ 08:30
+      const now = new Date();
+      if (now.getDay() !== 1) return false; // ไม่ใช่จันทร์ = ยังไม่เลย
+      const cutoff = new Date(now);
+      cutoff.setHours(8, 30, 0, 0);
+      return now > cutoff;
+    }
+
+    function isConfirmAllowed(arrivalDate) {
+      // ถ้ายังไม่เลย deadline = อนุญาตเสมอ
+      if (!isDeadlinePassed()) return true;
+      // เลย deadline แล้ว → เช็ค arrival date
+      if (!arrivalDate) return false;
+      const arrival = new Date(arrivalDate);
+      const week    = getWeekRange();
+      // ถ้า arrival date อยู่ในสัปดาห์นี้ (จันทร์-เสาร์) = ไม่อนุญาต
+      if (arrival >= week.start && arrival <= week.end) return false;
       return true;
     }
 
     function getDeadlineText() {
-      const deadline = getConfirmDeadline();
-      const now      = new Date();
-      const diff     = deadline - now;
-      if (diff <= 0) return '❌ เลย Deadline แล้ว (จันทร์ 08:30)';
-      const days  = Math.floor(diff / 86400000);
-      const hours = Math.floor((diff % 86400000) / 3600000);
-      const mins  = Math.floor((diff % 3600000) / 60000);
-      if (days > 0)  return `⏰ Deadline: จันทร์ 08:30 (อีก ${days} วัน ${hours} ชม.)`;
-      if (hours > 0) return `⚠️ Deadline: จันทร์ 08:30 (อีก ${hours} ชม. ${mins} นาที)`;
-      return `🔴 Deadline: จันทร์ 08:30 (อีก ${mins} นาที!)`;
+      const now = new Date();
+      if (!isDeadlinePassed()) {
+        const deadline = new Date(now);
+        const day = now.getDay();
+        const diffToMonday = day === 0 ? 1 : day === 1 ? 0 : 8 - day;
+        deadline.setDate(now.getDate() + diffToMonday);
+        deadline.setHours(8, 30, 0, 0);
+        const diff  = deadline - now;
+        const days  = Math.floor(diff / 86400000);
+        const hours = Math.floor((diff % 86400000) / 3600000);
+        const mins  = Math.floor((diff % 3600000) / 60000);
+        if (days > 0)  return `⏰ Deadline: จันทร์ 08:30 (อีก ${days} วัน ${hours} ชม.)`;
+        if (hours > 0) return `⚠️ Deadline: จันทร์ 08:30 (อีก ${hours} ชม. ${mins} นาที)`;
+        return `🔴 Deadline: จันทร์ 08:30 (อีก ${mins} นาที!)`;
+      }
+      return '❌ เลย Deadline แล้ว — รายการสัปดาห์นี้ไม่สามารถ Confirm ได้';
     }
 
     function initMyParts() {
@@ -4914,9 +4922,17 @@
 
     async function confirmMyPartsPic() {
       // ── Deadline Check ──
-      if (!isConfirmAllowed()) {
-        showToast('❌ เลย Deadline แล้ว — ต้อง Confirm ก่อนวันจันทร์ 08:30 น.');
-        return;
+      if (isDeadlinePassed()) {
+        // เช็คว่ามีรายการที่ arrival date อยู่ในสัปดาห์นี้ไหม
+        const checked = [...document.querySelectorAll('#myparts-modal-body input[type="checkbox"]:checked')];
+        const blockedItems = checked.filter(cb => {
+          const r = myPartsData.find(x => x.id === cb.dataset.id);
+          return r && !isConfirmAllowed(r.date);
+        });
+        if (blockedItems.length > 0) {
+          showToast(`❌ มี ${blockedItems.length} รายการที่เลย Deadline — Arrival Date อยู่ในสัปดาห์นี้ Confirm ไม่ได้แล้ว`);
+          return;
+        }
       }
       const toConfirm = [];
       document.querySelectorAll('#myparts-modal-body input[type="checkbox"]:checked').forEach(function(cb) {
@@ -4969,9 +4985,10 @@
   <!-- expose functions to window -->
   <script>
     try { window.bulkDeleteMyParts        = bulkDeleteMyParts;       } catch(e){}
-    try { window.getConfirmDeadline      = getConfirmDeadline;      } catch(e){}
-    try { window.isConfirmAllowed        = isConfirmAllowed;        } catch(e){}
-    try { window.getDeadlineText         = getDeadlineText;         } catch(e){}
+    try { window.getWeekRange             = getWeekRange;            } catch(e){}
+    try { window.isDeadlinePassed         = isDeadlinePassed;        } catch(e){}
+    try { window.isConfirmAllowed         = isConfirmAllowed;        } catch(e){}
+    try { window.getDeadlineText          = getDeadlineText;         } catch(e){}
     try { window.showRoleSelection       = showRoleSelection;       } catch(e){}
     try { window.showSupplierView        = showSupplierView;        } catch(e){}
     try { window.showLogin               = showLogin;               } catch(e){}
