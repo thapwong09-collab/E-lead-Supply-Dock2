@@ -4298,9 +4298,10 @@
       const fnEl = document.getElementById('upload503-filename');
       if (fnEl) { fnEl.innerText = '📄 ' + file.name; fnEl.classList.remove('hidden'); }
 
+      // ซ่อน result เก่า แสดง loading
+      const resultEl = document.getElementById('upload503-result');
+      if (resultEl) resultEl.classList.add('hidden');
       document.getElementById('upload503-loading').classList.remove('hidden');
-      document.getElementById('upload503-summary').classList.add('hidden');
-      document.getElementById('upload503-actions').classList.add('hidden');
 
       const reader = new FileReader();
       reader.onload = function(e) {
