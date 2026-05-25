@@ -4917,6 +4917,8 @@
     }
 
     function closeMyPartsModal() {
+      const btn = document.getElementById('myparts-modal-confirm-btn');
+      if (btn) { btn.disabled = false; btn.innerText = '✅ Confirm ของฉัน → ส่งคลัง'; }
       document.getElementById('myparts-modal').classList.add('hidden');
       document.getElementById('myparts-modal').classList.remove('flex');
     }
@@ -4954,6 +4956,7 @@
         const res = await callAPI('confirmPlanParts', { items: JSON.stringify(toConfirm) });
         if (res && res.success) {
           showToast(`✅ Confirm สำเร็จ ${res.confirmed||0} รายการ`);
+          btn.disabled = false; btn.innerText = '✅ Confirm ของฉัน → ส่งคลัง';
           closeMyPartsModal();
           // ลบ Card ของ PIC นี้ออก
           const picKey = (myPartsModal||'').replace(/[^a-zA-Z0-9]/g,'_');
