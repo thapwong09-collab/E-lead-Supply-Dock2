@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:;">
   <title>Supplier Check-in System</title>
   
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
@@ -995,10 +996,11 @@
 
     async function callAPI(action, payload = {}) {
       try {
+        const body = new URLSearchParams({ action, ...payload });
         const response = await fetch(GAS_API_URL, {
           method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action, ...payload })
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: body.toString()
         });
         return await response.json();
       } catch (err) {
@@ -4519,7 +4521,7 @@
       try {
         const rows = selected.map(function(r) {
           return {
-            date:      r.arrival_date || getThaiDate(),  // *** ใช้ arrival_date ***
+            date:      r.arrival_date || getThaiDate(),
             vendor:    r.vendor       || '',
             pic:       r.pic_name     || '',
             po_no:     r.po_no        || '',
@@ -4555,6 +4557,93 @@
       render503Sections();
     }
     // =====================================================
+
+    // ── GAS Sandbox: expose ทุกฟังก์ชันขึ้น window ──
+    window.showRoleSelection       = showRoleSelection;
+    window.showSupplierView        = showSupplierView;
+    window.showLogin               = showLogin;
+    window.enterGuardView          = enterGuardView;
+    window.staffLogout             = staffLogout;
+    window.picLogout               = picLogout;
+    window.guardLogout             = guardLogout;
+    window.processLogin            = processLogin;
+    window.supplierCheckin         = supplierCheckin;
+    window.resetSupplierView       = resetSupplierView;
+    window.showStaffTab            = showStaffTab;
+    window.showPicTab              = showPicTab;
+    window.updateStatus            = updateStatus;
+    window.callQueueWithFactory    = callQueueWithFactory;
+    window.closeFactoryModal       = closeFactoryModal;
+    window.confirmFactory          = confirmFactory;
+    window.addPICRow               = addPICRow;
+    window.removePICRow            = removePICRow;
+    window.pastePICTable           = pastePICTable;
+    window.closePasteHelper        = closePasteHelper;
+    window.previewPaste            = previewPaste;
+    window.processPaste            = processPaste;
+    window.mergeDuplicatePICRows   = mergeDuplicatePICRows;
+    window.savePICParts            = savePICParts;
+    window.loadTodayPICParts       = loadTodayPICParts;
+    window.closePicEditModal       = closePicEditModal;
+    window.checkQtyInput           = checkQtyInput;
+    window.checkUnplanned          = checkUnplanned;
+    window.closePartsModal         = closePartsModal;
+    window.initGuardScanner        = initGuardScanner;
+    window.stopGuardScanner        = stopGuardScanner;
+    window.closeGuardResult        = closeGuardResult;
+    window.onScanSuccess           = onScanSuccess;
+    window.onScanFailure           = onScanFailure;
+    window.updatePicResponsibility = updatePicResponsibility;
+    window.initPicResponsibility   = initPicResponsibility;
+    window.updatePicMaster         = updatePicMaster;
+    window.addPicCard              = addPicCard;
+    window.closePmModal            = closePmModal;
+    window.savePicCard             = savePicCard;
+    window.openAddSupModal         = openAddSupModal;
+    window.closeAddSupModal        = closePmSupModal;
+    window.filterPmSuggestions     = filterPmSuggestions;
+    window.togglePmSup             = togglePmSup;
+    window.removePmSelected        = removePmSelected;
+    window.populateMonthSelector   = populateMonthSelector;
+    window.populateSupplierSelector= populateSupplierSelector;
+    window.updateKPIUI             = updateKPIUI;
+    window.updateMonthlySummary    = updateMonthlySummary;
+    window.updatePicResponsibility = updatePicResponsibility;
+    window.handle503Upload         = handle503Upload;
+    window.render503Sections       = render503Sections;
+    window.upload503SelectAll      = upload503SelectAll;
+    window.save503Selected         = save503Selected;
+    window.save503ForPic           = save503ForPic;
+    window.openModal503            = openModal503;
+    window.closeModal503           = closeModal503;
+    window.modal503ToggleAll       = modal503ToggleAll;
+    window.sync503Check            = sync503Check;
+    window.onVendorInput           = onVendorInput;
+    window.onVendorBlur            = onVendorBlur;
+    window.onVendorKeydown         = onVendorKeydown;
+    window.selectVendor            = selectVendor;
+    window.showToast               = showToast;
+    window.getThaiDate             = getThaiDate;
+    window.formatThaiTime          = formatThaiTime;
+  </script>
+
+  <!-- GAS sandbox fix: re-bind onclick via event delegation after DOM ready -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.body.addEventListener('click', function(e) {
+        var el = e.target.closest('[onclick]');
+        if (!el) return;
+        var attr = el.getAttribute('onclick');
+        if (!attr) return;
+        try {
+          var fn = new Function(attr);
+          fn.call(el);
+          e.stopPropagation();
+        } catch(err) {
+          console.warn('onclick fallback error:', err, attr);
+        }
+      }, true);
+    });
   </script>
 </body>
 </html>
