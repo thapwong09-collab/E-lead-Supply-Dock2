@@ -4976,105 +4976,41 @@
     }
     // =====================================================
 
-    // ── GAS Sandbox: expose ทุกฟังก์ชันขึ้น window ──
-    window.showRoleSelection       = showRoleSelection;
-    window.showSupplierView        = showSupplierView;
-    window.showLogin               = showLogin;
-    window.enterGuardView          = enterGuardView;
-    window.staffLogout             = staffLogout;
-    window.picLogout               = picLogout;
-    window.guardLogout             = guardLogout;
-    window.processLogin            = processLogin;
-    window.supplierCheckin         = supplierCheckin;
-    window.resetSupplierView       = resetSupplierView;
-    window.showStaffTab            = showStaffTab;
-    window.showPicTab              = showPicTab;
-    window.updateStatus            = updateStatus;
-    window.callQueueWithFactory    = callQueueWithFactory;
-    window.closeFactoryModal       = closeFactoryModal;
-    window.confirmFactory          = confirmFactory;
-    window.addPICRow               = addPICRow;
-    window.removePICRow            = removePICRow;
-    window.pastePICTable           = pastePICTable;
-    window.closePasteHelper        = closePasteHelper;
-    window.previewPaste            = previewPaste;
-    window.processPaste            = processPaste;
-    window.mergeDuplicatePICRows   = mergeDuplicatePICRows;
-    window.savePICParts            = savePICParts;
-    window.loadTodayPICParts       = loadTodayPICParts;
-    window.closePicEditModal       = closePicEditModal;
-    window.checkQtyInput           = checkQtyInput;
-    window.checkUnplanned          = checkUnplanned;
-    window.closePartsModal         = closePartsModal;
-    window.initGuardScanner        = initGuardScanner;
-    window.stopGuardScanner        = stopGuardScanner;
-    window.closeGuardResult        = closeGuardResult;
-    window.onScanSuccess           = onScanSuccess;
-    window.onScanFailure           = onScanFailure;
-    window.updatePicResponsibility = updatePicResponsibility;
-    window.initPicResponsibility   = initPicResponsibility;
-    window.updatePicMaster         = updatePicMaster;
-    window.addPicCard              = addPicCard;
-    window.closePmModal            = closePmModal;
-    window.savePicCard             = savePicCard;
-    window.openAddSupModal         = openAddSupModal;
-    window.closeAddSupModal        = closePmSupModal;
-    window.filterPmSuggestions     = filterPmSuggestions;
-    window.togglePmSup             = togglePmSup;
-    window.removePmSelected        = removePmSelected;
-    window.populateMonthSelector   = populateMonthSelector;
-    window.populateSupplierSelector= populateSupplierSelector;
-    window.updateKPIUI             = updateKPIUI;
-    window.updateMonthlySummary    = updateMonthlySummary;
-    window.updatePicResponsibility = updatePicResponsibility;
-    window.handle503Upload         = handle503Upload;
-    window.autoSave503ToSheet      = autoSave503ToSheet;
-    window.save503Selected         = save503Selected;
-    window.save503ForPic           = save503ForPic;
-    window.openModal503            = openModal503;
-    window.closeModal503           = closeModal503;
-    window.modal503ToggleAll       = modal503ToggleAll;
-    window.sync503Check            = sync503Check;
-    window.apply503VendorAmPm      = apply503VendorAmPm;
-    window.initMyParts             = initMyParts;
-    window.loadMyParts             = loadMyParts;
-    window.openMyPartsModal        = openMyPartsModal;
-    window.closeMyPartsModal       = closeMyPartsModal;
-    window.toggleMpAccordion       = toggleMpAccordion;
-    window.applyMpVendorAmPm       = applyMpVendorAmPm;
-    window.updateMyPartsModalCount = updateMyPartsModalCount;
-    window.deleteMpModalRow        = deleteMpModalRow;
-    window.confirmMyPartsPic       = confirmMyPartsPic;
-    window.applyVendorAmPm         = applyVendorAmPm;
-    window.toggleVendorMyParts     = toggleVendorMyParts;
-    window.updateMyPartsCount      = updateMyPartsCount;
-    window.deleteMyPart            = deleteMyPart;
-    window.confirmMyParts          = confirmMyParts;
-    window.onVendorInput           = onVendorInput;
-    window.onVendorBlur            = onVendorBlur;
-    window.onVendorKeydown         = onVendorKeydown;
-    window.selectVendor            = selectVendor;
-    window.showToast               = showToast;
-    window.getThaiDate             = getThaiDate;
-    window.formatThaiTime          = formatThaiTime;
   </script>
 
-  <!-- GAS sandbox fix: re-bind onclick via event delegation after DOM ready -->
+  <!-- expose functions to window after DOM ready -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      document.body.addEventListener('click', function(e) {
-        var el = e.target.closest('[onclick]');
-        if (!el) return;
-        var attr = el.getAttribute('onclick');
-        if (!attr) return;
+      var fns = [
+        'showRoleSelection','showSupplierView','showLogin','enterGuardView',
+        'staffLogout','picLogout','guardLogout','processLogin','supplierCheckin',
+        'resetSupplierView','showStaffTab','showPicTab','updateStatus',
+        'callQueueWithFactory','closeFactoryModal','confirmFactory',
+        'addPICRow','removePICRow','pastePICTable','closePasteHelper',
+        'previewPaste','processPaste','mergeDuplicatePICRows','savePICParts',
+        'loadTodayPICParts','openPicEditModal','closePicEditModal',
+        'checkQtyInput','checkUnplanned','closePartsModal',
+        'initGuardScanner','stopGuardScanner','closeGuardResult',
+        'onScanSuccess','onScanFailure','updatePicResponsibility',
+        'initPicResponsibility','updatePicMaster','addPicCard','closePmModal',
+        'savePicCard','openAddSupModal','closePmSupModal','filterPmSuggestions',
+        'togglePmSup','removePmSelected','populateMonthSelector',
+        'populateSupplierSelector','updateKPIUI','updateMonthlySummary',
+        'handle503Upload','autoSave503ToSheet','save503Selected','save503ForPic',
+        'openModal503','closeModal503','modal503ToggleAll','sync503Check',
+        'apply503VendorAmPm','render503Sections','upload503SelectAll',
+        'initMyParts','loadMyParts','openMyPartsModal','closeMyPartsModal',
+        'toggleMpAccordion','applyMpVendorAmPm','updateMyPartsModalCount',
+        'deleteMpModalRow','confirmMyPartsPic','applyVendorAmPm',
+        'toggleVendorMyParts','updateMyPartsCount','deleteMyPart','confirmMyParts',
+        'onVendorInput','onVendorBlur','onVendorKeydown','selectVendor',
+        'showToast','getThaiDate','formatThaiTime',
+      ];
+      fns.forEach(function(name) {
         try {
-          var fn = new Function(attr);
-          fn.call(el);
-          e.stopPropagation();
-        } catch(err) {
-          console.warn('onclick fallback error:', err, attr);
-        }
-      }, true);
+          if (typeof eval(name) === 'function') window[name] = eval(name);
+        } catch(e) {}
+      });
     });
   </script>
 </body>
