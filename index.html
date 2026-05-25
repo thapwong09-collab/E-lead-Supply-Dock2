@@ -466,8 +466,153 @@
           </div>
         </div>
 
-      </div>
-    </div><!-- end staff-view -->
+        <!-- ===== PART HISTORY SECTION ===== -->
+        <div class="border-t-2 border-dashed border-slate-200 pt-5">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div>
+              <div class="font-black text-slate-700 text-base">📚 ประวัติการรับของ (PartHistory)</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">ข้อมูลที่รับจริงแล้วเท่านั้น — แม่นยำ 100%</div>
+            </div>
+            <div class="flex flex-wrap gap-2 items-end">
+              <div>
+                <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ปี</label>
+                <select id="hist-year" onchange="loadHistorySummary()" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 outline-none focus:border-violet-500 font-bold text-xs cursor-pointer"></select>
+              </div>
+              <div>
+                <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เดือน</label>
+                <select id="hist-month" onchange="loadHistorySummary()" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 outline-none focus:border-violet-500 font-bold text-xs cursor-pointer">
+                  <option value="">ทั้งปี</option>
+                  <option value="1">ม.ค.</option><option value="2">ก.พ.</option>
+                  <option value="3">มี.ค.</option><option value="4">เม.ย.</option>
+                  <option value="5">พ.ค.</option><option value="6">มิ.ย.</option>
+                  <option value="7">ก.ค.</option><option value="8">ส.ค.</option>
+                  <option value="9">ก.ย.</option><option value="10">ต.ค.</option>
+                  <option value="11">พ.ย.</option><option value="12">ธ.ค.</option>
+                </select>
+              </div>
+              <button type="button" onclick="loadHistorySummary()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-xl font-bold text-xs cursor-pointer">🔄 โหลด</button>
+            </div>
+          </div>
+
+          <!-- Loading -->
+          <div id="hist-loading" class="hidden bg-white rounded-2xl p-6 text-center border">
+            <div class="text-xl animate-pulse mb-1">⏳</div>
+            <div class="text-xs text-slate-400 font-bold">กำลังโหลด History...</div>
+          </div>
+
+          <!-- Empty -->
+          <div id="hist-empty" class="hidden bg-white rounded-2xl p-8 text-center border">
+            <div class="text-3xl mb-2">📭</div>
+            <div class="font-black text-slate-500 text-sm">ยังไม่มีข้อมูลใน PartHistory</div>
+            <div class="text-xs text-slate-400 mt-1">ข้อมูลจะปรากฏหลัง Staff รับของและ Confirm แล้ว</div>
+          </div>
+
+          <!-- KPI Cards -->
+          <div id="hist-kpi" class="hidden space-y-4">
+
+            <!-- Row 1: ภาพรวม -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div class="bg-indigo-600 text-white p-4 rounded-2xl text-center shadow-sm">
+                <div class="text-[9px] font-black opacity-60 uppercase mb-1">PO ทั้งหมด</div>
+                <div id="hist-total-po" class="text-3xl font-black">0</div>
+                <div class="text-[9px] opacity-50 mt-0.5">PO</div>
+              </div>
+              <div class="bg-white p-4 rounded-2xl text-center shadow-sm border">
+                <div class="text-[9px] font-black text-slate-400 uppercase mb-1">รายการ Part</div>
+                <div id="hist-total-parts" class="text-3xl font-black text-slate-700">0</div>
+                <div class="text-[9px] text-slate-400 mt-0.5">รายการ</div>
+              </div>
+              <div class="bg-emerald-50 p-4 rounded-2xl text-center shadow-sm border border-emerald-100">
+                <div class="text-[9px] font-black text-emerald-500 uppercase mb-1">QTY ตามแผน</div>
+                <div id="hist-qty-plan" class="text-3xl font-black text-emerald-600">0</div>
+                <div class="text-[9px] text-emerald-400 mt-0.5">ชิ้น</div>
+              </div>
+              <div class="bg-emerald-600 text-white p-4 rounded-2xl text-center shadow-sm">
+                <div class="text-[9px] font-black opacity-70 uppercase mb-1">QTY ที่รับจริง</div>
+                <div id="hist-qty-recv" class="text-3xl font-black">0</div>
+                <div id="hist-fill-rate" class="text-sm font-black opacity-80 mt-0.5">0%</div>
+              </div>
+            </div>
+
+            <!-- Row 2: สถานะ -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div class="bg-emerald-50 p-4 rounded-2xl text-center border border-emerald-100">
+                <div class="text-[9px] font-black text-emerald-500 uppercase mb-1">✅ Completed</div>
+                <div id="hist-completed" class="text-2xl font-black text-emerald-600">0</div>
+                <div id="hist-completed-pct" class="text-xs font-black text-emerald-400">0%</div>
+              </div>
+              <div class="bg-amber-50 p-4 rounded-2xl text-center border border-amber-100">
+                <div class="text-[9px] font-black text-amber-500 uppercase mb-1">⚠️ Short</div>
+                <div id="hist-short" class="text-2xl font-black text-amber-500">0</div>
+                <div id="hist-short-pct" class="text-xs font-black text-amber-400">0%</div>
+              </div>
+              <div class="bg-rose-50 p-4 rounded-2xl text-center border border-rose-100">
+                <div class="text-[9px] font-black text-rose-500 uppercase mb-1">❌ Missing</div>
+                <div id="hist-missing" class="text-2xl font-black text-rose-500">0</div>
+                <div id="hist-missing-pct" class="text-xs font-black text-rose-400">0%</div>
+              </div>
+              <div class="bg-slate-50 p-4 rounded-2xl text-center border">
+                <div class="text-[9px] font-black text-slate-400 uppercase mb-1">🔵 AM vs PM</div>
+                <div id="hist-am" class="text-sm font-black text-slate-600">AM: 0</div>
+                <div id="hist-pm" class="text-sm font-black text-slate-500">PM: 0</div>
+                <div id="hist-pickup" class="text-xs font-black text-slate-400">PICK UP: 0</div>
+              </div>
+            </div>
+
+            <!-- Row 3: แยกตาม Trend รายเดือน -->
+            <div class="bg-white rounded-2xl shadow-sm border p-5">
+              <div class="font-black text-slate-600 text-xs mb-4">📈 Trend รายเดือน (จำนวน Part ที่รับ)</div>
+              <div class="h-48"><canvas id="hist-trend-chart"></canvas></div>
+            </div>
+
+            <!-- Row 4: Top Supplier จาก History -->
+            <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
+              <div class="px-5 py-4 border-b bg-slate-50/50 flex items-center justify-between">
+                <div class="font-black text-slate-700 text-sm">🏭 สรุปตาม Supplier (ข้อมูลจริง)</div>
+                <span id="hist-vendor-count" class="text-[9px] font-bold bg-white text-slate-400 px-3 py-1 rounded-full border">0 ซัพ</span>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                  <thead class="bg-slate-50">
+                    <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                      <th class="px-4 py-3">Supplier</th>
+                      <th class="px-4 py-3 text-center">Part</th>
+                      <th class="px-4 py-3 text-center">QTY แผน</th>
+                      <th class="px-4 py-3 text-center">QTY รับจริง</th>
+                      <th class="px-4 py-3 text-center">Fill Rate</th>
+                      <th class="px-4 py-3 text-center">Completed</th>
+                      <th class="px-4 py-3 text-center">Short/Miss</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hist-vendor-table" class="divide-y divide-slate-50 text-xs"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Row 5: แยกตาม PIC -->
+            <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
+              <div class="px-5 py-4 border-b bg-slate-50/50">
+                <div class="font-black text-slate-700 text-sm">👤 สรุปตาม PIC</div>
+              </div>
+              <div id="hist-pic-table-wrap" class="overflow-x-auto">
+                <table class="w-full text-left">
+                  <thead class="bg-slate-50">
+                    <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                      <th class="px-4 py-3">PIC</th>
+                      <th class="px-4 py-3 text-center">PO</th>
+                      <th class="px-4 py-3 text-center">Part</th>
+                      <th class="px-4 py-3 text-center">Fill Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hist-pic-table" class="divide-y divide-slate-50 text-xs"></tbody>
+                </table>
+              </div>
+            </div>
+
+          </div><!-- end hist-kpi -->
+        </div><!-- end history section -->
+
+      </div><!-- end page-parts -->
 
     <!-- ================= ส่วน PIC / จัดซื้อ ================= -->
 
@@ -2940,7 +3085,7 @@
         if (b) b.className = t === tab ? 'tab-active px-6 py-2.5 rounded-xl text-xs font-bold shadow-md cursor-pointer' : 'bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold cursor-pointer';
       });
       if (tab === 'daily') { updateDailyChart(); updateDailyHistoryList(); }
-      if (tab === 'parts') { populatePartsDashboardFilters(); updatePartsDashboard(); }
+      if (tab === 'parts') { populatePartsDashboardFilters(); updatePartsDashboard(); initHistoryYearFilter(); }
     }
 
     function populateMonthSelector(elementId) {
@@ -3211,7 +3356,7 @@
       const mVal = document.getElementById('parts-month')?.value || 'ALL';
       const sVal = document.getElementById('parts-supplier')?.value || 'ALL';
 
-      // ─── Filter checkin data (เฉพาะที่มีการรับของจริง) ───
+      // ─── Filter checkin data ───
       const filteredCheckin = allData.filter(r => {
         if (r.status === 'cancelled') return false;
         if (mVal !== 'ALL') {
@@ -3220,16 +3365,15 @@
           if (dp[0] !== y || dp[1] !== m) return false;
         }
         if (sVal !== 'ALL') {
-          if (vendorScore(r.company_name, sVal) < 60 &&
-              !String(r.company_name||'').toLowerCase().includes(String(sVal||'').toLowerCase())) return false;
+          if (!String(r.company_name||'').toLowerCase().includes(String(sVal||'').toLowerCase())) return false;
         }
         return true;
       });
-      // visits = unique checkin (1 คัน = 1 ครั้ง ไม่ใช่นับ row part)
+
       const uniqueVisitKeys = new Set(filteredCheckin.map(r => r.date + '_' + r.queue_number));
       const visits = uniqueVisitKeys.size;
 
-      // ─── Filter parts data ───
+      // ─── Filter parts data (จำกัดแค่ completed/short/missing เพื่อ performance) ───
       const filteredParts = allPartData.filter(p => {
         if (mVal !== 'ALL') {
           const [y, m] = mVal.split('-');
@@ -3237,8 +3381,7 @@
           if (dp[0] !== y || dp[1] !== m) return false;
         }
         if (sVal !== 'ALL') {
-          if (vendorScore(p.vendor, sVal) < 60 &&
-              !String(p.vendor||'').toLowerCase().includes(String(sVal||'').toLowerCase())) return false;
+          if (!String(p.vendor||'').toLowerCase().includes(String(sVal||'').toLowerCase())) return false;
         }
         return true;
       });
@@ -3384,14 +3527,16 @@
       if (vendors.length === 0) return;
 
       const ontimePcts = vendors.map(v => {
-        const rows = checkinData.filter(r => vendorScore(r.company_name, v) >= 70 || r.company_name === v);
+        const vl   = v.toLowerCase();
+        const rows = checkinData.filter(r => String(r.company_name||'').toLowerCase().includes(vl) || vl.includes(String(r.company_name||'').toLowerCase().substring(0,8)));
         if (!rows.length) return 0;
         const ot = rows.filter(r => (r.plan_status||'').includes('ตรงเวลา')).length;
         return parseFloat(((ot/rows.length)*100).toFixed(1));
       });
 
       const qtyPcts = vendors.map(v => {
-        const parts = partsData.filter(p => vendorScore(p.vendor, v) >= 70 || p.vendor === v);
+        const vl    = v.toLowerCase();
+        const parts = partsData.filter(p => String(p.vendor||'').toLowerCase().includes(vl) || vl.includes(String(p.vendor||'').toLowerCase().substring(0,8)));
         if (!parts.length) return 0;
         const comp = parts.filter(p => p.status === 'completed').length;
         return parseFloat(((comp/parts.length)*100).toFixed(1));
@@ -3429,8 +3574,9 @@
       ].filter(Boolean))].sort();
 
       const rows = vendors.map(v => {
-        const ci = checkinData.filter(r => r.company_name === v || vendorScore(r.company_name, v) >= 70);
-        const pp = partsData.filter(p => p.vendor === v || vendorScore(p.vendor, v) >= 70);
+        const vl = v.toLowerCase();
+        const ci = checkinData.filter(r => String(r.company_name||'').toLowerCase().includes(vl) || vl.includes(String(r.company_name||'').toLowerCase().substring(0,8)));
+        const pp = partsData.filter(p => String(p.vendor||'').toLowerCase().includes(vl) || vl.includes(String(p.vendor||'').toLowerCase().substring(0,8)));
         const visits = ci.length;
         const ontime = ci.filter(r => (r.plan_status||'').includes('ตรงเวลา')).length;
         const late   = ci.filter(r => (r.plan_status||'').includes('ล่าช้า')).length;
@@ -4607,7 +4753,144 @@
     // =====================================================
 
     // =====================================================
-    // MY PARTS — แสดง Card แยกตาม PIC ทุกคนที่มี draft
+    // PART HISTORY DASHBOARD
+    // =====================================================
+    let histTrendChart = null;
+
+    function initHistoryYearFilter() {
+      const sel = document.getElementById('hist-year');
+      if (!sel) return;
+      const now = new Date();
+      sel.innerHTML = '';
+      for (let y = now.getFullYear(); y >= now.getFullYear() - 3; y--) {
+        sel.innerHTML += `<option value="${y}" ${y === now.getFullYear() ? 'selected' : ''}>${y}</option>`;
+      }
+    }
+
+    async function loadHistorySummary() {
+      const year  = (document.getElementById('hist-year')||{}).value  || new Date().getFullYear();
+      const month = (document.getElementById('hist-month')||{}).value || '';
+
+      document.getElementById('hist-loading').classList.remove('hidden');
+      document.getElementById('hist-empty').classList.add('hidden');
+      document.getElementById('hist-kpi').classList.add('hidden');
+
+      try {
+        const res = await callAPI('getHistorySummary', { year, month });
+        document.getElementById('hist-loading').classList.add('hidden');
+
+        if (!res || !res.success || res.total_rows === 0) {
+          document.getElementById('hist-empty').classList.remove('hidden');
+          return;
+        }
+
+        renderHistoryDashboard(res.summary);
+        document.getElementById('hist-kpi').classList.remove('hidden');
+
+      } catch(err) {
+        document.getElementById('hist-loading').classList.add('hidden');
+        showToast('❌ โหลด History ไม่สำเร็จ: ' + err.message);
+      }
+    }
+
+    function renderHistoryDashboard(s) {
+      const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+
+      // KPI หลัก
+      set('hist-total-po',    s.total_po    || 0);
+      set('hist-total-parts', s.total_parts || 0);
+      set('hist-qty-plan',    (s.total_qty_plan||0).toLocaleString());
+      set('hist-qty-recv',    (s.total_qty_recv||0).toLocaleString());
+      const fillRate = s.total_qty_plan > 0 ? ((s.total_qty_recv / s.total_qty_plan) * 100).toFixed(1) : 0;
+      set('hist-fill-rate',   fillRate + '%');
+
+      // สถานะ
+      const total = s.total_parts || 1;
+      const comp  = (s.by_status && s.by_status.completed) || 0;
+      const short = (s.by_status && s.by_status.short)     || 0;
+      const miss  = (s.by_status && s.by_status.missing)   || 0;
+      set('hist-completed',     comp);  set('hist-completed-pct', ((comp/total)*100).toFixed(0)+'%');
+      set('hist-short',         short); set('hist-short-pct',     ((short/total)*100).toFixed(0)+'%');
+      set('hist-missing',       miss);  set('hist-missing-pct',   ((miss/total)*100).toFixed(0)+'%');
+
+      // AM/PM
+      const sl = s.by_slot || {};
+      set('hist-am',     'AM: '      + (sl.AM||0));
+      set('hist-pm',     'PM: '      + (sl.PM||0));
+      set('hist-pickup', 'PICK UP: ' + (sl['PICK UP']||0));
+
+      // Trend chart
+      const byMonth = s.by_month || {};
+      const months  = Array.from({length:12}, (_,i) => String(i+1));
+      const monthLabels = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+      const trendData   = months.map(m => byMonth[m] || 0);
+      const canvas = document.getElementById('hist-trend-chart');
+      if (canvas && typeof Chart !== 'undefined') {
+        if (histTrendChart) { histTrendChart.destroy(); histTrendChart = null; }
+        histTrendChart = new Chart(canvas.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: monthLabels,
+            datasets: [{
+              label: 'จำนวน Part',
+              data: trendData,
+              backgroundColor: '#6366f1',
+              borderRadius: 6,
+              barPercentage: 0.6,
+            }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true, ticks: { font: { family: 'Prompt', size: 10 } }, grid: { color: '#f1f5f9' } },
+              x: { ticks: { font: { family: 'Prompt', size: 10 } } }
+            }
+          }
+        });
+      }
+
+      // Vendor Table
+      const byVendor = s.by_vendor || {};
+      const vendors  = Object.keys(byVendor).sort((a,b) => (byVendor[b].parts||0) - (byVendor[a].parts||0));
+      const vtbody   = document.getElementById('hist-vendor-table');
+      const vcountEl = document.getElementById('hist-vendor-count');
+      if (vcountEl) vcountEl.innerText = vendors.length + ' ซัพ';
+      if (vtbody) {
+        vtbody.innerHTML = vendors.map(v => {
+          const vd   = byVendor[v];
+          const fr   = vd.qty_plan > 0 ? ((vd.qty_recv/vd.qty_plan)*100).toFixed(0) : '-';
+          const frColor = fr >= 90 ? '#10b981' : fr >= 70 ? '#f59e0b' : '#f43f5e';
+          return `<tr class="hover:bg-slate-50">
+            <td class="px-4 py-2 font-bold text-slate-700 max-w-[180px] truncate">${v}</td>
+            <td class="px-4 py-2 text-center text-slate-600">${vd.parts||0}</td>
+            <td class="px-4 py-2 text-center text-slate-500">${(vd.qty_plan||0).toLocaleString()}</td>
+            <td class="px-4 py-2 text-center text-emerald-600 font-bold">${(vd.qty_recv||0).toLocaleString()}</td>
+            <td class="px-4 py-2 text-center font-black" style="color:${frColor}">${fr}%</td>
+            <td class="px-4 py-2 text-center text-emerald-600">${(byVendor[v].completed||0)}</td>
+            <td class="px-4 py-2 text-center text-amber-500">${(byVendor[v].short||0)+' / '+(byVendor[v].missing||0)}</td>
+          </tr>`;
+        }).join('') || '<tr><td colspan="7" class="text-center py-4 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
+      }
+
+      // PIC Table
+      const byPic   = s.by_pic || {};
+      const pics    = Object.keys(byPic).sort();
+      const ptbody  = document.getElementById('hist-pic-table');
+      if (ptbody) {
+        ptbody.innerHTML = pics.map(p => {
+          const pd  = byPic[p];
+          const fr  = pd.qty_plan > 0 ? ((pd.qty_recv||0)/pd.qty_plan*100).toFixed(0) : '-';
+          return `<tr class="hover:bg-slate-50">
+            <td class="px-4 py-2 font-bold text-slate-700">${p}</td>
+            <td class="px-4 py-2 text-center text-slate-600">${pd.po_count||0}</td>
+            <td class="px-4 py-2 text-center text-slate-600">${pd.parts||0}</td>
+            <td class="px-4 py-2 text-center font-black ${fr >= 90 ? 'text-emerald-600' : fr >= 70 ? 'text-amber-500' : 'text-rose-500'}">${fr}%</td>
+          </tr>`;
+        }).join('') || '<tr><td colspan="4" class="text-center py-4 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
+      }
+    }
+    // =====================================================
     // =====================================================
     let myPartsData   = [];
     let myPartsModal  = null; // PIC ที่เปิด modal อยู่
@@ -5026,6 +5309,7 @@
         'onVendorKeydown','selectVendor','showToast','getThaiDate','formatThaiTime',
         'getWeekRange','isDeadlinePassed','isConfirmAllowed','getDeadlineText',
         'updatePartsDashboard','addPmSupToSelected','savePicSup',
+        'loadHistorySummary','initHistoryYearFilter','renderHistoryDashboard',
       ];
       fns.forEach(function(name) {
         try { if (typeof eval(name) === 'function') window[name] = eval(name); } catch(e) {}
