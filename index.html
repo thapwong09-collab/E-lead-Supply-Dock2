@@ -561,12 +561,9 @@
 
       <!-- Filter Bar -->
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-wrap gap-3 items-center justify-between">
-          <div class="flex flex-wrap gap-3 items-end">
-            <div>
-              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">วันที่ (Arrival)</label>
-              <input type="date" id="myparts-date" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer">
-            </div>
-            <button type="button" onclick="loadMyParts()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer mt-4">🔍 โหลด</button>
+          <div class="flex flex-wrap gap-3 items-center">
+            <button type="button" onclick="loadMyParts()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer">🔄 โหลดแผนสัปดาห์นี้</button>
+            <div id="myparts-week-range" class="text-xs font-bold text-slate-500 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2"></div>
           </div>
           <div id="myparts-summary-badge" class="hidden text-[10px] font-bold bg-violet-50 border border-violet-200 rounded-xl px-4 py-2 text-violet-600"></div>
         </div>
@@ -580,8 +577,8 @@
         <!-- Empty -->
         <div id="myparts-empty" class="hidden bg-white rounded-2xl p-10 text-center shadow-sm border">
           <div class="text-4xl mb-3">📭</div>
-          <div class="font-black text-slate-500">ไม่พบรายการที่รอ Confirm</div>
-          <div class="text-xs text-slate-400 mt-1">ลองเปลี่ยนวันที่ หรืออัพโหลดไฟล์ 503 ก่อน</div>
+          <div class="font-black text-slate-500">ไม่พบรายการที่รอ Confirm สัปดาห์นี้</div>
+          <div class="text-xs text-slate-400 mt-1">อัพโหลดไฟล์ 503 ก่อน หรือทุกคน Confirm แล้ว</div>
         </div>
 
         <!-- PIC Cards Grid -->
@@ -4672,38 +4669,53 @@
     }
 
     function initMyParts() {
-      const dateEl = document.getElementById('myparts-date');
-      if (dateEl && !dateEl.value) dateEl.value = getThaiDate();
+      // แสดง week range
+      const week = getWeekRange();
+      const fmt  = d => d.toLocaleDateString('th-TH', { day:'numeric', month:'short' });
+      const el   = document.getElementById('myparts-week-range');
+      if (el) el.innerText = `📅 สัปดาห์: ${fmt(week.start)} – ${fmt(week.end)}`;
       // แสดง deadline banner
       const bannerEl = document.getElementById('myparts-deadline-banner');
       const textEl   = document.getElementById('myparts-deadline-text');
       if (textEl) textEl.innerText = getDeadlineText();
       if (bannerEl) {
-        const allowed = isConfirmAllowed();
+        const passed = isDeadlinePassed();
         bannerEl.className = 'bg-white rounded-2xl px-5 py-3 shadow-sm border-2 flex items-center justify-between gap-3 ' +
-          (allowed ? 'border-amber-200' : 'border-rose-300 bg-rose-50');
-        if (textEl) textEl.className = 'font-black text-sm ' + (allowed ? 'text-amber-600' : 'text-rose-600');
+          (passed ? 'border-rose-300 bg-rose-50' : 'border-amber-200');
+        if (textEl) textEl.className = 'font-black text-sm ' + (passed ? 'text-rose-600' : 'text-amber-600');
       }
+      loadMyParts();
     }
 
     async function loadMyParts() {
-      const date = (document.getElementById('myparts-date')||{}).value || getThaiDate();
+      const week = getWeekRange();
+      // สร้าง array ของวันจันทร์-เสาร์
+      const dates = [];
+      for (let i = 0; i < 6; i++) {
+        const d = new Date(week.start);
+        d.setDate(week.start.getDate() + i);
+        dates.push(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'));
+      }
+
       document.getElementById('myparts-loading').classList.remove('hidden');
       document.getElementById('myparts-empty').classList.add('hidden');
       document.getElementById('myparts-pic-cards').innerHTML = '';
       document.getElementById('myparts-summary-badge').classList.add('hidden');
 
       try {
-        const res = await callAPI('getPartsByDate', { date });
+        // โหลดทุกวันใน week พร้อมกัน
+        const results = await Promise.all(dates.map(date => callAPI('getPartsByDate', { date })));
         document.getElementById('myparts-loading').classList.add('hidden');
 
-        if (!res || !res.data || res.data.length === 0) {
-          document.getElementById('myparts-empty').classList.remove('hidden');
-          return;
-        }
+        // รวมข้อมูลทั้งหมด
+        let allRows = [];
+        results.forEach(res => {
+          if (res && res.data) allRows = allRows.concat(res.data);
+        });
 
         // เฉพาะ draft
-        myPartsData = res.data.filter(r => (r.status === 'draft' || r.status === ''));
+        myPartsData = allRows.filter(r => r.status === 'draft' || r.status === '');
+
         if (myPartsData.length === 0) {
           document.getElementById('myparts-empty').classList.remove('hidden');
           return;
@@ -4753,8 +4765,10 @@
               <div class="text-violet-200 text-[9px] mt-1">คลิกเพื่อจัดการ →</div>
             </div>
           </div>
-          <div class="px-4 py-3 bg-white flex flex-wrap gap-2 text-[10px] text-slate-500 font-bold">
+          <div class="px-4 py-3 bg-white flex flex-wrap gap-3 text-[10px] text-slate-500 font-bold">
             <span>🏭 ${vendors.slice(0,3).join(', ')}${vendors.length>3?' +'+( vendors.length-3)+' อื่นๆ':''}</span>
+            <span class="text-slate-300">|</span>
+            <span>📅 ${[...new Set(items.map(r=>r.date).filter(Boolean))].sort().slice(0,4).join(', ')}</span>
           </div>`;
         container.appendChild(card);
       });
