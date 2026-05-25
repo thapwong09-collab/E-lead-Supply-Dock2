@@ -1128,39 +1128,8 @@
     window.showRoleSelection = function() { hideAll(); stopGuardScanner(); document.getElementById('role-selection').classList.remove('hidden'); }
     window.showSupplierView  = function() { hideAll(); document.getElementById('supplier-view').classList.remove('hidden'); }
 
-    // ── data-action event delegation (แก้ปัญหา scope) ──
+    // ── data-action event delegation ──
     document.addEventListener('DOMContentLoaded', function() {
-      // Map ทุก function ขึ้น window ตรงๆ ก่อน
-      const fnMap = {
-        showRoleSelection, showSupplierView, showLogin, enterGuardView,
-        staffLogout, picLogout, guardLogout, processLogin, supplierCheckin,
-        resetSupplierView, showStaffTab, showPicTab, updateStatus,
-        callQueueWithFactory, closeFactoryModal, confirmFactory,
-        addPICRow, removePICRow, pastePICTable, closePasteHelper,
-        previewPaste, processPaste, mergeDuplicatePICRows, savePICParts,
-        loadTodayPICParts, openPicEditModal, closePicEditModal,
-        checkQtyInput, checkUnplanned, closePartsModal,
-        initGuardScanner, stopGuardScanner, closeGuardResult,
-        updatePicResponsibility, initPicResponsibility, updatePicMaster,
-        addPicCard, closePmModal, savePicCard, openAddSupModal, closePmSupModal,
-        filterPmSuggestions, togglePmSup, removePmSelected,
-        populateMonthSelector, populateSupplierSelector, updateKPIUI,
-        updateMonthlySummary, handle503Upload, autoSave503ToSheet,
-        save503Selected, save503ForPic, openModal503, closeModal503,
-        modal503ToggleAll, sync503Check, apply503VendorAmPm,
-        initMyParts, loadMyParts, openMyPartsModal, closeMyPartsModal,
-        toggleMpAccordion, applyMpVendorAmPm, updateMyPartsModalCount,
-        deleteMpModalRow, confirmMyPartsPic, bulkDeleteMyParts,
-        applyVendorAmPm, toggleVendorMyParts, updateMyPartsCount,
-        deleteMyPart, confirmMyParts, onVendorInput, onVendorBlur,
-        onVendorKeydown, selectVendor, showToast, getThaiDate, formatThaiTime,
-        getWeekRange, isDeadlinePassed, isConfirmAllowed, getDeadlineText,
-      };
-      Object.keys(fnMap).forEach(function(k) {
-        try { if (typeof fnMap[k] === 'function') window[k] = fnMap[k]; } catch(e){}
-      });
-
-      // data-action handler
       document.body.addEventListener('click', function(e) {
         const btn = e.target.closest('[data-action]');
         if (!btn) return;
@@ -5009,6 +4978,40 @@
       }
     }
     // =====================================================
+
+    // ── assign ทุก function ขึ้น window ทันที ──
+    (function() {
+      const fns = [
+        'showRoleSelection','showSupplierView','showLogin','enterGuardView',
+        'staffLogout','picLogout','guardLogout','processLogin','supplierCheckin',
+        'resetSupplierView','showStaffTab','showPicTab','updateStatus',
+        'callQueueWithFactory','closeFactoryModal','confirmFactory',
+        'addPICRow','removePICRow','pastePICTable','closePasteHelper',
+        'previewPaste','processPaste','mergeDuplicatePICRows','savePICParts',
+        'loadTodayPICParts','openPicEditModal','closePicEditModal',
+        'checkQtyInput','checkUnplanned','closePartsModal',
+        'initGuardScanner','stopGuardScanner','closeGuardResult',
+        'onScanSuccess','onScanFailure','updatePicResponsibility',
+        'initPicResponsibility','updatePicMaster','addPicCard','closePmModal',
+        'savePicCard','openAddSupModal','closePmSupModal','filterPmSuggestions',
+        'togglePmSup','removePmSelected','populateMonthSelector',
+        'populateSupplierSelector','updateKPIUI','updateMonthlySummary',
+        'handle503Upload','autoSave503ToSheet','save503Selected','save503ForPic',
+        'openModal503','closeModal503','modal503ToggleAll','sync503Check',
+        'apply503VendorAmPm','render503Sections','upload503SelectAll',
+        'initMyParts','loadMyParts','openMyPartsModal','closeMyPartsModal',
+        'toggleMpAccordion','applyMpVendorAmPm','updateMyPartsModalCount',
+        'deleteMpModalRow','confirmMyPartsPic','bulkDeleteMyParts',
+        'applyVendorAmPm','toggleVendorMyParts','updateMyPartsCount',
+        'deleteMyPart','confirmMyParts','onVendorInput','onVendorBlur',
+        'onVendorKeydown','selectVendor','showToast','getThaiDate','formatThaiTime',
+        'getWeekRange','isDeadlinePassed','isConfirmAllowed','getDeadlineText',
+        'updatePartsDashboard','addPmSupToSelected','savePicSup',
+      ];
+      fns.forEach(function(name) {
+        try { if (typeof eval(name) === 'function') window[name] = eval(name); } catch(e) {}
+      });
+    })();
 
   </script>
 
