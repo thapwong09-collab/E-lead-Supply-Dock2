@@ -1061,19 +1061,30 @@
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwvu_FiWEZOX1UEmo85MloZEt93jUhQ0dfJiVAPX27BV2UVnqV1eJaIJOkMWoWcMyU/exec";
 
-    async function callAPI(action, payload = {}) {
-      try {
-        const body = new URLSearchParams({ action, ...payload });
-        const response = await fetch(GAS_API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: body.toString()
-        });
-        return await response.json();
-      } catch (err) {
-        console.error("API Error:", err);
-        return { success: false, message: err.toString() };
+    async function callAPI(action, payload = {}, retries = 2) {
+      for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+          const body = new URLSearchParams({ action, ...payload });
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout
+          const response = await fetch(GAS_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: body.toString(),
+            signal: controller.signal,
+          });
+          clearTimeout(timeout);
+          return await response.json();
+        } catch (err) {
+          if (attempt < retries && (err.name === 'AbortError' || err.message.includes('fetch'))) {
+            await new Promise(r => setTimeout(r, 1000 * (attempt + 1))); // wait 1s, 2s
+            continue;
+          }
+          console.warn('API Error:', action, err.message);
+          return { success: false, message: err.toString() };
+        }
       }
+      return { success: false, message: 'Network error' };
     }
 
     window.addEventListener('error', function(e) {
@@ -1132,29 +1143,27 @@
     }
     function fetchAll() {
       callAPI('readAllData').then(res => {
-        if (res && res.success) {
-          _fetchFailCount = 0;
-          allData = res.data || [];
-          if (res.plans) globalPlanData = res.plans; // legacy — ไม่ใช้แล้ว
-          if (res.parts) {
-            allPartData = res.parts || [];
-            // auto-sync PIC+Vendor → PIC_Master Sheet
-            if (allPartData.length > 0) {
-              syncPicMasterToSheet(allPartData.map(p => ({
-                pic:    p.pic    || '',
-                vendor: p.vendor || ''
-              })));
+        try {
+          if (res && res.success) {
+            _fetchFailCount = 0;
+            allData = res.data || [];
+            if (res.plans) globalPlanData = res.plans;
+            if (res.parts) {
+              allPartData = res.parts || [];
+              if (allPartData.length > 0) {
+                syncPicMasterToSheet(allPartData.map(p => ({
+                  pic:    p.pic    || '',
+                  vendor: p.vendor || ''
+                })));
+              }
             }
+            if (res.picMaster) allPicMaster = res.picMaster || [];
+            refreshUI();
+          } else {
+            _fetchFailCount++;
           }
-          if (res.picMaster) {
-            allPicMaster = res.picMaster || [];
-          }
-          refreshUI();
-        } else {
-          _fetchFailCount++;
-          if (_fetchFailCount > 5) {
-            console.warn('[fetchAll] ล้มเหลว ' + _fetchFailCount + ' ครั้งติดต่อกัน');
-          }
+        } catch(err) {
+          console.warn('[fetchAll] render error:', err.message);
         }
       }).catch(function(err) {
         _fetchFailCount++;
@@ -1193,7 +1202,8 @@
     });
 
     function refreshUI() {
-      const today = getThaiDate();
+      try {
+        const today = getThaiDate();
 
       // ─── Staff ───────────────────────────────────────────
       if (isStaffLoggedIn) {
@@ -1255,6 +1265,7 @@
           }
         }
       }
+      } catch(err) { console.warn('[refreshUI] error:', err.message); }
     }
 
     // ==========================================
