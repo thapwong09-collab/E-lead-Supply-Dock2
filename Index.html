@@ -632,11 +632,24 @@
           <div class="font-bold text-slate-500 text-sm">กำลังอ่านไฟล์...</div>
         </div>
 
-        <!-- สรุปภาพรวม -->
+        <!-- ปุ่มบันทึก + Filter (แสดงหลังอัพโหลด) -->
+        <div id="upload503-actions" class="hidden bg-white rounded-2xl p-5 shadow-sm border flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3 flex-wrap">
+            <label class="text-xs font-black text-slate-400 uppercase tracking-widest">กรอง Arrival Date:</label>
+            <input type="date" id="upload503-date-filter" onchange="render503Sections()" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 text-xs font-bold outline-none focus:border-violet-400 cursor-pointer">
+            <button type="button" onclick="document.getElementById('upload503-date-filter').value=''; render503Sections()" class="text-[10px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer">✕ ล้าง</button>
+          </div>
+          <button type="button" onclick="save503Selected()" id="upload503-save-btn"
+            class="bg-violet-600 hover:bg-violet-700 text-white px-8 py-3 rounded-xl font-bold text-sm shadow-md cursor-pointer transition-colors flex items-center gap-2">
+            💾 บันทึกรายการที่เลือกทั้งหมด → Google Sheet
+          </button>
+        </div>
+
+        <!-- สรุปภาพรวม — PIC Cards -->
         <div id="upload503-summary" class="hidden bg-white rounded-2xl shadow-sm border overflow-hidden">
           <div class="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div class="font-black text-slate-700">📊 สรุปข้อมูลจากไฟล์</div>
+              <div class="font-black text-slate-700">📊 รายการแยกตาม PIC — คลิก Card เพื่อจัดการ</div>
               <div id="upload503-summary-sub" class="text-[10px] text-slate-400 mt-0.5"></div>
             </div>
             <div class="flex gap-2 flex-wrap">
@@ -644,20 +657,38 @@
               <button type="button" onclick="upload503SelectAll(false)" class="text-[10px] font-bold bg-rose-50 text-rose-500 border border-rose-200 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-rose-100">☐ ยกเลิกทั้งหมด</button>
             </div>
           </div>
-          <div id="upload503-pic-sections" class="divide-y divide-slate-50 p-4 space-y-4"></div>
+          <div id="upload503-pic-sections" class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
-        <!-- ปุ่ม Filter + บันทึก -->
-        <div id="upload503-actions" class="hidden bg-white rounded-2xl p-5 shadow-sm border flex flex-wrap items-center justify-between gap-4">
-          <div class="flex items-center gap-3">
-            <label class="text-xs font-black text-slate-400 uppercase tracking-widest">กรอง วันที่ส่ง:</label>
-            <input type="date" id="upload503-date-filter" onchange="render503Sections()" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 text-xs font-bold outline-none focus:border-violet-400 cursor-pointer">
-            <button type="button" onclick="document.getElementById('upload503-date-filter').value=''; render503Sections()" class="text-[10px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer">✕ ล้าง</button>
+        <!-- Modal รายละเอียดแต่ละ PIC -->
+        <div id="modal503" class="fixed inset-0 z-[200] hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div class="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b bg-gradient-to-r from-violet-600 to-purple-500 rounded-t-2xl">
+              <div>
+                <div id="modal503-pic-name" class="font-black text-white text-base"></div>
+                <div id="modal503-pic-sub" class="text-violet-200 text-[10px] mt-0.5"></div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="modal503ToggleAll(true)" class="text-[9px] font-black bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg cursor-pointer">✅ ทั้งหมด</button>
+                <button type="button" onclick="modal503ToggleAll(false)" class="text-[9px] font-black bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg cursor-pointer">☐ ยกเลิก</button>
+                <button type="button" onclick="closeModal503()" class="text-white/70 hover:text-white text-xl font-black cursor-pointer ml-2">✕</button>
+              </div>
+            </div>
+            <!-- Modal Body -->
+            <div id="modal503-body" class="overflow-y-auto flex-1 divide-y divide-slate-50"></div>
+            <!-- Modal Footer -->
+            <div class="px-6 py-4 border-t flex items-center justify-between gap-3 bg-slate-50 rounded-b-2xl">
+              <div id="modal503-selected-count" class="text-xs font-bold text-slate-500"></div>
+              <div class="flex gap-3">
+                <button type="button" onclick="closeModal503()" class="bg-slate-200 text-slate-600 px-5 py-2.5 rounded-xl font-bold text-sm cursor-pointer hover:bg-slate-300">ปิด</button>
+                <button type="button" onclick="save503ForPic()" id="modal503-save-btn"
+                  class="bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-md cursor-pointer transition-colors">
+                  💾 บันทึก PIC นี้
+                </button>
+              </div>
+            </div>
           </div>
-          <button type="button" onclick="save503Selected()" id="upload503-save-btn"
-            class="bg-violet-600 hover:bg-violet-700 text-white px-8 py-3 rounded-xl font-bold text-sm shadow-md cursor-pointer transition-colors flex items-center gap-2">
-            💾 บันทึกรายการที่เลือก → Google Sheet
-          </button>
         </div>
 
       </div><!-- end pic-page-upload503 -->
@@ -4208,7 +4239,8 @@
     // =====================================================
     // UPLOAD 503 — SheetJS parse XLS/XLSX
     // =====================================================
-    let upload503Data = []; // raw rows จากไฟล์
+    let upload503Data = [];      // raw rows จากไฟล์ (กรอง blank PO แล้ว)
+    let modal503CurrentPic = ''; // PIC ที่เปิด modal อยู่
 
     // Drag & Drop
     (function() {
@@ -4231,11 +4263,9 @@
     }
 
     function process503File(file) {
-      const allowed = ['xls','xlsx'];
       const ext = file.name.split('.').pop().toLowerCase();
-      if (!allowed.includes(ext)) { showToast('❌ รองรับเฉพาะไฟล์ .xls และ .xlsx เท่านั้น'); return; }
+      if (!['xls','xlsx'].includes(ext)) { showToast('❌ รองรับเฉพาะ .xls และ .xlsx เท่านั้น'); return; }
 
-      // แสดงชื่อไฟล์
       const fnEl = document.getElementById('upload503-filename');
       if (fnEl) { fnEl.innerText = '📄 ' + file.name; fnEl.classList.remove('hidden'); }
 
@@ -4251,49 +4281,53 @@
           const ws   = wb.Sheets[wb.SheetNames[0]];
           const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
 
-          // Map column names (case-insensitive, trim)
           upload503Data = rows.map(function(r) {
+            // normalize keys
             const k = {};
             Object.keys(r).forEach(function(col) { k[col.trim().toLowerCase()] = r[col]; });
 
             function g(names) {
-              for (let n of names) { if (k[n] !== undefined && k[n] !== '') return String(k[n]).trim(); }
+              for (const n of names) {
+                if (k[n] !== undefined && String(k[n]).trim() !== '') return String(k[n]).trim();
+              }
               return '';
             }
 
-            // format date
-            let shippingDate = g(['shipping date','shippingdate','shipping_date']);
-            let arrivalDate  = g(['arrival  date','arrival date','arrivaldate','arrival_date']);
-            // ถ้าเป็น Date object
-            if (shippingDate && !isNaN(new Date(shippingDate).getTime())) {
-              const d = new Date(shippingDate);
-              shippingDate = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-            }
-            if (arrivalDate && !isNaN(new Date(arrivalDate).getTime())) {
-              const d = new Date(arrivalDate);
-              arrivalDate = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+            // parse date helper
+            function parseD(val) {
+              if (!val) return '';
+              if (val instanceof Date) {
+                return val.getFullYear() + '-' + String(val.getMonth()+1).padStart(2,'0') + '-' + String(val.getDate()).padStart(2,'0');
+              }
+              const s = String(val).trim();
+              if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+              const d = new Date(s);
+              if (!isNaN(d.getTime())) return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+              return s;
             }
 
             return {
               po_no:           g(['po no.','po no','po_no','pono']),
               no:              g(['item no.','item no','no','no.']),
-              part_no:         g(['vendor item#','vendor item #','item no.','part no','part_no']),
-              part_name:       g(['item description','item desc','part_name','description']),
+              part_no:         g(['vendor item#','vendor item #','vendor item']),
+              part_name:       g(['item description','item desc','description']),
               order_qty:       parseFloat(g(['order qty','order_qty','orderqty'])) || 0,
-              undelivered_qty: parseFloat(g(['undelivered qty','undelivered_qty'])) || 0,
-              shipping_date:   shippingDate,
-              arrival_date:    arrivalDate,
+              undelivered_qty: parseFloat(g(['undelivered qty','undelivered_qty','undelivered'])) || 0,
+              shipping_date:   parseD(k['shipping date'] || k['shipping_date'] || k['shippingdate'] || ''),
+              arrival_date:    parseD(k['arrival  date'] || k['arrival date'] || k['arrival_date'] || k['arrivaldate'] || ''),
               vendor:          g(['abbr.','abbr','vendor no.','vendor']),
               pic_name:        g(['name','buyer','pic_name','pic name']),
               partial:         g(['partial delivery','partial']),
               purchase_date:   g(['purchase date','confirm date','purchase_date']),
             };
-          }).filter(function(r) { return r.po_no || r.part_no; }); // กรอง blank rows
+          }).filter(function(r) {
+            return String(r.po_no).trim() !== '';  // *** กรองแถวที่ไม่มี PO ออก ***
+          });
 
           document.getElementById('upload503-loading').classList.add('hidden');
 
           if (upload503Data.length === 0) {
-            showToast('⚠️ ไม่พบข้อมูลในไฟล์ หรือ Column ไม่ตรง');
+            showToast('⚠️ ไม่พบข้อมูล (หรือทุกแถวไม่มี PO Number)');
             return;
           }
 
@@ -4309,158 +4343,216 @@
       reader.readAsArrayBuffer(file);
     }
 
-    function render503Sections() {
+    function get503Filtered() {
       const dateFilter = (document.getElementById('upload503-date-filter') || {}).value || '';
+      if (!dateFilter) return upload503Data;
+      return upload503Data.filter(function(r) { return r.arrival_date === dateFilter; });
+    }
 
-      // กรองตาม date ถ้ามี
-      let rows = upload503Data;
-      if (dateFilter) {
-        rows = rows.filter(function(r) {
-          return r.shipping_date === dateFilter || r.arrival_date === dateFilter;
-        });
-      }
+    function render503Sections() {
+      const rows = get503Filtered();
 
       // แยกตาม PIC
       const byPic = {};
-      rows.forEach(function(r, idx) {
+      rows.forEach(function(r, rawIdx) {
         const pic = r.pic_name || '(ไม่ระบุ PIC)';
         if (!byPic[pic]) byPic[pic] = [];
-        byPic[pic].push({ ...r, _idx: idx });
+        // เก็บ index จาก upload503Data จริง
+        const trueIdx = upload503Data.indexOf(r);
+        byPic[pic].push({ r, trueIdx });
       });
 
       const picNames = Object.keys(byPic).sort();
-      const total = rows.length;
 
       // อัพเดท summary
       const subEl = document.getElementById('upload503-summary-sub');
-      if (subEl) subEl.innerText = `รวม ${total} รายการ · ${picNames.length} PIC · ${new Set(rows.map(r=>r.po_no)).size} PO`;
+      if (subEl) subEl.innerText = `รวม ${rows.length} รายการ · ${picNames.length} PIC · ${new Set(rows.map(r=>r.po_no)).size} PO`;
 
       const container = document.getElementById('upload503-pic-sections');
       container.innerHTML = '';
 
       picNames.forEach(function(pic) {
         const items = byPic[pic];
-        const card  = document.createElement('div');
-        card.className = 'u503-pic-card';
+        const checkedCount = items.filter(function(x) {
+          const cb = document.getElementById('chk503_' + x.trueIdx);
+          return cb ? cb.checked : true; // default checked
+        }).length;
 
-        // Header
-        const hdr = document.createElement('div');
-        hdr.className = 'u503-pic-header';
-        hdr.innerHTML = `
-          <div class="flex items-center gap-2 flex-1 min-w-0">
-            <span class="text-lg">👤</span>
-            <div>
-              <div class="font-black text-sm">${pic}</div>
-              <div class="text-violet-200 text-[10px]">${items.length} รายการ · ${new Set(items.map(r=>r.po_no)).size} PO</div>
+        const card = document.createElement('div');
+        card.className = 'u503-pic-card cursor-pointer hover:shadow-md transition-shadow';
+        card.onclick = function() { openModal503(pic); };
+
+        card.innerHTML = `
+          <div class="u503-pic-header">
+            <div class="flex-1 min-w-0">
+              <div class="font-black text-sm">👤 ${pic}</div>
+              <div class="text-violet-200 text-[10px] mt-0.5">${items.length} รายการ · ${new Set(items.map(x=>x.r.po_no)).size} PO</div>
+            </div>
+            <div class="text-right flex-shrink-0">
+              <div id="pic503-badge-${pic.replace(/[^a-zA-Z0-9]/g,'_')}"
+                class="text-white font-black text-sm bg-white/20 rounded-lg px-3 py-1">
+                ✅ ${checkedCount}/${items.length}
+              </div>
+              <div class="text-violet-200 text-[9px] mt-1">คลิกเพื่อจัดการ →</div>
             </div>
           </div>
-          <div class="flex items-center gap-2 flex-shrink-0">
-            <button type="button" onclick="upload503TogglePic('${pic.replace(/'/g,"\\'")}', true)"
-              class="text-[9px] font-black bg-white/20 hover:bg-white/30 text-white px-2 py-1 rounded-lg cursor-pointer">✅ ทั้งหมด</button>
-            <button type="button" onclick="upload503TogglePic('${pic.replace(/'/g,"\\'")}', false)"
-              class="text-[9px] font-black bg-white/20 hover:bg-white/30 text-white px-2 py-1 rounded-lg cursor-pointer">☐ ยกเลิก</button>
+          <div class="px-4 py-3 bg-white flex flex-wrap gap-2 text-[10px] text-slate-500 font-bold">
+            <span>📦 Undeliv. Qty รวม: <span class="text-violet-600">${items.reduce((s,x)=>s+(x.r.undelivered_qty||0),0).toLocaleString()}</span></span>
+            <span class="text-slate-200">|</span>
+            <span>📅 Arrival: <span class="text-slate-600">${[...new Set(items.map(x=>x.r.arrival_date).filter(Boolean))].slice(0,3).join(', ')||'-'}</span></span>
           </div>`;
-        card.appendChild(hdr);
 
-        // Rows
-        const rowsWrap = document.createElement('div');
-        items.forEach(function(r) {
-          const rowId = 'chk503_' + r._idx;
-          const div = document.createElement('div');
-          div.className = 'u503-row';
-          div.id = 'row503_' + r._idx;
-          div.innerHTML = `
-            <input type="checkbox" id="${rowId}" data-idx="${r._idx}" checked
-              class="w-4 h-4 accent-violet-600 cursor-pointer flex-shrink-0"
-              onchange="document.getElementById('row503_${r._idx}').classList.toggle('deselected',!this.checked)">
-            <label for="${rowId}" class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-0.5 cursor-pointer w-full">
-              <div><span class="text-[9px] text-slate-400 uppercase font-black">PO No.</span><br>
-                <span class="font-bold text-slate-700">${r.po_no||'-'}</span></div>
-              <div><span class="text-[9px] text-slate-400 uppercase font-black">Part No.</span><br>
-                <span class="font-mono text-xs text-violet-700 font-bold">${r.part_no||'-'}</span></div>
-              <div class="col-span-2"><span class="text-[9px] text-slate-400 uppercase font-black">Description</span><br>
-                <span class="text-slate-500 text-[10px]">${r.part_name||'-'}</span></div>
-              <div><span class="text-[9px] text-slate-400 uppercase font-black">Vendor</span><br>
-                <span class="text-slate-600 font-bold text-[10px]">${r.vendor||'-'}</span></div>
-              <div><span class="text-[9px] text-slate-400 uppercase font-black">Undelivered Qty</span><br>
-                <span class="font-black text-slate-700">${r.undelivered_qty||0}</span></div>
-              <div><span class="text-[9px] text-slate-400 uppercase font-black">Shipping Date</span><br>
-                <span class="text-slate-600 text-[10px]">${r.shipping_date||'-'}</span></div>
-              <div><span class="text-[9px] text-slate-400 uppercase font-black">Arrival Date</span><br>
-                <span class="text-slate-600 text-[10px]">${r.arrival_date||'-'}</span></div>
-            </label>`;
-          rowsWrap.appendChild(div);
-        });
-        card.appendChild(rowsWrap);
         container.appendChild(card);
       });
     }
 
-    function upload503TogglePic(pic, checked) {
-      document.querySelectorAll('#upload503-pic-sections input[type="checkbox"]').forEach(function(cb) {
-        const idx = parseInt(cb.dataset.idx);
-        if (upload503Data[idx] && (upload503Data[idx].pic_name || '(ไม่ระบุ PIC)') === pic) {
-          cb.checked = checked;
-          const row = document.getElementById('row503_' + idx);
-          if (row) row.classList.toggle('deselected', !checked);
-        }
+    // ─── Modal per PIC ───────────────────────────────
+    function openModal503(pic) {
+      modal503CurrentPic = pic;
+      const rows = get503Filtered();
+      const items = rows
+        .map(function(r) { return { r, trueIdx: upload503Data.indexOf(r) }; })
+        .filter(function(x) { return (x.r.pic_name || '(ไม่ระบุ PIC)') === pic; });
+
+      document.getElementById('modal503-pic-name').innerText = '👤 ' + pic;
+
+      const body = document.getElementById('modal503-body');
+      body.innerHTML = '';
+
+      items.forEach(function(x) {
+        const rowId = 'chk503_' + x.trueIdx;
+        const isChecked = (function() {
+          const cb = document.getElementById(rowId);
+          return cb ? cb.checked : true;
+        })();
+
+        const div = document.createElement('div');
+        div.className = 'u503-row' + (isChecked ? '' : ' deselected');
+        div.id = 'modalrow503_' + x.trueIdx;
+        div.innerHTML = `
+          <input type="checkbox" id="modalchk503_${x.trueIdx}" data-idx="${x.trueIdx}" ${isChecked ? 'checked' : ''}
+            class="w-4 h-4 accent-violet-600 cursor-pointer flex-shrink-0"
+            onchange="sync503Check(${x.trueIdx}, this.checked)">
+          <label for="modalchk503_${x.trueIdx}" class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1 cursor-pointer">
+            <div><div class="text-[9px] text-slate-400 uppercase font-black">PO No.</div>
+              <div class="font-bold text-slate-700 text-xs">${x.r.po_no||'-'}</div></div>
+            <div><div class="text-[9px] text-slate-400 uppercase font-black">Part No.</div>
+              <div class="font-mono text-xs text-violet-700 font-bold">${x.r.part_no||'-'}</div></div>
+            <div class="col-span-2"><div class="text-[9px] text-slate-400 uppercase font-black">Description</div>
+              <div class="text-slate-500 text-[10px]">${x.r.part_name||'-'}</div></div>
+            <div><div class="text-[9px] text-slate-400 uppercase font-black">Vendor</div>
+              <div class="text-slate-600 font-bold text-[10px]">${x.r.vendor||'-'}</div></div>
+            <div><div class="text-[9px] text-slate-400 uppercase font-black">Undeliv. Qty</div>
+              <div class="font-black text-slate-700 text-sm">${x.r.undelivered_qty||0}</div></div>
+            <div><div class="text-[9px] text-slate-400 uppercase font-black">Arrival Date 📅</div>
+              <div class="text-emerald-600 font-bold text-xs">${x.r.arrival_date||'-'}</div></div>
+            <div><div class="text-[9px] text-slate-400 uppercase font-black">Shipping Date</div>
+              <div class="text-slate-500 text-[10px]">${x.r.shipping_date||'-'}</div></div>
+          </label>`;
+        body.appendChild(div);
       });
+
+      updateModal503Count();
+      const modal = document.getElementById('modal503');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
     }
 
-    function upload503SelectAll(checked) {
-      document.querySelectorAll('#upload503-pic-sections input[type="checkbox"]').forEach(function(cb) {
+    function closeModal503() {
+      const modal = document.getElementById('modal503');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      // sync กลับไป render cards
+      render503Sections();
+    }
+
+    function sync503Check(trueIdx, checked) {
+      // sync main array checkbox (hidden) และ modal row style
+      const row = document.getElementById('modalrow503_' + trueIdx);
+      if (row) row.classList.toggle('deselected', !checked);
+      updateModal503Count();
+    }
+
+    function modal503ToggleAll(checked) {
+      document.querySelectorAll('#modal503-body input[type="checkbox"]').forEach(function(cb) {
         cb.checked = checked;
-        const row = document.getElementById('row503_' + cb.dataset.idx);
-        if (row) row.classList.toggle('deselected', !checked);
+        sync503Check(parseInt(cb.dataset.idx), checked);
       });
     }
 
-    async function save503Selected() {
-      // รวบรวม rows ที่ checked
+    function updateModal503Count() {
+      const total    = document.querySelectorAll('#modal503-body input[type="checkbox"]').length;
+      const selected = document.querySelectorAll('#modal503-body input[type="checkbox"]:checked').length;
+      const el = document.getElementById('modal503-selected-count');
+      if (el) el.innerText = `เลือกแล้ว ${selected} / ${total} รายการ`;
+    }
+
+    // ─── Save per PIC (จาก Modal) ───────────────────
+    async function save503ForPic() {
       const selected = [];
-      document.querySelectorAll('#upload503-pic-sections input[type="checkbox"]:checked').forEach(function(cb) {
+      document.querySelectorAll('#modal503-body input[type="checkbox"]:checked').forEach(function(cb) {
         const idx = parseInt(cb.dataset.idx);
         if (upload503Data[idx]) selected.push(upload503Data[idx]);
       });
-
       if (selected.length === 0) { showToast('⚠️ ยังไม่ได้เลือกรายการใดเลย'); return; }
+      await _do503Save(selected, 'modal503-save-btn');
+    }
 
-      const btn = document.getElementById('upload503-save-btn');
-      btn.disabled = true;
-      btn.innerText = '⏳ กำลังบันทึก...';
+    // ─── Save All Selected (ปุ่มหลัก) ──────────────
+    async function save503Selected() {
+      // รวบรวมจาก modal checkboxes ที่เคย toggle + default checked
+      const selected = upload503Data.filter(function(r, idx) {
+        const modalCb = document.getElementById('modalchk503_' + idx);
+        if (modalCb) return modalCb.checked;
+        return true; // default = เลือก
+      });
+      const filtered = get503Filtered();
+      const finalSelected = selected.filter(function(r) { return filtered.includes(r); });
+      if (finalSelected.length === 0) { showToast('⚠️ ยังไม่ได้เลือกรายการใดเลย'); return; }
+      await _do503Save(finalSelected, 'upload503-save-btn');
+    }
+
+    async function _do503Save(selected, btnId) {
+      const btn = document.getElementById(btnId);
+      if (btn) { btn.disabled = true; btn.innerText = '⏳ กำลังบันทึก...'; }
 
       try {
-        // แปลงเป็น format ที่ savePlanParts ต้องการ
-        // shipping_date ใช้เป็น date ของแผน, undelivered_qty เป็น qty_plan
         const rows = selected.map(function(r) {
           return {
-            date:     r.shipping_date || getThaiDate(),
-            vendor:   r.vendor        || '',
-            pic:      r.pic_name      || '',
-            po_no:    r.po_no         || '',
-            part_no:  r.part_no       || '',
-            qty:      r.undelivered_qty || r.order_qty || 0,
+            date:      r.arrival_date || getThaiDate(),  // *** ใช้ arrival_date ***
+            vendor:    r.vendor       || '',
+            pic:       r.pic_name     || '',
+            po_no:     r.po_no        || '',
+            part_no:   r.part_no      || '',
+            qty:       r.undelivered_qty || r.order_qty || 0,
             time_slot: '',
-            origin:   'import',
+            origin:    'import',
           };
         });
 
-        const res = await callBackend({ action: 'savePlanParts', rows: JSON.stringify(rows) });
-        if (res.success) {
+        const res = await callAPI('savePlanParts', { rows: JSON.stringify(rows) });
+        if (res && res.success) {
           showToast(`✅ บันทึกสำเร็จ ${res.saved||0} รายการใหม่, อัพเดต ${res.updated||0} รายการ`);
-          btn.innerText = '✅ บันทึกแล้ว';
-          // Refresh ข้อมูลหน้า Staff
+          if (btn) btn.innerText = '✅ บันทึกแล้ว';
           if (typeof loadAllData === 'function') loadAllData();
+          if (btnId === 'modal503-save-btn') closeModal503();
         } else {
-          showToast('❌ บันทึกไม่สำเร็จ: ' + (res.message||''));
-          btn.disabled = false;
-          btn.innerText = '💾 บันทึกรายการที่เลือก → Google Sheet';
+          showToast('❌ บันทึกไม่สำเร็จ: ' + ((res && res.message)||''));
+          if (btn) { btn.disabled = false; btn.innerText = btnId === 'modal503-save-btn' ? '💾 บันทึก PIC นี้' : '💾 บันทึกรายการที่เลือกทั้งหมด → Google Sheet'; }
         }
       } catch(err) {
         showToast('❌ Error: ' + err.message);
-        btn.disabled = false;
-        btn.innerText = '💾 บันทึกรายการที่เลือก → Google Sheet';
+        if (btn) { btn.disabled = false; btn.innerText = btnId === 'modal503-save-btn' ? '💾 บันทึก PIC นี้' : '💾 บันทึกรายการที่เลือกทั้งหมด → Google Sheet'; }
       }
+    }
+
+    function upload503SelectAll(checked) {
+      // mark ทุก row ใน upload503Data ผ่าน modal checkbox ถ้ามี ไม่งั้นเก็บ state
+      upload503Data.forEach(function(r, idx) {
+        const cb = document.getElementById('modalchk503_' + idx);
+        if (cb) { cb.checked = checked; sync503Check(idx, checked); }
+      });
+      render503Sections();
     }
     // =====================================================
   </script>
