@@ -4902,6 +4902,8 @@
       updateMyPartsModalCount();
       showToast(`🗑 ลบแล้ว ${deleted} รายการ`);
     }
+
+    async function deleteMpModalRow(id) {
       if (!confirm('ลบรายการนี้?')) return;
       try {
         const res = await callAPI('deletePartDetail', { id });
