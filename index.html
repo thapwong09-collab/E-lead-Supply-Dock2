@@ -4311,7 +4311,7 @@
             return {
               po_no:           g(['po no.','po no','po_no','pono']),
               no:              g(['item no.','item no','no','no.']),
-              part_no:         g(['vendor item#','vendor item #','vendor item']),
+              part_no:         g(['vendor item#','vendor item #','vendor item','part no.','part no','part_no','item no.','item no','item#']),
               part_name:       g(['item description','item desc','description']),
               order_qty:       parseFloat(g(['order qty','order_qty','orderqty'])) || 0,
               undelivered_qty: parseFloat(g(['undelivered qty','undelivered_qty','undelivered'])) || 0,
@@ -4525,13 +4525,7 @@
           };
         });
 
-        // DEBUG — ลบทีหลัง
-        alert('rows ที่จะส่ง:\n' + JSON.stringify(rows[0], null, 2));
-
         const res = await callAPI('savePlanParts', { rows: JSON.stringify(rows) });
-
-        // DEBUG — ลบทีหลัง
-        alert('response:\n' + JSON.stringify(res, null, 2));
         if (res && res.success) {
           showToast(`✅ บันทึกสำเร็จ ${res.saved||0} รายการใหม่, อัพเดต ${res.updated||0} รายการ`);
           if (btn) btn.innerText = '✅ บันทึกแล้ว';
