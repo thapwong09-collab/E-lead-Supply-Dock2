@@ -1091,12 +1091,12 @@
       if (errDiv) { errDiv.classList.remove('hidden'); errDiv.innerText = "System Alert: " + e.message; setTimeout(() => errDiv.classList.add('hidden'), 5000); }
     });
 
-    function safeGetLocal(key) { try { return localStorage.getItem(key); } catch(e) { return null; } }
-    function safeSetLocal(key, val) { try { localStorage.setItem(key, val); } catch(e) {} }
-    function safeRemoveLocal(key) { try { localStorage.removeItem(key); } catch(e) {} }
-    function safeGetSession(key) { try { return sessionStorage.getItem(key); } catch(e) { return null; } }
-    function safeSetSession(key, val) { try { sessionStorage.setItem(key, val); } catch(e) {} }
-    function safeRemoveSession(key) { try { sessionStorage.removeItem(key); } catch(e) {} }
+    window.safeGetLocal = function(key) { try { return localStorage.getItem(key); } catch(e) { return null; } }
+    window.safeSetLocal = function(key, val) { try { localStorage.setItem(key, val); } catch(e) {} }
+    window.safeRemoveLocal = function(key) { try { localStorage.removeItem(key); } catch(e) {} }
+    window.safeGetSession = function(key) { try { return sessionStorage.getItem(key); } catch(e) { return null; } }
+    window.safeSetSession = function(key, val) { try { sessionStorage.setItem(key, val); } catch(e) {} }
+    window.safeRemoveSession = function(key) { try { sessionStorage.removeItem(key); } catch(e) {} }
 
     let allData = [];
     let globalPlanData = [];
@@ -1136,13 +1136,13 @@
     let _hashPicMaster= '';
     let _hashSupplier = '';
 
-    function _quickHash(obj) {
+    window._quickHash = function(obj) {
       // hash แบบเร็ว -- JSON string แต่ตัดช่องว่างออก
       try { return JSON.stringify(obj); } catch(e) { return ''; }
     }
     let _isFetching = false;
 
-    function fetchAll() {
+    window.fetchAll = function() {
       if (_isFetching) return; // ถ้ายังรอ response อยู่ ข้ามไป
       _isFetching = true;
 
@@ -1209,7 +1209,7 @@
       setInterval(() => { if (isPICLoggedIn) updatePICAccessUI(); }, 60000);
     });
 
-    function refreshUI() {
+    window.refreshUI = function() {
       try {
         const today = getThaiDate();
 
@@ -1279,7 +1279,7 @@
     // ==========================================
     // NAVIGATION
     // ==========================================
-    function hideAll() {
+    window.hideAll = function() {
       ['role-selection','supplier-view','unified-login','staff-view','pic-view','guard-view'].forEach(id => {
         const el = document.getElementById(id);
         if (el) { el.classList.add('hidden'); if (id === 'guard-view') el.classList.remove('flex'); }
@@ -1372,7 +1372,7 @@
     // ==========================================
     // PIC -- TABLE LOGIC
     // ==========================================
-    function addPICRow(data = {}) {
+    window.addPICRow = function(data = {}) {
       picRowCounter++;
       const id = picRowCounter;
       picRows.push(id);
@@ -1424,9 +1424,9 @@
       return tr;
     }
 
-    function esc(str) { return String(str).replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+    window.esc = function(str) { return String(str).replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
 
-    function removePICRow(id) {
+    window.removePICRow = function(id) {
       const tr = document.getElementById(`pic-row-${id}`);
       if (tr) tr.remove();
       picRows = picRows.filter(r => r !== id);
@@ -1437,12 +1437,12 @@
       }
     }
 
-    function updatePICRowCount() {
+    window.updatePICRowCount = function() {
       const el = document.getElementById('pic-row-count');
       if (el) el.innerText = `${picRows.length} รายการ`;
     }
 
-    function getPICTableData() {
+    window.getPICTableData = function() {
       return picRows.map(id => {
         const row = document.getElementById(`pic-row-${id}`);
         if (!row) return null;
@@ -1454,12 +1454,12 @@
       }).filter(Boolean);
     }
 
-    function pastePICTable() {
+    window.pastePICTable = function() {
       const helper = document.getElementById('pic-paste-helper');
       if (helper) { helper.classList.remove('hidden'); document.getElementById('pic-paste-area').focus(); }
     }
 
-    function closePasteHelper() {
+    window.closePasteHelper = function() {
       document.getElementById('pic-paste-helper').classList.add('hidden');
       document.getElementById('paste-preview').classList.add('hidden');
       document.getElementById('pic-paste-area').value = '';
@@ -1497,7 +1497,7 @@
     // ชื่อบริษัท: มีอักษรอย่างน้อย 2 ตัว ไม่ใช่ตัวเลขล้วน
     const RE_VENDOR = /[A-Za-zก-๙]{2,}/;
 
-    function detectCellType(val) {
+    window.detectCellType = function(val) {
       const v = String(val||'').trim();
       if (!v || v==='-') return 'empty';
       if (RE_DATE.test(v)) return 'date';
@@ -1510,7 +1510,7 @@
     }
 
     // วิเคราะห์ว่าแต่ละ column index ควรเป็น field อะไร โดยดูจากข้อมูล
-    function detectColumnTypes(dataLines) {
+    window.detectColumnTypes = function(dataLines) {
       const colTypes = {}; // col_idx -> {type: count}
       dataLines.forEach(line => {
         const cells = line.split('\t').map(c => c.trim());
@@ -1531,7 +1531,7 @@
     }
 
     // Map detected type -> field name (เลือก col แรกที่เจอ)
-    function buildColIndexMap(colTypeMap, dataLines) {
+    window.buildColIndexMap = function(colTypeMap, dataLines) {
       const typeToField = {
         'date':'date','time':'time','part_no':'part_no',
         'po_no':'po_no','text':'vendor'
@@ -1586,7 +1586,7 @@
       return map;
     }
 
-    function parsePasteData(raw) {
+    window.parsePasteData = function(raw) {
       const lines = raw.split('\n').map(l => l.trimEnd()).filter(l => l.trim());
       if (lines.length === 0) return { rows: [] };
 
@@ -1667,7 +1667,7 @@
       return { rows, origin };
     }
 
-    function normalizeDate(raw) {
+    window.normalizeDate = function(raw) {
       if (!raw) return getThaiDate();
       const v = raw.trim();
       // YYYY/MM/DD หรือ YYYY-MM-DD
@@ -1681,7 +1681,7 @@
       return getThaiDate();
     }
 
-    function normalizeTime(raw) {
+    window.normalizeTime = function(raw) {
       if (!raw) return '';
       const up = raw.trim().toUpperCase().replace(/\s+/g,' ');
       if (up === 'AM' || up === 'A.M.' || up === 'A.M') return 'AM';
@@ -1696,14 +1696,14 @@
       return up || ''; // คืนค่าเดิมถ้าไม่รู้จัก
     }
 
-    function normalizeQty(raw) {
+    window.normalizeQty = function(raw) {
       // ลบ comma และ space เช่น "6,000.00" -> 6000
       const n = parseFloat(String(raw||'').replace(/,/g,'').trim());
       return isNaN(n) ? 0 : n;
     }
 
     // Merge rows by date+vendor+po_no+part_no (for preview)
-    function mergeRows(rows) {
+    window.mergeRows = function(rows) {
       const map = new Map();
       const order = [];
       rows.forEach(r => {
@@ -1723,7 +1723,7 @@
       return order.map(k => map.get(k));
     }
 
-    function previewPaste() {
+    window.previewPaste = function() {
       const raw = document.getElementById('pic-paste-area').value.trim();
       if (!raw) { alert('กรุณาวางข้อมูลก่อน'); return; }
       const { rows } = parsePasteData(raw);
@@ -1771,7 +1771,7 @@
         </table>`;
     }
 
-    function processPaste() {
+    window.processPaste = function() {
       const raw = document.getElementById('pic-paste-area').value.trim();
       if (!raw) return alert('กรุณาวางข้อมูลก่อน');
       const { rows } = parsePasteData(raw);
@@ -1810,7 +1810,7 @@
     // ==========================================
 
     // Normalize ชื่อสำหรับเปรียบเทียบ
-    function normalizeVendor(str) {
+    window.normalizeVendor = function(str) {
       return String(str||'')
         .toLowerCase()
         .replace(/บริษัท|จำกัด|co\.?|ltd\.?|inc\.?|corp\.?|thailand|\(|\)|,|\./g, '')
@@ -1819,7 +1819,7 @@
     }
 
     // คะแนนความใกล้เคียง 0-100
-    function vendorScore(a, b) {
+    window.vendorScore = function(a, b) {
       const na = normalizeVendor(a);
       const nb = normalizeVendor(b);
       if (!na || !nb) return 0;
@@ -1844,7 +1844,7 @@
     }
 
     // รายชื่อ Supplier ที่รู้จัก (จาก allData history)
-    function getKnownVendors() {
+    window.getKnownVendors = function() {
       const fromCheckin = [...new Set(allData.map(r => r.company_name).filter(Boolean))];
       const fromParts   = [...new Set(allPartData.map(r => r.vendor || r.supplier).filter(Boolean))];
       return [...new Set([...fromCheckin, ...fromParts])].sort();
@@ -1852,7 +1852,7 @@
 
     let vendorDropdownActive = {}; // id -> selected index
 
-    function onVendorInput(inp, id) {
+    window.onVendorInput = function(inp, id) {
       const q = inp.value.trim();
       const known = getKnownVendors();
       const drop = document.getElementById('vdrop-' + id);
@@ -1900,14 +1900,14 @@
       drop.classList.add('show');
     }
 
-    function onVendorBlur(id) {
+    window.onVendorBlur = function(id) {
       setTimeout(() => {
         const drop = document.getElementById('vdrop-' + id);
         if (drop) drop.classList.remove('show');
       }, 200);
     }
 
-    function onVendorKeydown(e, id) {
+    window.onVendorKeydown = function(e, id) {
       const drop = document.getElementById('vdrop-' + id);
       if (!drop || !drop.classList.contains('show')) return;
       const opts = drop.querySelectorAll('.vendor-option');
@@ -1920,7 +1920,7 @@
       opts.forEach((o,i) => o.classList.toggle('active', i === idx));
     }
 
-    function selectVendor(e, name, id) {
+    window.selectVendor = function(e, name, id) {
       e.preventDefault();
       const inp = document.querySelector(`[data-field="vendor"][data-id="${id}"]`);
       if (inp) {
@@ -1940,7 +1940,7 @@
     // MERGE DUPLICATE PO+PART ROWS
     // ==========================================
     // Key = date|vendor|po_no|part_no -> รวม QTY
-    function mergeDuplicatePICRows() {
+    window.mergeDuplicatePICRows = function() {
       const rows = getPICTableData();
       if (rows.length === 0) return;
 
@@ -1989,13 +1989,13 @@
     // ==========================================
     // PIC ACCESS WINDOW -- ตรวจสอบสิทธิ์กรอกข้อมูล
     // ==========================================
-    function getThaiNow() {
+    window.getThaiNow = function() {
       const now = new Date();
       const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
       return new Date(utc + (3600000 * 7)); // Bangkok TZ
     }
 
-    function getCurrentWeekRange() {
+    window.getCurrentWeekRange = function() {
       const now = getThaiNow();
       const day = now.getDay(); // 0=อาทิตย์
       const diffToMon = (day === 0) ? -6 : 1 - day;
@@ -2004,7 +2004,7 @@
       return { mon, fri };
     }
 
-    function checkPICAccessWindow() {
+    window.checkPICAccessWindow = function() {
       const now  = getThaiNow();
       const day  = now.getDay();   // 1 = จันทร์
       const hour = now.getHours();
@@ -2025,7 +2025,7 @@
       return { pastDeadline, isMonday, currentWeekAllowed, mon, fri, nextMon, minAllowedDate };
     }
 
-    function isDateInLockedRange(dateStr) {
+    window.isDateInLockedRange = function(dateStr) {
       if (!dateStr) return false;
       const { currentWeekAllowed, mon, fri } = checkPICAccessWindow();
       const d = new Date(dateStr + 'T00:00:00');
@@ -2036,7 +2036,7 @@
       return false;
     }
 
-    function updatePICAccessUI() {
+    window.updatePICAccessUI = function() {
       const { pastDeadline, isMonday, currentWeekAllowed, mon, fri, nextMon } = checkPICAccessWindow();
       const saveBtn  = document.getElementById('pic-save-btn');
       const bannerEl = document.getElementById('pic-access-banner');
@@ -2241,7 +2241,7 @@
     // ==========================================
     let _picEditId = null; // id ของ part ที่กำลังแก้
 
-    function openPicEditModal(id, vendor, poNo, partNo, qty, timeSlot) {
+    window.openPicEditModal = function(id, vendor, poNo, partNo, qty, timeSlot) {
       _picEditId = id;
       const label = document.getElementById('pic-edit-label');
       if (label) label.innerText = '👤 ' + vendor;
@@ -2255,7 +2255,7 @@
       setTimeout(() => document.getElementById('pic-edit-part')?.focus(), 100);
     }
 
-    function closePicEditModal() {
+    window.closePicEditModal = function() {
       _picEditId = null;
       const modal = document.getElementById('pic-edit-modal');
       if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
@@ -2314,7 +2314,7 @@
         // ==========================================
     // FACTORY MODAL
     // ==========================================
-    function callQueueWithFactory(qNum, companyName) {
+    window.callQueueWithFactory = function(qNum, companyName) {
       pendingQueueNum = qNum;
       pendingQueueCompany = companyName;
       const compEl = document.getElementById('factory-modal-company');
@@ -2323,13 +2323,13 @@
       if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
     }
 
-    function closeFactoryModal() {
+    window.closeFactoryModal = function() {
       pendingQueueNum = null; pendingQueueCompany = null;
       const modal = document.getElementById('factory-modal');
       if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
     }
 
-    function confirmFactory(factory) {
+    window.confirmFactory = function(factory) {
       if (!pendingQueueNum) return;
       const qNum = pendingQueueNum;
       closeFactoryModal();
@@ -2393,7 +2393,7 @@
       modal._parts = parts;
     }
 
-    function checkQtyInput(inp, plan) {
+    window.checkQtyInput = function(inp, plan) {
       const val = parseFloat(inp.value) || 0;
       inp.classList.remove('over', 'short');
       if (val > plan)       inp.classList.add('over');
@@ -2410,7 +2410,7 @@
       checkUnplanned();
     }
 
-    function checkUnplanned() {
+    window.checkUnplanned = function() {
       // ตรวจว่ามี Qty ที่ไม่ตรงแผนไหม (Qty ที่กรอกมากกว่าแผน = ของนอกแผน)
       const qtyInputs = document.querySelectorAll('#pcm-parts-tbody .qty-input');
       let hasUnplanned = false;
@@ -2477,7 +2477,7 @@
       showToast('เรียกเข้าพื้นที่เรียบร้อย ✅');
     }
 
-    function closePartsModal() {
+    window.closePartsModal = function() {
       const modal = document.getElementById('parts-confirm-modal');
       if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
       pcmQueueNum = null; pcmFactory = null;
@@ -2488,7 +2488,7 @@
     // ==========================================
     // GUARD SCANNER
     // ==========================================
-    function initGuardScanner() {
+    window.initGuardScanner = function() {
       const btnRetry = document.getElementById('btn-start-camera');
       if (btnRetry) btnRetry.classList.add('hidden');
       const overlay = document.getElementById('guard-result-overlay');
@@ -2511,13 +2511,13 @@
           }));
     }
 
-    function stopGuardScanner() {
+    window.stopGuardScanner = function() {
       if (html5QrCode && html5QrCode.isScanning) {
         html5QrCode.stop().then(() => html5QrCode.clear()).catch(() => {});
       }
     }
 
-    function closeGuardResult() {
+    window.closeGuardResult = function() {
       const overlay = document.getElementById('guard-result-overlay');
       if (overlay) overlay.classList.add('hidden');
       const camContainer = document.getElementById('guard-camera-container');
@@ -2528,15 +2528,15 @@
     window.confirmExit = function(qNum) { updateStatus(qNum, 'exited'); closeGuardResult(); };
 
     let lastScannedText = "";
-    function onScanSuccess(decodedText) {
+    window.onScanSuccess = function(decodedText) {
       if (decodedText === lastScannedText) return;
       lastScannedText = decodedText;
       try { new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play(); } catch(e) {}
       processScanResult(decodedText);
     }
-    function onScanFailure() {}
+    window.onScanFailure = function() {}
 
-    function processScanResult(text) {
+    window.processScanResult = function(text) {
       const camContainer = document.getElementById('guard-camera-container');
       if (camContainer) camContainer.classList.add('hidden');
       const overlay = document.getElementById('guard-result-overlay');
@@ -2589,7 +2589,7 @@
       }
     }
 
-    function showGuardErrorResult(title, subtitle, bgColorClass, match = null) {
+    window.showGuardErrorResult = function(title, subtitle, bgColorClass, match = null) {
       const overlay = document.getElementById('guard-result-overlay');
       overlay.className = `fixed inset-0 z-50 flex flex-col items-center justify-center p-4 md:p-8 ${bgColorClass} fade-in`;
       let detailHtml = "";
@@ -2613,7 +2613,7 @@
     // ==========================================
     // SUPPLIER CHECKIN
     // ==========================================
-    function supplierCheckin() {
+    window.supplierCheckin = function() {
       const nameInput = document.getElementById('supplier-name');
       const licenseInput = document.getElementById('supplier-license');
       if (!nameInput || !licenseInput) return;
@@ -2634,7 +2634,7 @@
       });
     }
 
-    function showSupplierStatus(record) {
+    window.showSupplierStatus = function(record) {
       const f = document.getElementById('checkin-form');
       const s = document.getElementById('queue-status');
       if (f) f.classList.add('hidden');
@@ -2673,7 +2673,7 @@
       }
     }
 
-    function updateSupplierStatusDisplay(record) {
+    window.updateSupplierStatusDisplay = function(record) {
       if (currentSupplierRecord && String(currentSupplierRecord.queue_number) === String(record.queue_number)) {
         currentSupplierRecord = record;
         safeSetLocal('my_active_queue', JSON.stringify(record));
@@ -2755,7 +2755,7 @@
     // ==========================================
     // UPDATE STATUS
     // ==========================================
-    function updateStatus(qNum, nextStatus, factory = null) {
+    window.updateStatus = function(qNum, nextStatus, factory = null) {
       if (nextStatus === 'cancelled' && !confirm('ต้องการยกเลิกคิวนี้?')) return;
       const today = getThaiDate();
       const recordIdx = allData.findIndex(r => String(r.queue_number) === String(qNum) && r.date === today && r.status !== 'cancelled');
@@ -2785,7 +2785,7 @@
     // STAFF UI
     // ==========================================
     // คำนวณ plan_status จาก PartDetail (แทน WeeklyPlan)
-    function getPlanStatusFromParts(companyName, date) {
+    window.getPlanStatusFromParts = function(companyName, date) {
       const parts = allPartData.filter(p => String(p.date||'').trim() === date);
       if (parts.length === 0) return 'นอกแผน';
 
@@ -2825,7 +2825,7 @@
       return `<span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded shadow-sm text-[9px] font-bold border border-slate-200 whitespace-nowrap">${planStatus}</span>`;
     };
 
-    function getPartCountBadge(companyName) {
+    window.getPartCountBadge = function(companyName) {
       const today = getThaiDate();
       const parts = getPartsForSupplier(companyName, today);
       if (parts.length === 0) return `<span class="text-[9px] font-bold text-slate-300 bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">ไม่มีแผนพาร์ท</span>`;
@@ -2837,7 +2837,7 @@
     }
 
     // คำนวณ plan_status realtime จาก allPartData (override ค่าจาก sheet ถ้าเดิมเป็น นอกแผน)
-    function getEffectivePlanStatus(r) {
+    window.getEffectivePlanStatus = function(r) {
       const stored = r.plan_status || '';
       // ถ้ามีค่าจาก sheet และไม่ใช่ นอกแผน ใช้ค่าเดิม
       if (stored && stored !== 'นอกแผน') return stored;
@@ -2847,7 +2847,7 @@
     }
 
     // ดึง Parts ของ Supplier โดย match ชื่อแบบ fuzzy
-    function getPartsForSupplier(companyName, date) {
+    window.getPartsForSupplier = function(companyName, date) {
       if (!allPartData || allPartData.length === 0) {
         console.log('[Parts] allPartData ว่างเปล่า');
         return [];
@@ -2877,7 +2877,7 @@
     }
 
     // สร้าง mini Part list HTML สำหรับ Staff card
-    function getPartMiniList(companyName, date) {
+    window.getPartMiniList = function(companyName, date) {
       const parts = getPartsForSupplier(companyName, date);
       if (parts.length === 0) return '';
       return `<div class="mt-2 bg-violet-50 rounded-xl border border-violet-100 overflow-hidden">
@@ -2895,7 +2895,7 @@
       </div>`;
     }
 
-    function updateStaffUI() {
+    window.updateStaffUI = function() {
       const today = getThaiDate();
 
       // Banner
@@ -3126,7 +3126,7 @@
     // ==========================================
     // STAFF TABS
     // ==========================================
-    function showStaffTab(tab) {
+    window.showStaffTab = function(tab) {
       ['queue','daily','parts'].forEach(t => {
         const p = document.getElementById('page-' + t);
         const b = document.getElementById('tab-' + t);
@@ -3137,7 +3137,7 @@
       if (tab === 'parts') { populatePartsDashboardFilters(); updatePartsDashboard(); initHistoryYearFilter(); }
     }
 
-    function populateMonthSelector(elementId) {
+    window.populateMonthSelector = function(elementId) {
       const sel = document.getElementById(elementId);
       if (sel && sel.options.length === 0) {
         if (elementId === 'kpi-month') sel.add(new Option('ทุกเดือน (ตั้งแต่เริ่มต้น)', 'ALL'));
@@ -3149,7 +3149,7 @@
       }
     }
 
-    function populateSupplierSelector(elementId) {
+    window.populateSupplierSelector = function(elementId) {
       const sel = document.getElementById(elementId);
       if (!sel) return;
       const currentValue = sel.value;
@@ -3159,7 +3159,7 @@
       if (currentValue && uniqueSups.includes(currentValue)) sel.value = currentValue;
     }
 
-    function updateKPIUI() {
+    window.updateKPIUI = function() {
       const mEl = document.getElementById('kpi-month');
       const sEl = document.getElementById('kpi-supplier');
       if (!mEl || !sEl) return;
@@ -3210,7 +3210,7 @@
       generateAllSuppliersTable(myData);
     }
 
-    function generateAllSuppliersTable(validData) {
+    window.generateAllSuppliersTable = function(validData) {
       const supStats = {};
       validData.forEach(r => {
         const name = r.company_name;
@@ -3237,7 +3237,7 @@
       }
     }
 
-    function updateKPIChart(ontime, late, unplanned, pickup) {
+    window.updateKPIChart = function(ontime, late, unplanned, pickup) {
       const canvas = document.getElementById('kpiPieChart');
       if (!canvas || typeof Chart === 'undefined') return;
       const ctx = canvas.getContext('2d');
@@ -3249,7 +3249,7 @@
       kpiPieChart = new Chart(ctx, { type:'doughnut', data:{ labels:['ตรงเวลา/ก่อนเวลา','ล่าช้า','นอกแผน','Pickup'], datasets:[{ data:[ontime,late,unplanned,pickup], backgroundColor:['#10b981','#f43f5e','#f59e0b','#3b82f6'], borderWidth:0, hoverOffset:4 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ font:{ family:'Prompt' } } } }, cutout:'70%' } });
     }
 
-    function updateDailyHistoryList() {
+    window.updateDailyHistoryList = function() {
       const container = document.getElementById('daily-history-list');
       if (!container) return;
       let html = '<h3 class="font-bold text-slate-800 mt-10 mb-6">รายละเอียดประวัติ (7 วันล่าสุด)</h3>';
@@ -3290,7 +3290,7 @@
       container.innerHTML = html;
     }
 
-    function updateMonthlySummary() {
+    window.updateMonthlySummary = function() {
       const selValue = document.getElementById('month-selector').value;
       if (!selValue) return;
       const parts = selValue.split('-'); const year = parts[0]; const month = parts[1];
@@ -3314,7 +3314,7 @@
       updateMonthlyChart(year, month, mData);
     }
 
-    function updateMonthlyChart(y, m, data) {
+    window.updateMonthlyChart = function(y, m, data) {
       const canvas = document.getElementById('monthlyChart');
       if (!canvas || typeof Chart === 'undefined') return;
       const ctx = canvas.getContext('2d');
@@ -3329,7 +3329,7 @@
       monthlyChart = new Chart(ctx, { type:'line', data:{ labels, datasets:[{ label:'คิว', data:counts, borderColor:'#4f46e5', borderWidth:3, pointRadius:0, fill:true, tension:0.4, backgroundColor:'rgba(79,70,229,0.05)' }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 } } } } });
     }
 
-    function updateDailyChart() {
+    window.updateDailyChart = function() {
       const canvas = document.getElementById('dailyChart');
       if (!canvas || typeof Chart === 'undefined') return;
       const ctx = canvas.getContext('2d');
@@ -3354,7 +3354,7 @@
     let pdQtyChart  = null;
     let pdBarChart  = null;
 
-    function populatePartsDashboardFilters() {
+    window.populatePartsDashboardFilters = function() {
       const mSel = document.getElementById('parts-month');
       if (mSel && mSel.options.length === 0) {
         mSel.add(new Option('ทุกเดือน', 'ALL'));
@@ -3379,12 +3379,12 @@
       if (cur && vendors.includes(cur)) sSel.value = cur;
     }
 
-    function getOriginBadge(origin) {
+    window.getOriginBadge = function(origin) {
       if (!origin || origin === 'local') return '<span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[9px] font-black">🏠 Local</span>';
       return '<span class="bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded text-[9px] font-black">✈️ Import</span>';
     }
 
-    function getPartStatusBadge(status) {
+    window.getPartStatusBadge = function(status) {
       const map = {
         'completed': '<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-lg text-[9px] font-black">ครบ ✅</span>',
         'short':     '<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-lg text-[9px] font-black">ไม่ครบ ⚠️</span>',
@@ -3395,12 +3395,12 @@
       return map[status] || map['pending'];
     }
 
-    function starsHtml(score) {
+    window.starsHtml = function(score) {
       const filled = Math.round(score / 20); // 0-100 -> 0-5 stars
       return '⭐'.repeat(filled) + '☆'.repeat(5 - filled);
     }
 
-    function updatePartsDashboard() {
+    window.updatePartsDashboard = function() {
       if (!allPartData) return;
       const mVal = document.getElementById('parts-month')?.value || 'ALL';
       const sVal = document.getElementById('parts-supplier')?.value || 'ALL';
@@ -3527,7 +3527,7 @@
       updatePdPerfTable(filteredCheckin, filteredParts);
     }
 
-    function updatePdTimeChart(ontime, late, early, unplanned) {
+    window.updatePdTimeChart = function(ontime, late, early, unplanned) {
       const canvas = document.getElementById('pd-time-chart');
       if (!canvas || typeof Chart === 'undefined') return;
       if (pdTimeChart) pdTimeChart.destroy();
@@ -3545,7 +3545,7 @@
       });
     }
 
-    function updatePdQtyChart(comp, short, missing, pending) {
+    window.updatePdQtyChart = function(comp, short, missing, pending) {
       const canvas = document.getElementById('pd-qty-chart');
       if (!canvas || typeof Chart === 'undefined') return;
       if (pdQtyChart) { pdQtyChart.destroy(); pdQtyChart = null; }
@@ -3562,7 +3562,7 @@
       });
     }
 
-    function updatePdBarChart(checkinData, partsData) {
+    window.updatePdBarChart = function(checkinData, partsData) {
       const canvas = document.getElementById('pd-bar-chart');
       if (!canvas || typeof Chart === 'undefined') return;
       if (pdBarChart) { pdBarChart.destroy(); pdBarChart = null; }
@@ -3612,7 +3612,7 @@
       });
     }
 
-    function updatePdPerfTable(checkinData, partsData) {
+    window.updatePdPerfTable = function(checkinData, partsData) {
       const tbody = document.getElementById('pd-perf-table');
       const countEl = document.getElementById('pd-table-count');
       if (!tbody) return;
@@ -3673,7 +3673,7 @@
         // ==========================================
     // PIC TAB NAVIGATION
     // ==========================================
-    function showPicTab(tab) {
+    window.showPicTab = function(tab) {
       ['upload503','myparts','responsibility','pic-master'].forEach(t => {
         const p = document.getElementById('pic-page-' + t);
         const b = document.getElementById('pic-tab-' + t);
@@ -3690,7 +3690,7 @@
     // ==========================================
     // PIC RESPONSIBILITY
     // ==========================================
-    function initPicResponsibility() {
+    window.initPicResponsibility = function() {
       // ตั้ง date default = วันนี้ (ตั้งเฉพาะครั้งแรก)
       const dateEl = document.getElementById('pic-resp-date');
       if (dateEl && !dateEl.value) dateEl.value = getThaiDate();
@@ -3702,7 +3702,7 @@
       fetchAll();
     }
 
-    function _populatePicRespFilter() {
+    window._populatePicRespFilter = function() {
       const sel = document.getElementById('pic-resp-filter');
       if (!sel) return;
       const cur = sel.value;
@@ -3712,7 +3712,7 @@
       if (cur && pics.includes(cur)) sel.value = cur;
     }
 
-    function updatePicResponsibility() {
+    window.updatePicResponsibility = function() {
       const dateEl = document.getElementById('pic-resp-date');
       const filterEl = document.getElementById('pic-resp-filter');
       const dateVal = dateEl?.value || getThaiDate();
@@ -3881,7 +3881,7 @@
     let pmCurrentPic = null; // ชื่อ PIC ที่กำลังเพิ่ม Supplier
 
     // แปลง allPicMaster (flat rows จาก Sheet) -> { pics: [{name, suppliers:[]}] }
-    function buildPicStructure(rows) {
+    window.buildPicStructure = function(rows) {
       const map = {};
       (rows || []).forEach(r => {
         const pic = String(r.pic_name || '').trim();
@@ -3897,7 +3897,7 @@
     let _syncQueue = [];
     let _syncTimer = null;
 
-    function syncPicMasterToSheet(rows) {
+    window.syncPicMasterToSheet = function(rows) {
       if (!rows || rows.length === 0) return;
       rows.forEach(r => {
         const pic    = String(r.pic    || '').trim();
@@ -3932,7 +3932,7 @@
     // ลบ localStorage เก่าถ้ายังมีค้างอยู่
     try { localStorage.removeItem('pic_master_data'); } catch(e) {}
 
-    function updatePicMaster() {
+    window.updatePicMaster = function() {
       const data = buildPicStructure(allPicMaster);
       const grid = document.getElementById('pm-cards-grid');
       const empty = document.getElementById('pm-empty');
@@ -3979,14 +3979,14 @@
       }).join('');
     }
 
-    function addPicCard() {
+    window.addPicCard = function() {
       document.getElementById('pm-new-pic-name').value = '';
       const modal = document.getElementById('pm-add-pic-modal');
       if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
       setTimeout(() => document.getElementById('pm-new-pic-name')?.focus(), 100);
     }
 
-    function closePmModal() {
+    window.closePmModal = function() {
       const modal = document.getElementById('pm-add-pic-modal');
       if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
     }
@@ -4023,7 +4023,7 @@
     let _pmSelectedSups = new Set(); // ชื่อ Supplier ที่เลือกไว้ใน modal
     let _pmAllSuggestions = [];      // รายการ suggestions ทั้งหมด
 
-    function openAddSupModal(pi) {
+    window.openAddSupModal = function(pi) {
       pmCurrentPic = pi;
       _pmSelectedSups = new Set();
       const data = buildPicStructure(allPicMaster);
@@ -4049,7 +4049,7 @@
       setTimeout(() => inp?.focus(), 100);
     }
 
-    function filterPmSuggestions() {
+    window.filterPmSuggestions = function() {
       const q = (document.getElementById('pm-new-sup-name')?.value || '').toLowerCase().trim();
       const filtered = q
         ? _pmAllSuggestions.filter(s => s.toLowerCase().includes(q))
@@ -4057,7 +4057,7 @@
       _renderPmSuggestions(filtered);
     }
 
-    function _renderPmSuggestions(list) {
+    window._renderPmSuggestions = function(list) {
       const sugDiv = document.getElementById('pm-sup-suggestions');
       if (!sugDiv) return;
       if (list.length === 0) {
@@ -4075,7 +4075,7 @@
       }).join('');
     }
 
-    function togglePmSup(name) {
+    window.togglePmSup = function(name) {
       if (_pmSelectedSups.has(name)) {
         _pmSelectedSups.delete(name);
       } else {
@@ -4085,7 +4085,7 @@
       _renderPmSelected();
     }
 
-    function addPmSupToSelected() {
+    window.addPmSupToSelected = function() {
       const inp = document.getElementById('pm-new-sup-name');
       const name = inp?.value.trim();
       if (!name) return;
@@ -4095,13 +4095,13 @@
       _renderPmSelected();
     }
 
-    function removePmSelected(name) {
+    window.removePmSelected = function(name) {
       _pmSelectedSups.delete(name);
       filterPmSuggestions();
       _renderPmSelected();
     }
 
-    function _renderPmSelected() {
+    window._renderPmSelected = function() {
       const container = document.getElementById('pm-selected-list');
       const chips     = document.getElementById('pm-selected-chips');
       const countEl   = document.getElementById('pm-selected-count');
@@ -4120,7 +4120,7 @@
       ).join('');
     }
 
-    function closePmSupModal() {
+    window.closePmSupModal = function() {
       pmCurrentPic = null;
       _pmSelectedSups = new Set();
       const modal = document.getElementById('pm-add-sup-modal');
@@ -4180,7 +4180,7 @@
     // ==========================================
     // PIC MASTER -- ความรับผิดชอบ PIC (All-time) -- OLD (ยังใช้บางส่วน)
     // ==========================================
-    function _updatePicMasterAllTime() {
+    window._updatePicMasterAllTime = function() {
       const searchPic = (document.getElementById('pic-master-search')?.value || '').toLowerCase().trim();
       const searchSup = (document.getElementById('pic-master-sup-search')?.value || '').toLowerCase().trim();
 
@@ -4322,14 +4322,14 @@
         // ==========================================
     // UTILITIES
     // ==========================================
-    function getThaiDate() {
+    window.getThaiDate = function() {
       const d = new Date();
       const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
       const nd = new Date(utc + (3600000 * 7));
       return `${nd.getFullYear()}-${String(nd.getMonth()+1).padStart(2,'0')}-${String(nd.getDate()).padStart(2,'0')}`;
     }
 
-    function formatThaiTime(iso) {
+    window.formatThaiTime = function(iso) {
       if (!iso || iso === '-') return '-';
       try {
         const d = new Date(iso);
@@ -4339,7 +4339,7 @@
       } catch(e) { return '-'; }
     }
 
-    function showToast(msg) {
+    window.showToast = function(msg) {
       const toast = document.createElement('div');
       toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-2xl z-[9999] fade-in';
       toast.innerText = msg;
@@ -4347,7 +4347,7 @@
       setTimeout(() => toast.remove(), 3000);
     }
 
-    function resetSupplierView() {
+    window.resetSupplierView = function() {
       currentSupplierRecord = null;
       safeRemoveLocal('my_active_queue');
       safeRemoveSession('qr_auto_triggered');
@@ -4381,12 +4381,12 @@
       });
     })();
 
-    function handle503Upload(input) {
+    window.handle503Upload = function(input) {
       const file = input.files[0];
       if (file) process503File(file);
     }
 
-    function process503File(file) {
+    window.process503File = function(file) {
       const ext = file.name.split('.').pop().toLowerCase();
       if (!['xls','xlsx'].includes(ext)) { showToast('❌ รองรับเฉพาะ .xls และ .xlsx เท่านั้น'); return; }
 
@@ -4467,7 +4467,7 @@
       reader.readAsArrayBuffer(file);
     }
 
-    function get503Filtered() {
+    window.get503Filtered = function() {
       return upload503Data;
     }
 
@@ -4516,7 +4516,7 @@
       }
     }
 
-    function render503Sections() {
+    window.render503Sections = function() {
       const rows = get503Filtered();
 
       // แยกตาม PIC
@@ -4574,7 +4574,7 @@
     }
 
     // --- Modal per PIC -- grouped by Vendor -------------------
-    function openModal503(pic) {
+    window.openModal503 = function(pic) {
       modal503CurrentPic = pic;
       const rows = get503Filtered();
       const items = rows.filter(function(r) {
@@ -4686,7 +4686,7 @@
     }
 
     // Apply AM/PM จาก vendor-level dropdown ไปทุก row ของ vendor นั้น
-    function apply503VendorAmPm(vendorKey) {
+    window.apply503VendorAmPm = function(vendorKey) {
       const val = (document.getElementById('ampm_' + vendorKey) || {}).value || '';
       if (!val) return;
       document.querySelectorAll('#vrows_' + vendorKey + ' select[id^="slot503_"]').forEach(function(sel) {
@@ -4694,7 +4694,7 @@
       });
     }
 
-    function closeModal503() {
+    window.closeModal503 = function() {
       const modal = document.getElementById('modal503');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
@@ -4702,21 +4702,21 @@
       render503Sections();
     }
 
-    function sync503Check(trueIdx, checked) {
+    window.sync503Check = function(trueIdx, checked) {
       // sync main array checkbox (hidden) และ modal row style
       const row = document.getElementById('modalrow503_' + trueIdx);
       if (row) row.classList.toggle('deselected', !checked);
       updateModal503Count();
     }
 
-    function modal503ToggleAll(checked) {
+    window.modal503ToggleAll = function(checked) {
       document.querySelectorAll('#modal503-body input[type="checkbox"]').forEach(function(cb) {
         cb.checked = checked;
         sync503Check(parseInt(cb.dataset.idx), checked);
       });
     }
 
-    function updateModal503Count() {
+    window.updateModal503Count = function() {
       const total    = document.querySelectorAll('#modal503-body input[type="checkbox"]').length;
       const selected = document.querySelectorAll('#modal503-body input[type="checkbox"]:checked').length;
       const el = document.getElementById('modal503-selected-count');
@@ -4791,7 +4791,7 @@
       }
     }
 
-    function upload503SelectAll(checked) {
+    window.upload503SelectAll = function(checked) {
       // mark ทุก row ใน upload503Data ผ่าน modal checkbox ถ้ามี ไม่งั้นเก็บ state
       upload503Data.forEach(function(r, idx) {
         const cb = document.getElementById('modalchk503_' + idx);
@@ -4806,7 +4806,7 @@
     // =====================================================
     let histTrendChart = null;
 
-    function initHistoryYearFilter() {
+    window.initHistoryYearFilter = function() {
       const sel = document.getElementById('hist-year');
       if (!sel) return;
       const now = new Date();
@@ -4842,7 +4842,7 @@
       }
     }
 
-    function renderHistoryDashboard(s) {
+    window.renderHistoryDashboard = function(s) {
       const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
 
       // KPI หลัก
@@ -4945,7 +4945,7 @@
     let myPartsModal  = null; // PIC ที่เปิด modal อยู่
 
     // -- Deadline Check -- จันทร์ก่อน 08:30 --------------
-    function getWeekRange() {
+    window.getWeekRange = function() {
       // คืน { start: จันทร์, end: เสาร์ } ของสัปดาห์ปัจจุบัน
       const now   = new Date();
       const day   = now.getDay(); // 0=Sun,1=Mon,...,6=Sat
@@ -4960,7 +4960,7 @@
       return { start: monday, end: saturday };
     }
 
-    function isDeadlinePassed() {
+    window.isDeadlinePassed = function() {
       // Deadline = วันจันทร์ 08:30
       const now = new Date();
       if (now.getDay() !== 1) return false; // ไม่ใช่จันทร์ = ยังไม่เลย
@@ -4969,7 +4969,7 @@
       return now > cutoff;
     }
 
-    function isConfirmAllowed(arrivalDate) {
+    window.isConfirmAllowed = function(arrivalDate) {
       // ถ้ายังไม่เลย deadline = อนุญาตเสมอ
       if (!isDeadlinePassed()) return true;
       // เลย deadline แล้ว -> เช็ค arrival date
@@ -4981,7 +4981,7 @@
       return true;
     }
 
-    function getDeadlineText() {
+    window.getDeadlineText = function() {
       const now = new Date();
       if (!isDeadlinePassed()) {
         const deadline = new Date(now);
@@ -5000,7 +5000,7 @@
       return '❌ เลย Deadline แล้ว — รายการสัปดาห์นี้ไม่สามารถ Confirm ได้';
     }
 
-    function initMyParts() {
+    window.initMyParts = function() {
       // แสดง week range
       const week = getWeekRange();
       const fmt  = d => d.toLocaleDateString('th-TH', { day:'numeric', month:'short' });
@@ -5065,7 +5065,7 @@
       }
     }
 
-    function renderMyPartsPicCards() {
+    window.renderMyPartsPicCards = function() {
       const container = document.getElementById('myparts-pic-cards');
       container.innerHTML = '';
 
@@ -5106,7 +5106,7 @@
       });
     }
 
-    function openMyPartsModal(pic) {
+    window.openMyPartsModal = function(pic) {
       myPartsModal = pic;
       const items = myPartsData.filter(r => (r.pic||'(ไม่ระบุ PIC)') === pic);
 
@@ -5204,7 +5204,7 @@
       modal.classList.add('flex');
     }
 
-    function toggleMpAccordion(vk) {
+    window.toggleMpAccordion = function(vk) {
       const body = document.getElementById('mpacc_body_' + vk);
       const icon = document.getElementById('mpacc_icon_' + vk);
       if (!body) return;
@@ -5213,13 +5213,13 @@
       if (icon) icon.style.transform = isOpen ? '' : 'rotate(90deg)';
     }
 
-    function applyMpVendorAmPm(vk) {
+    window.applyMpVendorAmPm = function(vk) {
       const val = (document.getElementById('mpvampm_' + vk)||{}).value || '';
       if (!val) return;
       document.querySelectorAll(`select[data-vk="${vk}"]`).forEach(s => s.value = val);
     }
 
-    function updateMyPartsModalCount() {
+    window.updateMyPartsModalCount = function() {
       const total    = document.querySelectorAll('#myparts-modal-body input[type="checkbox"]').length;
       const selected = document.querySelectorAll('#myparts-modal-body input[type="checkbox"]:checked').length;
       const el = document.getElementById('myparts-modal-count');
@@ -5262,7 +5262,7 @@
       } catch(err) { showToast('❌ ' + err.message); }
     }
 
-    function closeMyPartsModal() {
+    window.closeMyPartsModal = function() {
       const btn = document.getElementById('myparts-modal-confirm-btn');
       if (btn) { btn.disabled = false; btn.innerText = '✅ Confirm ของฉัน → ส่งคลัง'; }
       document.getElementById('myparts-modal').classList.add('hidden');
@@ -5330,40 +5330,6 @@
     }
     // =====================================================
 
-    // -- assign ทุก function ขึ้น window ทันที --
-    (function() {
-      const fns = [
-        'showRoleSelection','showSupplierView','showLogin','enterGuardView',
-        'staffLogout','picLogout','guardLogout','processLogin','supplierCheckin',
-        'resetSupplierView','showStaffTab','showPicTab','updateStatus',
-        'callQueueWithFactory','closeFactoryModal','confirmFactory',
-        'addPICRow','removePICRow','pastePICTable','closePasteHelper',
-        'previewPaste','processPaste','mergeDuplicatePICRows','savePICParts',
-        'loadTodayPICParts','openPicEditModal','closePicEditModal',
-        'checkQtyInput','checkUnplanned','closePartsModal',
-        'initGuardScanner','stopGuardScanner','closeGuardResult',
-        'onScanSuccess','onScanFailure','updatePicResponsibility',
-        'initPicResponsibility','updatePicMaster','addPicCard','closePmModal',
-        'savePicCard','openAddSupModal','closePmSupModal','filterPmSuggestions',
-        'togglePmSup','removePmSelected','populateMonthSelector',
-        'populateSupplierSelector','updateKPIUI','updateMonthlySummary',
-        'handle503Upload','autoSave503ToSheet','save503Selected','save503ForPic',
-        'openModal503','closeModal503','modal503ToggleAll','sync503Check',
-        'apply503VendorAmPm','render503Sections','upload503SelectAll',
-        'initMyParts','loadMyParts','openMyPartsModal','closeMyPartsModal',
-        'toggleMpAccordion','applyMpVendorAmPm','updateMyPartsModalCount',
-        'deleteMpModalRow','confirmMyPartsPic','bulkDeleteMyParts',
-        'applyVendorAmPm','toggleVendorMyParts','updateMyPartsCount',
-        'deleteMyPart','confirmMyParts','onVendorInput','onVendorBlur',
-        'onVendorKeydown','selectVendor','showToast','getThaiDate','formatThaiTime',
-        'getWeekRange','isDeadlinePassed','isConfirmAllowed','getDeadlineText',
-        'updatePartsDashboard','addPmSupToSelected','savePicSup',
-        'loadHistorySummary','initHistoryYearFilter','renderHistoryDashboard',
-      ];
-      fns.forEach(function(name) {
-        try { if (typeof eval(name) === 'function') window[name] = eval(name); } catch(e) {}
-      });
-    })();
 
   </script>
 
