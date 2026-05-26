@@ -12,6 +12,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>
+    // Polyfill สำหรับ XLS เก่า
+    if (typeof XLSX !== 'undefined' && XLSX.SSF) { try { XLSX.SSF.load_table({}); } catch(e) {} }
+  </script>
 
   <style>
     * { font-family: 'Prompt', sans-serif; box-sizing: border-box; }
@@ -4232,8 +4236,15 @@
       const reader = new FileReader();
       reader.onload = function(e) {
         try {
-          const data = new Uint8Array(e.target.result);
-          const wb   = XLSX.read(data, { type: 'array', cellDates: true });
+          const ext2 = file.name.split('.').pop().toLowerCase();
+          let wb;
+          if (ext2 === 'xls') {
+            // XLS ต้องใช้ binary string
+            const bstr = Array.from(new Uint8Array(e.target.result)).map(function(b){ return String.fromCharCode(b); }).join('');
+            wb = XLSX.read(bstr, { type: 'binary', cellDates: true });
+          } else {
+            wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: true, cellNF: false, cellText: false });
+          }
           const ws   = wb.Sheets[wb.SheetNames[0]];
           const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
 
