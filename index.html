@@ -1178,6 +1178,9 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      // แสดงหน้าแรกก่อนเสมอ
+      showRoleSelection();
+
       const savedQueue = safeGetLocal('my_active_queue');
       if (savedQueue) {
         try {
