@@ -3010,19 +3010,32 @@
       }
       document.getElementById('pcm-parts-section').classList.remove('hidden');
       const tbody = document.getElementById('pcm-parts-tbody');
-      tbody.innerHTML = parts.map((p, i) => `
-        <tr class="part-row" id="pcm-part-${i}">
+
+      // รวม QTY ตาม PO No. + Part No.
+      const mergedMap = {};
+      parts.forEach(function(p) {
+        const key = (p.po_no||p.po_number||'') + '||' + (p.part_no||p.part_number||'');
+        if (!mergedMap[key]) {
+          mergedMap[key] = Object.assign({}, p, { qty_plan: 0, ids: [] });
+        }
+        mergedMap[key].qty_plan += parseFloat(p.qty_plan||p.qty||0);
+        mergedMap[key].ids.push(p.id);
+      });
+      const mergedParts = Object.values(mergedMap);
+
+      tbody.innerHTML = mergedParts.map(function(p, i) {
+        return `<tr class="part-row" id="pcm-part-${i}">
           <td class="p-3 font-mono text-xs text-slate-500">${p.po_no || p.po_number || '-'}</td>
           <td class="p-3 font-bold text-violet-700 text-xs">${p.part_no || p.part_number || '-'}</td>
-          <td class="p-3 text-center font-black text-slate-700">${p.qty_plan||p.qty||'-'}</td>
+          <td class="p-3 text-center font-black text-slate-700">${p.qty_plan||'-'}</td>
           <td class="p-3 text-center">
             <input type="number" class="qty-input" id="qty-recv-${i}" value="${p.qty_plan}" min="0"
-              data-plan="${p.qty_plan}" data-part-id="${p.id || i}"
+              data-plan="${p.qty_plan}" data-part-id="${p.ids.join(',')}"
               onchange="checkQtyInput(this, ${p.qty_plan})">
           </td>
-        </tr>
-      `).join('');
-      modal._parts = parts;
+        </tr>`;
+      }).join('');
+      modal._parts = mergedParts;
 
       // Override submit for complete flow
       if (submitBtn) {
@@ -3041,8 +3054,14 @@
       }
       const qtyInputs = document.querySelectorAll('#pcm-parts-tbody .qty-input');
       const receivedData = [];
-      qtyInputs.forEach((inp) => {
-        receivedData.push({ part_id: inp.dataset.partId, qty_received: parseInt(inp.value) || 0, qty_plan: parseInt(inp.dataset.plan) || 0 });
+      qtyInputs.forEach(function(inp) {
+        const ids = inp.dataset.partId.split(',');
+        const qtyRecv = parseInt(inp.value) || 0;
+        const qtyPlan = parseInt(inp.dataset.plan) || 0;
+        // กระจาย qty_received ให้ทุก id ที่รวมกัน
+        ids.forEach(function(id) {
+          receivedData.push({ part_id: id, qty_received: qtyRecv, qty_plan: qtyPlan });
+        });
       });
       const managerName = hasUnplanned ? document.getElementById('pcm-manager-name').value.trim() : '';
       const remark = hasUnplanned ? document.getElementById('pcm-remark').value.trim() : '';
