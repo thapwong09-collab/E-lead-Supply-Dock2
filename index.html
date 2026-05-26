@@ -1178,6 +1178,8 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      showRoleSelection();
+
       const savedQueue = safeGetLocal('my_active_queue');
       if (savedQueue) {
         try {
@@ -5361,9 +5363,6 @@
       fns.forEach(function(name) {
         try { if (typeof eval(name) === 'function') window[name] = eval(name); } catch(e) {}
       });
-
-      // เรียก showRoleSelection ทันทีหลัง assign เสร็จ
-      try { showRoleSelection(); } catch(e) { console.warn('init error:', e); }
     })();
 
   </script>
