@@ -513,54 +513,60 @@
           <div class="font-bold text-slate-500 text-sm">กำลังอ่านไฟล์...</div>
         </div>
 
-        <!-- Filter -->
-        <div id="upload503-actions" class="hidden bg-white rounded-2xl p-4 shadow-sm border flex flex-wrap items-center gap-3">
-          <label class="text-xs font-black text-slate-400 uppercase tracking-widest">กรอง Arrival Date:</label>
-          <input type="date" id="upload503-date-filter" onchange="render503Sections()" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 text-xs font-bold outline-none focus:border-violet-400 cursor-pointer">
-          <button type="button" onclick="document.getElementById('upload503-date-filter').value=''; render503Sections()" class="text-[10px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer">✕ ล้าง</button>
-        </div>
-
-        <!-- สรุปภาพรวม — PIC Cards -->
-        <div id="upload503-summary" class="hidden bg-white rounded-2xl shadow-sm border overflow-hidden">
-          <div class="px-6 py-4 border-b border-slate-100">
-            <div class="font-black text-slate-700">📊 รายการแยกตาม PIC — คลิก Card เพื่อจัดการ</div>
-            <div id="upload503-summary-sub" class="text-[10px] text-slate-400 mt-0.5"></div>
+        <!-- สรุปหลังอัพโหลด -->
+        <div id="upload503-preview" class="hidden bg-white rounded-2xl shadow-sm border overflow-hidden">
+          <div class="px-6 py-5 border-b bg-violet-50">
+            <div class="font-black text-violet-700 text-base mb-1">📊 สรุปไฟล์ที่อัพโหลด</div>
+            <div class="text-xs text-slate-500">ตรวจสอบให้แน่ใจก่อนกดยืนยัน</div>
           </div>
-          <div id="upload503-pic-sections" class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+          <div class="p-6 space-y-4">
+            <!-- Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div class="bg-violet-50 rounded-2xl p-4 text-center">
+                <div class="text-3xl font-black text-violet-600" id="preview-total-rows">0</div>
+                <div class="text-[10px] font-black text-violet-400 uppercase mt-1">แถวทั้งหมด (มี PO)</div>
+              </div>
+              <div class="bg-slate-50 rounded-2xl p-4 text-center">
+                <div class="text-3xl font-black text-slate-600" id="preview-total-po">0</div>
+                <div class="text-[10px] font-black text-slate-400 uppercase mt-1">PO ไม่ซ้ำ</div>
+              </div>
+              <div class="bg-slate-50 rounded-2xl p-4 text-center">
+                <div class="text-3xl font-black text-slate-600" id="preview-total-pic">0</div>
+                <div class="text-[10px] font-black text-slate-400 uppercase mt-1">PIC ทั้งหมด</div>
+              </div>
+              <div class="bg-slate-50 rounded-2xl p-4 text-center">
+                <div class="text-3xl font-black text-slate-600" id="preview-total-vendor">0</div>
+                <div class="text-[10px] font-black text-slate-400 uppercase mt-1">Supplier</div>
+              </div>
+            </div>
+            <!-- PIC breakdown -->
+            <div>
+              <div class="text-xs font-black text-slate-400 uppercase mb-2">แยกตาม PIC</div>
+              <div id="preview-pic-breakdown" class="flex flex-wrap gap-2"></div>
+            </div>
+            <!-- Confirm button -->
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+              <div class="text-xs text-slate-400">กดยืนยันเพื่อส่งข้อมูลเข้าระบบ PIC จะเห็นในหน้า Weekly Plan</div>
+              <button type="button" onclick="confirm503Upload()" id="upload503-confirm-btn"
+                class="bg-violet-600 hover:bg-violet-700 text-white px-8 py-3 rounded-xl font-bold text-sm shadow-md cursor-pointer transition-colors">
+                ✅ ยืนยันส่งข้อมูล
+              </button>
+            </div>
+          </div>
         </div>
 
-        <!-- ข้อความหลังบันทึกหมดแล้ว -->
+        <!-- กำลังบันทึก -->
+        <div id="upload503-saving" class="hidden bg-white rounded-2xl p-8 text-center shadow-sm border">
+          <div class="text-2xl animate-pulse mb-2">⏳</div>
+          <div class="font-bold text-slate-500 text-sm" id="upload503-saving-text">กำลังบันทึกข้อมูล...</div>
+        </div>
+
+        <!-- บันทึกสำเร็จ -->
         <div id="upload503-done" class="hidden bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-8 text-center">
           <div class="text-4xl mb-3">✅</div>
-          <div class="font-black text-emerald-700 text-base">บันทึกทุก PIC เรียบร้อยแล้ว</div>
+          <div class="font-black text-emerald-700 text-base" id="upload503-done-text">บันทึกเรียบร้อยแล้ว</div>
           <div class="text-sm text-emerald-600 mt-2">PIC แต่ละคนสามารถเข้าไปจัดการและ Confirm ได้ที่ Tab <strong>"📅 Weekly Plan"</strong></div>
-        </div>
-
-        <!-- Modal รายละเอียดแต่ละ PIC -->
-        <div id="modal503" class="fixed inset-0 z-[200] hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div class="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl">
-            <div class="flex items-center justify-between px-6 py-4 border-b bg-gradient-to-r from-violet-600 to-purple-500 rounded-t-2xl">
-              <div>
-                <div id="modal503-pic-name" class="font-black text-white text-base"></div>
-                <div id="modal503-pic-sub" class="text-violet-200 text-[10px] mt-0.5"></div>
-              </div>
-              <div class="flex items-center gap-2">
-                <button type="button" onclick="modal503ToggleAll(true)" class="text-[9px] font-black bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg cursor-pointer">✅ ทั้งหมด</button>
-                <button type="button" onclick="modal503ToggleAll(false)" class="text-[9px] font-black bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg cursor-pointer">☐ ยกเลิก</button>
-                <button type="button" onclick="closeModal503()" class="text-white/70 hover:text-white text-xl font-black cursor-pointer ml-2">✕</button>
-              </div>
-            </div>
-            <div id="modal503-body" class="overflow-y-auto flex-1 divide-y divide-slate-50"></div>
-            <div class="px-6 py-4 border-t flex items-center justify-between gap-3 bg-slate-50 rounded-b-2xl">
-              <div id="modal503-selected-count" class="text-xs font-bold text-slate-500"></div>
-              <div class="flex gap-3">
-                <button type="button" onclick="closeModal503()" class="bg-slate-200 text-slate-600 px-5 py-2.5 rounded-xl font-bold text-sm cursor-pointer hover:bg-slate-300">ปิด</button>
-                <button type="button" onclick="save503ForPic()" id="modal503-save-btn" class="bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-md cursor-pointer transition-colors">
-                  💾 บันทึก PIC นี้
-                </button>
-              </div>
-            </div>
-          </div>
+          <button type="button" onclick="reset503Upload()" class="mt-4 text-xs font-bold text-violet-600 hover:text-violet-800 cursor-pointer">+ อัพโหลดไฟล์ใหม่</button>
         </div>
 
       </div><!-- end pic-page-upload503 -->
@@ -4277,17 +4283,15 @@
           document.getElementById('upload503-loading').classList.add('hidden');
 
           if (upload503Data.length === 0) {
-            showToast('⚠️ ไม่พบข้อมูล (หรือทุกแถวไม่มี PO Number)');
+            showToast('ไม่พบข้อมูล (หรือทุกแถวไม่มี PO Number)');
             return;
           }
 
-          render503Sections();
-          document.getElementById('upload503-summary').classList.remove('hidden');
-          document.getElementById('upload503-actions').classList.remove('hidden');
+          show503Preview();
 
         } catch(err) {
           document.getElementById('upload503-loading').classList.add('hidden');
-          showToast('❌ อ่านไฟล์ไม่ได้: ' + err.message);
+          showToast('อ่านไฟล์ไม่ได้: ' + err.message);
         }
       };
       reader.readAsArrayBuffer(file);
@@ -4297,6 +4301,85 @@
       const dateFilter = (document.getElementById('upload503-date-filter') || {}).value || '';
       if (!dateFilter) return upload503Data;
       return upload503Data.filter(function(r) { return r.arrival_date === dateFilter; });
+    }
+
+    function show503Preview() {
+      const data    = upload503Data;
+      const pics    = [...new Set(data.map(function(r){ return r.pic_name||'(ไม่ระบุ)'; }))].sort();
+      const pos     = new Set(data.map(function(r){ return r.po_no; }));
+      const vendors = new Set(data.map(function(r){ return r.vendor; }));
+
+      document.getElementById('preview-total-rows').innerText   = data.length;
+      document.getElementById('preview-total-po').innerText     = pos.size;
+      document.getElementById('preview-total-pic').innerText    = pics.length;
+      document.getElementById('preview-total-vendor').innerText = vendors.size;
+
+      const breakdown = document.getElementById('preview-pic-breakdown');
+      breakdown.innerHTML = pics.map(function(pic) {
+        const count = data.filter(function(r){ return (r.pic_name||'(ไม่ระบุ)') === pic; }).length;
+        return '<span class="bg-violet-100 text-violet-700 px-3 py-1 rounded-full text-[10px] font-bold">' + pic + ' (' + count + ')</span>';
+      }).join('');
+
+      document.getElementById('upload503-preview').classList.remove('hidden');
+    }
+
+    async function confirm503Upload() {
+      const btn = document.getElementById('upload503-confirm-btn');
+      btn.disabled = true; btn.innerText = 'กำลังบันทึก...';
+      document.getElementById('upload503-preview').classList.add('hidden');
+      document.getElementById('upload503-saving').classList.remove('hidden');
+
+      const rows = upload503Data.map(function(r) {
+        return {
+          date:      r.arrival_date || '',
+          vendor:    r.vendor       || '',
+          pic:       r.pic_name     || '',
+          po_no:     r.po_no        || '',
+          part_no:   r.part_no      || '',
+          no:        r.no           || '',
+          qty:       r.undelivered_qty || r.order_qty || 0,
+          time_slot: '',
+          origin:    'import',
+        };
+      });
+
+      const batchSize = 300;
+      let totalSaved = 0, totalUpdated = 0;
+      try {
+        for (let i = 0; i < rows.length; i += batchSize) {
+          const batch = rows.slice(i, i + batchSize);
+          const savingText = document.getElementById('upload503-saving-text');
+          if (savingText) savingText.innerText = 'กำลังบันทึก... ' + Math.min(i + batchSize, rows.length) + ' / ' + rows.length + ' รายการ';
+          const res = await callAPI('savePlanParts', { rows: JSON.stringify(batch) });
+          if (res && res.success) { totalSaved += res.saved||0; totalUpdated += res.updated||0; }
+        }
+        document.getElementById('upload503-saving').classList.add('hidden');
+        document.getElementById('upload503-done').classList.remove('hidden');
+        const doneText = document.getElementById('upload503-done-text');
+        if (doneText) doneText.innerText = 'บันทึกสำเร็จ ' + totalSaved + ' รายการใหม่' + (totalUpdated > 0 ? ', อัพเดต ' + totalUpdated + ' รายการ' : '');
+        const dz = document.getElementById('upload503-dropzone');
+        if (dz) dz.classList.add('hidden');
+        const fnEl = document.getElementById('upload503-filename');
+        if (fnEl) fnEl.classList.add('hidden');
+      } catch(err) {
+        document.getElementById('upload503-saving').classList.add('hidden');
+        document.getElementById('upload503-preview').classList.remove('hidden');
+        btn.disabled = false; btn.innerText = '✅ ยืนยันส่งข้อมูล';
+        showToast('บันทึกไม่สำเร็จ: ' + err.message);
+      }
+    }
+
+    function reset503Upload() {
+      upload503Data = [];
+      ['upload503-done','upload503-preview','upload503-saving'].forEach(function(id){
+        document.getElementById(id)?.classList.add('hidden');
+      });
+      const dz = document.getElementById('upload503-dropzone');
+      if (dz) dz.classList.remove('hidden');
+      const fnEl = document.getElementById('upload503-filename');
+      if (fnEl) { fnEl.classList.add('hidden'); fnEl.innerText = ''; }
+      const input = document.getElementById('upload503-input');
+      if (input) input.value = '';
     }
 
     function render503Sections() {
