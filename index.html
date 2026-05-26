@@ -1286,7 +1286,7 @@
       });
     }
 
-    window.showRoleSelection = function() { hideAll(); stopGuardScanner(); document.getElementById('role-selection').classList.remove('hidden'); }
+    window.showRoleSelection = function() { hideAll(); if (typeof stopGuardScanner === 'function') stopGuardScanner(); document.getElementById('role-selection').classList.remove('hidden'); }
     window.showSupplierView  = function() { hideAll(); document.getElementById('supplier-view').classList.remove('hidden'); }
 
     // -- data-action event delegation --
