@@ -257,28 +257,34 @@
       </div>
 
       <!-- Tab: Weekly Plan Staff -->
+      <!-- Tab: Weekly Plan Staff -->
       <div id="page-weekly" class="max-w-7xl mx-auto p-4 hidden space-y-4 fade-in">
 
-        <!-- Filter Bar -->
+        <!-- Deadline Banner -->
+        <div id="weekly-deadline-banner" class="bg-white rounded-2xl px-5 py-3 shadow-sm border-2 border-amber-200 flex items-center justify-between gap-3">
+          <div id="weekly-deadline-text" class="font-black text-sm text-amber-600"></div>
+          <div class="text-[10px] text-slate-400 font-bold">สัปดาห์: <span id="weekly-range-text"></span></div>
+        </div>
+
+        <!-- Filter Bar (auto-load) -->
         <div class="bg-white rounded-2xl p-4 shadow-sm border flex flex-wrap gap-3 items-end justify-between">
           <div class="flex flex-wrap gap-3 items-end">
             <div>
-              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">สัปดาห์ (วันจันทร์)</label>
-              <input type="date" id="weekly-date" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer">
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">วันจันทร์ของสัปดาห์</label>
+              <input type="date" id="weekly-date" onchange="loadWeeklyPlan()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer">
             </div>
             <div>
               <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PIC</label>
-              <select id="weekly-pic-filter" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[160px]">
+              <select id="weekly-pic-filter" onchange="loadWeeklyPlan()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[160px]">
                 <option value="">ทั้งหมด</option>
               </select>
             </div>
             <div>
               <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Supplier</label>
-              <select id="weekly-vendor-filter" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[160px]">
+              <select id="weekly-vendor-filter" onchange="loadWeeklyPlan()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[160px]">
                 <option value="">ทั้งหมด</option>
               </select>
             </div>
-            <button type="button" onclick="loadWeeklyPlan()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer mt-4">🔍 โหลด</button>
           </div>
           <div id="weekly-summary-badge" class="hidden text-[10px] font-bold bg-violet-50 border border-violet-200 rounded-xl px-4 py-2 text-violet-600"></div>
         </div>
@@ -295,22 +301,27 @@
           <div class="font-black text-slate-500">ไม่พบ Weekly Plan สัปดาห์นี้</div>
         </div>
 
-        <!-- Weekly Plan Table -->
+        <!-- PIC Cards (pending) -->
+        <div id="weekly-pending-section" class="hidden space-y-2">
+          <div class="text-xs font-black text-slate-400 uppercase tracking-widest px-1">⏳ รอรับของ — แยกตาม PIC</div>
+          <div id="weekly-pic-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <!-- Weekly Plan Table รวม QTY -->
         <div id="weekly-table-wrap" class="hidden bg-white rounded-2xl shadow-sm border overflow-hidden">
           <div class="px-5 py-4 border-b bg-slate-50 flex items-center justify-between">
-            <div class="font-black text-slate-700">📅 Weekly Plan — รายการที่ Confirmed แล้ว</div>
-            <div id="weekly-range-text" class="text-[10px] font-bold text-slate-400"></div>
+            <div class="font-black text-slate-700 text-sm">📋 Weekly Plan รวม QTY (PO + Part No.)</div>
+            <div id="weekly-total-badge" class="text-[10px] font-bold bg-violet-50 text-violet-600 border border-violet-200 rounded-xl px-3 py-1"></div>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
-              <thead class="bg-slate-50 sticky top-0">
+              <thead class="bg-slate-50">
                 <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
                   <th class="px-3 py-3">PIC</th>
                   <th class="px-3 py-3">Supplier</th>
-                  <th class="px-3 py-3 text-center">No.</th>
                   <th class="px-3 py-3">PO No.</th>
                   <th class="px-3 py-3">Part No.</th>
-                  <th class="px-3 py-3 text-center">Qty Plan</th>
+                  <th class="px-3 py-3 text-center">Qty Plan รวม</th>
                   <th class="px-3 py-3 text-center">Arrival Date</th>
                   <th class="px-3 py-3 text-center">AM/PM</th>
                   <th class="px-3 py-3 text-center">สถานะรับของ</th>
@@ -322,6 +333,7 @@
         </div>
 
       </div><!-- end page-weekly -->
+
 
       <!-- Tab: Parts Dashboard -->
       <div id="page-parts" class="max-w-7xl mx-auto p-4 hidden space-y-5 text-left fade-in">
@@ -3181,29 +3193,70 @@
         const y = bkk.getFullYear(); const m = String(bkk.getMonth()+1).padStart(2,'0'); const day = String(bkk.getDate()).padStart(2,'0');
         const dateStr = `${y}-${m}-${day}`;
         const label = bkk.toLocaleDateString('th-TH', { day:'numeric', month:'long', year:'numeric' });
-        const dayRecords = allData.filter(r => r.date === dateStr && (r.status === 'completed' || r.status === 'exited' || r.status === 'cancelled')).sort((a,b) => parseInt(b.queue_number) - parseInt(a.queue_number));
+        const dayRecords = allData.filter(r => r.date === dateStr && (r.status === 'completed' || r.status === 'exited' || r.status === 'cancelled')).sort((a,b) => parseInt(a.queue_number) - parseInt(b.queue_number));
         if (dayRecords.length > 0) {
+          const completed = dayRecords.filter(r => r.status === 'completed' || r.status === 'exited').length;
+          const cancelled = dayRecords.filter(r => r.status === 'cancelled').length;
           html += `
             <div class="bg-white rounded-3xl shadow-sm overflow-hidden border border-slate-100 mb-4">
-              <div class="bg-slate-50 px-6 py-4 font-bold text-slate-600 text-sm flex justify-between border-b items-center">
+              <div class="bg-slate-50 px-6 py-4 font-bold text-slate-600 text-sm flex flex-wrap justify-between border-b items-center gap-2">
                 <span>${label}</span>
-                <span class="text-xs bg-white px-3 py-1 rounded-full border text-slate-400">${dayRecords.length} รายการ</span>
+                <div class="flex gap-2 text-[10px] font-bold">
+                  <span class="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full border border-emerald-100">✅ เสร็จ ${completed}</span>
+                  ${cancelled > 0 ? `<span class="bg-rose-50 text-rose-500 px-3 py-1 rounded-full border border-rose-100">❌ ยกเลิก ${cancelled}</span>` : ''}
+                  <span class="bg-white px-3 py-1 rounded-full border text-slate-400">รวม ${dayRecords.length} คัน</span>
+                </div>
               </div>
-              <div class="p-2 divide-y divide-slate-50">
-                ${dayRecords.map(r => `
-                  <div class="flex items-center justify-between p-4 hover:bg-slate-50/50 transition-colors">
-                    <div class="flex items-center gap-4">
-                      <span class="font-black text-slate-300 w-8 text-center text-sm">#${r.queue_number}</span>
-                      <div>
-                        <div class="font-bold text-slate-700 text-sm">${r.company_name} <span class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">${r.license_plate || '-'}</span></div>
-                        <div class="text-[10px] text-slate-400 font-medium">เข้า: ${formatThaiTime(r.checkin_time)}${r.factory ? ` · 🏭 ${r.factory}` : ''}</div>
-                      </div>
-                    </div>
-                    <div class="flex flex-col items-end gap-1">
-                      <span class="text-[9px] font-bold px-2.5 py-1 rounded-lg uppercase ${(r.status === 'completed' || r.status === 'exited') ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">${(r.status === 'completed' || r.status === 'exited') ? 'เสร็จสิ้น' : 'ยกเลิก'}</span>
-                      <span class="text-[9px] text-slate-300 font-bold">${(r.status === 'completed' || r.status === 'exited') ? formatThaiTime(r.completed_time) : '-'}</span>
-                    </div>
-                  </div>`).join('')}
+              <div class="overflow-x-auto">
+                <table class="w-full text-xs">
+                  <thead class="bg-slate-50/50">
+                    <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                      <th class="px-4 py-2 text-center">คิว</th>
+                      <th class="px-4 py-2">Supplier</th>
+                      <th class="px-4 py-2 text-center">ทะเบียน</th>
+                      <th class="px-4 py-2 text-center">เวลาเข้า</th>
+                      <th class="px-4 py-2 text-center">เวลาออก</th>
+                      <th class="px-4 py-2 text-center">ระยะเวลา</th>
+                      <th class="px-4 py-2 text-center">โรงงาน</th>
+                      <th class="px-4 py-2 text-center">สถานะ</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-50">
+                    ${dayRecords.map(function(r) {
+                      const isDone = r.status === 'completed' || r.status === 'exited';
+                      // คำนวณระยะเวลา
+                      let duration = '-';
+                      if (isDone && r.checkin_time && r.completed_time) {
+                        const diff = new Date(r.completed_time) - new Date(r.checkin_time);
+                        if (diff > 0) {
+                          const mins = Math.floor(diff / 60000);
+                          duration = mins >= 60 ? Math.floor(mins/60) + 'ชม. ' + (mins%60) + 'น.' : mins + ' นาที';
+                        }
+                      }
+                      // เช็คตรงเวลาจาก plan_status
+                      const onTime = String(r.plan_status||'').includes('ตรงเวลา');
+                      const lateStr = String(r.plan_status||'').includes('ล่าช้า');
+                      let timeStatusHtml = '';
+                      if (isDone) {
+                        if (onTime) timeStatusHtml = '<span class="bg-emerald-100 text-emerald-600 font-black text-[9px] px-2 py-0.5 rounded-full">ตรงเวลา</span>';
+                        else if (lateStr) timeStatusHtml = '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-0.5 rounded-full">ล่าช้า</span>';
+                        else timeStatusHtml = '<span class="bg-emerald-100 text-emerald-600 font-black text-[9px] px-2 py-0.5 rounded-full">เสร็จสิ้น</span>';
+                      } else {
+                        timeStatusHtml = '<span class="bg-rose-100 text-rose-500 font-black text-[9px] px-2 py-0.5 rounded-full">ยกเลิก</span>';
+                      }
+                      return `<tr class="hover:bg-slate-50/50 transition-colors">
+                        <td class="px-4 py-2.5 text-center font-black text-slate-300">#${r.queue_number}</td>
+                        <td class="px-4 py-2.5 font-bold text-slate-700">${r.company_name||'-'}</td>
+                        <td class="px-4 py-2.5 text-center text-slate-500">${r.license_plate||'-'}</td>
+                        <td class="px-4 py-2.5 text-center text-slate-600 font-bold">${formatThaiTime(r.checkin_time)}</td>
+                        <td class="px-4 py-2.5 text-center text-slate-500">${isDone ? formatThaiTime(r.completed_time) : '-'}</td>
+                        <td class="px-4 py-2.5 text-center text-slate-400">${duration}</td>
+                        <td class="px-4 py-2.5 text-center text-slate-500">${r.factory||'-'}</td>
+                        <td class="px-4 py-2.5 text-center">${timeStatusHtml}</td>
+                      </tr>`;
+                    }).join('')}
+                  </tbody>
+                </table>
               </div>
             </div>`;
         }
@@ -4700,7 +4753,6 @@
     // WEEKLY PLAN STAFF
     // =====================================================
     function initWeeklyPlan() {
-      // ตั้งวันเริ่มต้นเป็นวันจันทร์ของสัปดาห์นี้
       const now = new Date();
       const day = now.getDay();
       const monday = new Date(now);
@@ -4710,7 +4762,159 @@
       if (dateEl && !dateEl.value) {
         dateEl.value = monday.getFullYear() + '-' + String(monday.getMonth()+1).padStart(2,'0') + '-' + String(monday.getDate()).padStart(2,'0');
       }
+      // แสดง deadline text
+      const passed = isDeadlinePassed();
+      const bannerEl = document.getElementById('weekly-deadline-banner');
+      const textEl   = document.getElementById('weekly-deadline-text');
+      if (textEl) textEl.innerText = getDeadlineText();
+      if (bannerEl) {
+        bannerEl.className = 'bg-white rounded-2xl px-5 py-3 shadow-sm border-2 flex items-center justify-between gap-3 ' + (passed ? 'border-rose-300 bg-rose-50' : 'border-amber-200');
+        if (textEl) textEl.className = 'font-black text-sm ' + (passed ? 'text-rose-600' : 'text-amber-600');
+      }
       loadWeeklyPlan();
+    }
+
+    async function loadWeeklyPlan() {
+      const startDate    = (document.getElementById('weekly-date')||{}).value || getThaiDate();
+      const picFilter    = (document.getElementById('weekly-pic-filter')||{}).value || '';
+      const vendorFilter = (document.getElementById('weekly-vendor-filter')||{}).value || '';
+
+      document.getElementById('weekly-loading').classList.remove('hidden');
+      document.getElementById('weekly-empty').classList.add('hidden');
+      document.getElementById('weekly-table-wrap').classList.add('hidden');
+      document.getElementById('weekly-pending-section').classList.add('hidden');
+      document.getElementById('weekly-summary-badge').classList.add('hidden');
+
+      // โหลด 6 วัน จันทร์-เสาร์
+      const dates = [];
+      const start = new Date(startDate);
+      for (let i = 0; i < 6; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        dates.push(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'));
+      }
+
+      // update range text
+      const rangeEl = document.getElementById('weekly-range-text');
+      if (rangeEl) rangeEl.innerText = dates[0] + ' ถึง ' + dates[5];
+
+      try {
+        const results = await Promise.all(dates.map(function(date) { return callAPI('getPartsByDate', { date: date }); }));
+        document.getElementById('weekly-loading').classList.add('hidden');
+
+        let allRows = [];
+        results.forEach(function(res) { if (res && res.data) allRows = allRows.concat(res.data); });
+
+        // pending = รอรับของ, confirmed = รับแล้ว
+        let pending   = allRows.filter(function(r){ return r.status === 'pending'; });
+        let confirmed = allRows.filter(function(r){ return r.status === 'completed' || r.status === 'short' || r.status === 'missing'; });
+
+        // populate filter dropdowns (ครั้งแรก)
+        const picSel = document.getElementById('weekly-pic-filter');
+        const venSel = document.getElementById('weekly-vendor-filter');
+        if (picSel && picSel.options.length <= 1) {
+          [...new Set(allRows.map(function(r){return r.pic||'';}))].sort().forEach(function(p){ if(p) picSel.add(new Option(p,p)); });
+        }
+        if (venSel && venSel.options.length <= 1) {
+          [...new Set(allRows.map(function(r){return r.vendor||'';}))].sort().forEach(function(v){ if(v) venSel.add(new Option(v,v)); });
+        }
+
+        // กรอง
+        if (picFilter)    { pending = pending.filter(function(r){return (r.pic||'')===picFilter;}); confirmed = confirmed.filter(function(r){return (r.pic||'')===picFilter;}); }
+        if (vendorFilter) { pending = pending.filter(function(r){return (r.vendor||'')===vendorFilter;}); confirmed = confirmed.filter(function(r){return (r.vendor||'')===vendorFilter;}); }
+
+        if (pending.length === 0 && confirmed.length === 0) {
+          document.getElementById('weekly-empty').classList.remove('hidden');
+          return;
+        }
+
+        // แสดง Card PIC สำหรับ pending
+        if (pending.length > 0) {
+          renderWeeklyPicCards(pending);
+          document.getElementById('weekly-pending-section').classList.remove('hidden');
+        }
+
+        // รวม QTY และแสดงตาราง
+        const merged = mergeWeeklyQty([...pending, ...confirmed]);
+        renderWeeklyTable(merged);
+
+        // badge
+        const badge = document.getElementById('weekly-summary-badge');
+        badge.innerText = (pending.length + confirmed.length) + ' รายการ · ' + new Set(allRows.map(function(r){return r.pic;})).size + ' PIC';
+        badge.classList.remove('hidden');
+
+      } catch(err) {
+        document.getElementById('weekly-loading').classList.add('hidden');
+        showToast('โหลดไม่สำเร็จ: ' + err.message);
+      }
+    }
+
+    function renderWeeklyPicCards(data) {
+      const container = document.getElementById('weekly-pic-cards');
+      container.innerHTML = '';
+      const byPic = {};
+      data.forEach(function(r) {
+        const p = r.pic || '(ไม่ระบุ)';
+        if (!byPic[p]) byPic[p] = [];
+        byPic[p].push(r);
+      });
+      Object.keys(byPic).sort().forEach(function(pic) {
+        const items   = byPic[pic];
+        const vendors = [...new Set(items.map(function(r){return r.vendor||'-';}))];
+        const card    = document.createElement('div');
+        card.className = 'u503-pic-card';
+        card.innerHTML = '<div class="u503-pic-header"><div class="flex-1 min-w-0"><div class="font-black text-sm">👤 ' + pic + '</div><div class="text-violet-200 text-[10px] mt-0.5">' + items.length + ' รายการ · ' + vendors.length + ' Supplier</div></div><div class="text-right"><div class="text-white font-black text-sm bg-amber-400/80 rounded-lg px-3 py-1">⏳ รอรับของ</div></div></div><div class="px-4 py-3 bg-white text-[10px] text-slate-500 font-bold">' + vendors.slice(0,3).join(', ') + (vendors.length>3?' +'+( vendors.length-3)+' อื่นๆ':'') + '</div>';
+        container.appendChild(card);
+      });
+    }
+
+    function mergeWeeklyQty(data) {
+      // รวม QTY ตาม po_no + part_no + date + time_slot
+      const map = {};
+      data.forEach(function(r) {
+        const key = [r.po_no||'', r.part_no||'', r.date||'', r.time_slot||''].join('||');
+        if (!map[key]) {
+          map[key] = Object.assign({}, r, { qty_plan: 0 });
+        }
+        map[key].qty_plan += parseFloat(r.qty_plan)||0;
+        // ถ้ามี completed ให้ override status
+        if (r.status === 'completed') map[key].status = 'completed';
+        else if (r.status === 'short' && map[key].status !== 'completed') map[key].status = 'short';
+        else if (r.status === 'missing' && map[key].status === 'pending') map[key].status = 'missing';
+      });
+      return Object.values(map).sort(function(a,b){
+        if ((a.date||'') !== (b.date||'')) return (a.date||'').localeCompare(b.date||'');
+        return (a.pic||'').localeCompare(b.pic||'');
+      });
+    }
+
+    function renderWeeklyTable(data) {
+      const tbody = document.getElementById('weekly-table-body');
+      const badge = document.getElementById('weekly-total-badge');
+      if (!tbody) return;
+      if (badge) badge.innerText = data.length + ' รายการ';
+
+      tbody.innerHTML = data.map(function(r) {
+        let statusHtml = '';
+        const st = r.status || '';
+        if (st === 'pending')   statusHtml = '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-1 rounded-full">⏳ รอรับของ</span>';
+        else if (st === 'completed') statusHtml = '<span class="bg-emerald-100 text-emerald-600 font-black text-[9px] px-2 py-1 rounded-full">✅ รับครบ</span>';
+        else if (st === 'short')     statusHtml = '<span class="bg-rose-100 text-rose-600 font-black text-[9px] px-2 py-1 rounded-full">⚠️ ไม่ครบ</span>';
+        else if (st === 'missing')   statusHtml = '<span class="bg-slate-100 text-slate-500 font-black text-[9px] px-2 py-1 rounded-full">❌ ไม่ได้รับ</span>';
+
+        return '<tr class="hover:bg-violet-50/30 transition-colors">' +
+          '<td class="px-3 py-2 font-bold text-slate-700">' + (r.pic||'-') + '</td>' +
+          '<td class="px-3 py-2 text-slate-600 max-w-[130px] truncate">' + (r.vendor||'-') + '</td>' +
+          '<td class="px-3 py-2 text-slate-600">' + (r.po_no||'-') + '</td>' +
+          '<td class="px-3 py-2 font-mono text-violet-700 font-bold">' + (r.part_no||'-') + '</td>' +
+          '<td class="px-3 py-2 text-center font-black text-slate-700">' + (r.qty_plan||0) + '</td>' +
+          '<td class="px-3 py-2 text-center text-emerald-600 font-bold">' + (r.date||'-') + '</td>' +
+          '<td class="px-3 py-2 text-center font-bold text-slate-600">' + (r.time_slot||'-') + '</td>' +
+          '<td class="px-3 py-2 text-center">' + statusHtml + '</td>' +
+        '</tr>';
+      }).join('') || '<tr><td colspan="8" class="text-center py-6 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
+
+      document.getElementById('weekly-table-wrap').classList.remove('hidden');
     }
 
     async function loadWeeklyPlan() {
