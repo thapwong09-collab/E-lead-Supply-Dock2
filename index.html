@@ -4360,14 +4360,14 @@
             return {
               po_no:           g(['po no.','po no','po_no','pono']),
               no:              g(['no.','no']),
-              part_no:         g(['item no.','item no','item_no','part no.','part no','part_no']),
-              part_name:       g(['item description','item desc','description']),
+              part_no:         g(['item no.','item no','item_no']),
+              part_name:       g(['item description','item desc','item specification','description']),
               order_qty:       parseFloat(g(['order qty','order_qty','orderqty'])) || 0,
               undelivered_qty: parseFloat(g(['undelivered qty','undelivered_qty','undelivered'])) || 0,
               shipping_date:   parseD(k['shipping date'] || k['shipping_date'] || k['shippingdate'] || ''),
               arrival_date:    parseD(k['arrival  date'] || k['arrival date'] || k['arrival_date'] || k['arrivaldate'] || ''),
-              vendor:          g(['abbr.','abbr','vendor no.','vendor']),
-              pic_name:        g(['name','buyer','pic_name','pic name']),
+              vendor:          g(['abbr.','abbr']),
+              pic_name:        g(['buyer','name','pic_name','pic name']),
               partial:         g(['partial delivery','partial']),
               purchase_date:   g(['purchase date','confirm date','purchase_date']),
             };
