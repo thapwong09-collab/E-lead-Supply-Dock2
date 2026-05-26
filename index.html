@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:;">
   <title>Supplier Check-in System</title>
   
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
@@ -91,22 +90,22 @@
           <p class="text-slate-500 text-sm">E-lead Electronic (Thailand)</p>
         </div>
         <div class="space-y-4">
-          <button type="button" data-action="showSupplierView" class="w-full bg-white hover:border-blue-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer">
+          <button type="button" onclick="showSupplierView()" class="w-full bg-white hover:border-blue-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer">
             <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform flex-shrink-0">🚛</div>
             <div><div class="font-bold text-slate-800 text-lg">Supplier</div><div class="text-slate-500 text-xs">เช็คอินรับคิวส่งวัตถุดิบ</div></div>
           </button>
           
-          <button type="button" data-action="showLogin" data-target="staff" class="w-full bg-white hover:border-indigo-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer">
+          <button type="button" onclick="showLogin('staff')" class="w-full bg-white hover:border-indigo-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer">
             <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform flex-shrink-0">🏢</div>
             <div><div class="font-bold text-slate-800 text-lg">Staff</div><div class="text-slate-500 text-xs">พนักงานคลังสินค้า (จัดการคิว)</div></div>
           </button>
 
-          <button type="button" data-action="showLogin" data-target="pic" class="w-full bg-white hover:border-violet-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer">
+          <button type="button" onclick="showLogin('pic')" class="w-full bg-white hover:border-violet-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer">
             <div class="w-14 h-14 bg-violet-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform flex-shrink-0">📋</div>
             <div><div class="font-bold text-slate-800 text-lg">PIC / จัดซื้อ</div><div class="text-slate-500 text-xs">กรอกแผนรับพาร์ทล่วงหน้า</div></div>
           </button>
 
-          <button type="button" data-action="enterGuardView" class="w-full bg-white hover:border-emerald-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer">
+          <button type="button" onclick="enterGuardView()" class="w-full bg-white hover:border-emerald-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer">
             <div class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform flex-shrink-0">👮‍♂️</div>
             <div><div class="font-bold text-slate-800 text-lg">Guard (รปภ.)</div><div class="text-slate-500 text-xs font-medium">กล้องสแกนตรวจปล่อยรถ (เข้า-ออก)</div></div>
           </button>
@@ -117,7 +116,7 @@
     <!-- ================= ส่วน Supplier ================= -->
     <div id="supplier-view" class="min-h-full p-4 hidden text-left fade-in">
       <div class="max-w-lg mx-auto">
-        <button type="button" data-action="showRoleSelection" class="text-slate-400 mb-6 flex items-center gap-2 cursor-pointer font-bold hover:text-slate-600">← กลับหน้าหลัก</button>
+        <button type="button" onclick="showRoleSelection()" class="text-slate-400 mb-6 flex items-center gap-2 cursor-pointer font-bold hover:text-slate-600">← กลับหน้าหลัก</button>
         
         <div id="checkin-form" class="bg-white rounded-[2rem] p-8 card-shadow border border-white/50 text-left">
           <h2 class="text-xl font-bold text-center mb-8 text-slate-800">ลงทะเบียนเช็คอิน</h2>
@@ -130,7 +129,7 @@
               <label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">ทะเบียนรถ *</label>
               <input type="text" id="supplier-license" placeholder="ระบุทะเบียนรถ (เช่น 1กข 1234)" class="w-full px-5 py-4 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500 bg-slate-50 mt-1 font-medium">
             </div>
-            <button type="button" data-action="supplierCheckin" id="checkin-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-2xl shadow-lg transition-all text-lg cursor-pointer">รับหมายเลขคิว</button>
+            <button type="button" onclick="supplierCheckin()" id="checkin-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-2xl shadow-lg transition-all text-lg cursor-pointer">รับหมายเลขคิว</button>
           </div>
         </div>
 
@@ -181,7 +180,7 @@
             <div id="row-loading" class="flex justify-between items-center hidden"><span class="text-blue-400 font-bold">เริ่มเข้าพื้นที่:</span><span id="display-loading-time" class="font-bold text-blue-600 tracking-tight"></span></div>
             <div id="row-completed" class="flex justify-between items-center hidden"><span class="text-green-400 font-bold">เสร็จสิ้นเมื่อ:</span><span id="display-completed-time" class="font-bold text-green-600 tracking-tight"></span></div>
           </div>
-          <button type="button" data-action="resetSupplierView" class="w-full mt-8 bg-slate-100 py-4 rounded-2xl text-slate-500 font-bold hover:bg-slate-200 cursor-pointer">กลับหน้าเริ่มต้น</button>
+          <button type="button" onclick="resetSupplierView()" class="w-full mt-8 bg-slate-100 py-4 rounded-2xl text-slate-500 font-bold hover:bg-slate-200 cursor-pointer">กลับหน้าเริ่มต้น</button>
         </div>
       </div>
     </div>
@@ -191,12 +190,12 @@
       <div class="bg-white/80 backdrop-blur-md border-b sticky top-0 z-10 shadow-sm text-center">
         <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
           <div class="font-bold text-xl text-slate-800 tracking-tight">ระบบคลังสินค้า</div>
-          <button type="button" data-action="staffLogout" class="text-rose-600 px-4 py-2 rounded-xl font-bold text-xs hover:bg-rose-50 transition-colors cursor-pointer">ออกจากระบบ</button>
+          <button type="button" onclick="staffLogout()" class="text-rose-600 px-4 py-2 rounded-xl font-bold text-xs hover:bg-rose-50 transition-colors cursor-pointer">ออกจากระบบ</button>
         </div>
         <div class="max-w-6xl mx-auto px-4 flex gap-2 pb-3 overflow-x-auto text-left hide-scrollbar">
-          <button type="button" data-action="showStaffTab" data-arg="queue" id="tab-queue" class="tab-active px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all shadow-md cursor-pointer">จัดการคิว</button>
-          <button type="button" data-action="showStaffTab" data-arg="daily" id="tab-daily" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">สรุปวันนี้</button>
-          <button type="button" data-action="showStaffTab" data-arg="parts" id="tab-parts" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📦 Parts Dashboard</button>
+          <button type="button" onclick="showStaffTab('queue')" id="tab-queue" class="tab-active px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all shadow-md cursor-pointer">จัดการคิว</button>
+          <button type="button" onclick="showStaffTab('daily')" id="tab-daily" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">สรุปวันนี้</button>
+          <button type="button" onclick="showStaffTab('parts')" id="tab-parts" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📦 Parts Dashboard</button>
         </div>
       </div>
 
@@ -265,7 +264,7 @@
             <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Supplier</label>
             <select id="parts-supplier" onchange="updatePartsDashboard()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[200px]"></select>
           </div>
-          <button type="button" data-action="updatePartsDashboard" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer transition-colors">🔄 รีเฟรช</button>
+          <button type="button" onclick="updatePartsDashboard()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer transition-colors">🔄 รีเฟรช</button>
           <div id="pd-last-update" class="ml-auto text-[10px] text-slate-300 font-bold self-end pb-0.5"></div>
         </div>
 
@@ -466,153 +465,8 @@
           </div>
         </div>
 
-        <!-- ===== PART HISTORY SECTION ===== -->
-        <div class="border-t-2 border-dashed border-slate-200 pt-5">
-          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <div>
-              <div class="font-black text-slate-700 text-base">📚 ประวัติการรับของ (PartHistory)</div>
-              <div class="text-[10px] text-slate-400 mt-0.5">ข้อมูลที่รับจริงแล้วเท่านั้น — แม่นยำ 100%</div>
-            </div>
-            <div class="flex flex-wrap gap-2 items-end">
-              <div>
-                <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ปี</label>
-                <select id="hist-year" onchange="loadHistorySummary()" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 outline-none focus:border-violet-500 font-bold text-xs cursor-pointer"></select>
-              </div>
-              <div>
-                <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เดือน</label>
-                <select id="hist-month" onchange="loadHistorySummary()" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 outline-none focus:border-violet-500 font-bold text-xs cursor-pointer">
-                  <option value="">ทั้งปี</option>
-                  <option value="1">ม.ค.</option><option value="2">ก.พ.</option>
-                  <option value="3">มี.ค.</option><option value="4">เม.ย.</option>
-                  <option value="5">พ.ค.</option><option value="6">มิ.ย.</option>
-                  <option value="7">ก.ค.</option><option value="8">ส.ค.</option>
-                  <option value="9">ก.ย.</option><option value="10">ต.ค.</option>
-                  <option value="11">พ.ย.</option><option value="12">ธ.ค.</option>
-                </select>
-              </div>
-              <button type="button" data-action="loadHistorySummary" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-xl font-bold text-xs cursor-pointer">🔄 โหลด</button>
-            </div>
-          </div>
-
-          <!-- Loading -->
-          <div id="hist-loading" class="hidden bg-white rounded-2xl p-6 text-center border">
-            <div class="text-xl animate-pulse mb-1">⏳</div>
-            <div class="text-xs text-slate-400 font-bold">กำลังโหลด History...</div>
-          </div>
-
-          <!-- Empty -->
-          <div id="hist-empty" class="hidden bg-white rounded-2xl p-8 text-center border">
-            <div class="text-3xl mb-2">📭</div>
-            <div class="font-black text-slate-500 text-sm">ยังไม่มีข้อมูลใน PartHistory</div>
-            <div class="text-xs text-slate-400 mt-1">ข้อมูลจะปรากฏหลัง Staff รับของและ Confirm แล้ว</div>
-          </div>
-
-          <!-- KPI Cards -->
-          <div id="hist-kpi" class="hidden space-y-4">
-
-            <!-- Row 1: ภาพรวม -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div class="bg-indigo-600 text-white p-4 rounded-2xl text-center shadow-sm">
-                <div class="text-[9px] font-black opacity-60 uppercase mb-1">PO ทั้งหมด</div>
-                <div id="hist-total-po" class="text-3xl font-black">0</div>
-                <div class="text-[9px] opacity-50 mt-0.5">PO</div>
-              </div>
-              <div class="bg-white p-4 rounded-2xl text-center shadow-sm border">
-                <div class="text-[9px] font-black text-slate-400 uppercase mb-1">รายการ Part</div>
-                <div id="hist-total-parts" class="text-3xl font-black text-slate-700">0</div>
-                <div class="text-[9px] text-slate-400 mt-0.5">รายการ</div>
-              </div>
-              <div class="bg-emerald-50 p-4 rounded-2xl text-center shadow-sm border border-emerald-100">
-                <div class="text-[9px] font-black text-emerald-500 uppercase mb-1">QTY ตามแผน</div>
-                <div id="hist-qty-plan" class="text-3xl font-black text-emerald-600">0</div>
-                <div class="text-[9px] text-emerald-400 mt-0.5">ชิ้น</div>
-              </div>
-              <div class="bg-emerald-600 text-white p-4 rounded-2xl text-center shadow-sm">
-                <div class="text-[9px] font-black opacity-70 uppercase mb-1">QTY ที่รับจริง</div>
-                <div id="hist-qty-recv" class="text-3xl font-black">0</div>
-                <div id="hist-fill-rate" class="text-sm font-black opacity-80 mt-0.5">0%</div>
-              </div>
-            </div>
-
-            <!-- Row 2: สถานะ -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div class="bg-emerald-50 p-4 rounded-2xl text-center border border-emerald-100">
-                <div class="text-[9px] font-black text-emerald-500 uppercase mb-1">✅ Completed</div>
-                <div id="hist-completed" class="text-2xl font-black text-emerald-600">0</div>
-                <div id="hist-completed-pct" class="text-xs font-black text-emerald-400">0%</div>
-              </div>
-              <div class="bg-amber-50 p-4 rounded-2xl text-center border border-amber-100">
-                <div class="text-[9px] font-black text-amber-500 uppercase mb-1">⚠️ Short</div>
-                <div id="hist-short" class="text-2xl font-black text-amber-500">0</div>
-                <div id="hist-short-pct" class="text-xs font-black text-amber-400">0%</div>
-              </div>
-              <div class="bg-rose-50 p-4 rounded-2xl text-center border border-rose-100">
-                <div class="text-[9px] font-black text-rose-500 uppercase mb-1">❌ Missing</div>
-                <div id="hist-missing" class="text-2xl font-black text-rose-500">0</div>
-                <div id="hist-missing-pct" class="text-xs font-black text-rose-400">0%</div>
-              </div>
-              <div class="bg-slate-50 p-4 rounded-2xl text-center border">
-                <div class="text-[9px] font-black text-slate-400 uppercase mb-1">🔵 AM vs PM</div>
-                <div id="hist-am" class="text-sm font-black text-slate-600">AM: 0</div>
-                <div id="hist-pm" class="text-sm font-black text-slate-500">PM: 0</div>
-                <div id="hist-pickup" class="text-xs font-black text-slate-400">PICK UP: 0</div>
-              </div>
-            </div>
-
-            <!-- Row 3: แยกตาม Trend รายเดือน -->
-            <div class="bg-white rounded-2xl shadow-sm border p-5">
-              <div class="font-black text-slate-600 text-xs mb-4">📈 Trend รายเดือน (จำนวน Part ที่รับ)</div>
-              <div class="h-48"><canvas id="hist-trend-chart"></canvas></div>
-            </div>
-
-            <!-- Row 4: Top Supplier จาก History -->
-            <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
-              <div class="px-5 py-4 border-b bg-slate-50/50 flex items-center justify-between">
-                <div class="font-black text-slate-700 text-sm">🏭 สรุปตาม Supplier (ข้อมูลจริง)</div>
-                <span id="hist-vendor-count" class="text-[9px] font-bold bg-white text-slate-400 px-3 py-1 rounded-full border">0 ซัพ</span>
-              </div>
-              <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                  <thead class="bg-slate-50">
-                    <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                      <th class="px-4 py-3">Supplier</th>
-                      <th class="px-4 py-3 text-center">Part</th>
-                      <th class="px-4 py-3 text-center">QTY แผน</th>
-                      <th class="px-4 py-3 text-center">QTY รับจริง</th>
-                      <th class="px-4 py-3 text-center">Fill Rate</th>
-                      <th class="px-4 py-3 text-center">Completed</th>
-                      <th class="px-4 py-3 text-center">Short/Miss</th>
-                    </tr>
-                  </thead>
-                  <tbody id="hist-vendor-table" class="divide-y divide-slate-50 text-xs"></tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Row 5: แยกตาม PIC -->
-            <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
-              <div class="px-5 py-4 border-b bg-slate-50/50">
-                <div class="font-black text-slate-700 text-sm">👤 สรุปตาม PIC</div>
-              </div>
-              <div id="hist-pic-table-wrap" class="overflow-x-auto">
-                <table class="w-full text-left">
-                  <thead class="bg-slate-50">
-                    <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                      <th class="px-4 py-3">PIC</th>
-                      <th class="px-4 py-3 text-center">PO</th>
-                      <th class="px-4 py-3 text-center">Part</th>
-                      <th class="px-4 py-3 text-center">Fill Rate</th>
-                    </tr>
-                  </thead>
-                  <tbody id="hist-pic-table" class="divide-y divide-slate-50 text-xs"></tbody>
-                </table>
-              </div>
-            </div>
-
-          </div><!-- end hist-kpi -->
-        </div><!-- end history section -->
-
-      </div><!-- end page-parts -->
+      </div>
+    </div><!-- end staff-view -->
 
     <!-- ================= ส่วน PIC / จัดซื้อ ================= -->
 
@@ -623,18 +477,137 @@
           <div class="font-bold text-xl text-slate-800 tracking-tight flex items-center gap-2">
             <span>📋</span> จัดซื้อ / PIC
           </div>
-          <button type="button" data-action="picLogout" class="text-rose-600 px-4 py-2 rounded-xl font-bold text-xs hover:bg-rose-50 transition-colors cursor-pointer">ออกจากระบบ</button>
+          <button type="button" onclick="picLogout()" class="text-rose-600 px-4 py-2 rounded-xl font-bold text-xs hover:bg-rose-50 transition-colors cursor-pointer">ออกจากระบบ</button>
         </div>
         <div class="max-w-6xl mx-auto px-4 flex gap-2 pb-3 overflow-x-auto hide-scrollbar">
-          <button type="button" data-action="showPicTab" data-arg="upload503" id="pic-tab-upload503" class="tab-active px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all shadow-md cursor-pointer">📤 Upload 503</button>
-          <button type="button" data-action="showPicTab" data-arg="myparts" id="pic-tab-myparts" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">🗂️ รายการของฉัน</button>
-          <button type="button" data-action="showPicTab" data-arg="responsibility" id="pic-tab-responsibility" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📅 แผนรายวัน PIC</button>
-          <button type="button" data-action="showPicTab" data-arg="pic-master" id="pic-tab-pic-master" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">👤 ความรับผิดชอบ PIC</button>
+          <button type="button" onclick="showPicTab('plan')" id="pic-tab-plan" class="tab-active px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all shadow-md cursor-pointer">📋 กรอกแผนรับพาร์ท</button>
+          <button type="button" onclick="showPicTab('upload503')" id="pic-tab-upload503" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📤 Upload 503</button>
+          <button type="button" onclick="showPicTab('responsibility')" id="pic-tab-responsibility" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📅 แผนรายวัน PIC</button>
+          <button type="button" onclick="showPicTab('pic-master')" id="pic-tab-pic-master" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">👤 ความรับผิดชอบ PIC</button>
         </div>
       </div>
 
       <!-- pic pages wrapper -->
       <div id="pic-pages-wrapper">
+
+      <div id="pic-page-plan" class="max-w-6xl mx-auto p-4 space-y-6">
+
+        <!-- Access Banner -->
+        <div id="pic-access-banner" class="hidden"></div>
+
+        <!-- Header Controls -->
+        <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex flex-wrap gap-3 items-center">
+          <button type="button" onclick="pastePICTable()" title="วาง Excel ที่ Copy ไว้" class="flex items-center gap-2 bg-amber-50 hover:bg-amber-100 border-2 border-amber-200 text-amber-700 px-5 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer">
+            📋 Paste จาก Excel
+          </button>
+          <button type="button" onclick="addPICRow()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 px-5 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer">
+            + เพิ่มแถว
+          </button>
+          <button type="button" onclick="mergeDuplicatePICRows()" title="รวมแถวที่มี PO No. + Part No. เดียวกัน" class="flex items-center gap-2 bg-teal-50 hover:bg-teal-100 border-2 border-teal-200 text-teal-700 px-5 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer">
+            🔀 Merge ซ้ำ
+          </button>
+          <button type="button" onclick="savePICParts()" id="pic-save-btn" class="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all cursor-pointer ml-auto">
+            💾 บันทึกแผน
+          </button>
+        </div>
+
+        <!-- Paste Helper -->
+        <div id="pic-paste-helper" class="hidden bg-amber-50 border-2 border-amber-200 rounded-2xl p-5">
+          <div class="text-sm font-black text-amber-700 mb-1">📋 วาง Excel ที่นี่ (Ctrl+C จาก Excel → Ctrl+V ที่นี่)</div>
+          <div class="text-[10px] text-amber-600 mb-3">ระบบจะอ่านเฉพาะคอลัมน์ที่ต้องการจากทุกคอลัมน์ที่ Copy มา</div>
+
+          <!-- Column mapping display -->
+          <div class="bg-white rounded-xl border border-amber-200 overflow-hidden mb-4">
+            <div class="px-4 py-2 bg-amber-100 text-[10px] font-black text-amber-700 uppercase tracking-widest">คอลัมน์ที่ระบบจะอ่าน</div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-[10px]">
+                <thead>
+                  <tr class="bg-slate-50">
+                    <th class="px-3 py-2 text-left font-black text-slate-500 border-b border-slate-100 whitespace-nowrap">คอลัมน์ใน Excel</th>
+                    <th class="px-3 py-2 text-left font-black text-slate-500 border-b border-slate-100 whitespace-nowrap">ข้อมูลที่ระบบใช้</th>
+                    <th class="px-3 py-2 text-left font-black text-slate-500 border-b border-slate-100">หมายเหตุ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50 font-bold">
+                  <tr><td class="px-3 py-1.5 font-mono text-violet-600">Date</td><td class="px-3 py-1.5 text-slate-700">วันที่</td><td class="px-3 py-1.5 text-slate-400">วันที่ซัพจะเข้ามา</td></tr>
+                  <tr><td class="px-3 py-1.5 font-mono text-violet-600">Time</td><td class="px-3 py-1.5 text-slate-700">ช่วงเวลา</td><td class="px-3 py-1.5 text-slate-400">AM / PM</td></tr>
+                  <tr><td class="px-3 py-1.5 font-mono text-violet-600">Vendor name</td><td class="px-3 py-1.5 text-slate-700">ชื่อ Supplier</td><td class="px-3 py-1.5 text-slate-400">ต้องตรงกับชื่อที่เช็คอิน</td></tr>
+                  <tr><td class="px-3 py-1.5 font-mono text-violet-600">PIC</td><td class="px-3 py-1.5 text-slate-700">PIC ผู้ดูแล</td><td class="px-3 py-1.5 text-slate-400">ชื่อเจ้าหน้าที่จัดซื้อ</td></tr>
+                  <tr><td class="px-3 py-1.5 font-mono text-violet-600">PO No.</td><td class="px-3 py-1.5 text-slate-700">PO Number</td><td class="px-3 py-1.5 text-slate-400">เลข PO ของ Supplier</td></tr>
+                  <tr><td class="px-3 py-1.5 font-mono text-violet-600">Part no.</td><td class="px-3 py-1.5 text-slate-700">Part Number</td><td class="px-3 py-1.5 text-slate-400">รหัสพาร์ท</td></tr>
+                  <tr><td class="px-3 py-1.5 font-mono text-violet-600">QTY</td><td class="px-3 py-1.5 text-slate-700">จำนวน</td><td class="px-3 py-1.5 text-slate-400">จำนวนที่จะส่ง</td></tr>
+                  <tr class="bg-slate-50"><td class="px-3 py-1.5 font-mono text-slate-300">No. , PO No. -</td><td class="px-3 py-1.5 text-slate-300">—</td><td class="px-3 py-1.5 text-slate-300">ข้ามไป ไม่ได้ใช้</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <textarea id="pic-paste-area" rows="7"
+            placeholder="วางข้อมูลจาก Excel ที่นี่...&#10;(รวม Header row ได้เลย ระบบจะหาคอลัมน์เองอัตโนมัติ)"
+            class="w-full border-2 border-amber-200 rounded-xl p-3 text-xs font-mono outline-none focus:border-amber-400 bg-white resize-none"></textarea>
+
+          <!-- Preview -->
+          <div id="paste-preview" class="hidden mt-3 bg-white rounded-xl border border-amber-200 overflow-hidden">
+            <div class="px-4 py-2 bg-amber-100 text-[10px] font-black text-amber-700 flex justify-between items-center">
+              <span>ตัวอย่างข้อมูลที่จะนำเข้า</span>
+              <span id="paste-preview-count" class="text-amber-600"></span>
+            </div>
+            <div id="paste-preview-body" class="overflow-x-auto max-h-48 text-[10px]"></div>
+          </div>
+
+          <div class="flex gap-2 mt-3">
+            <button type="button" onclick="previewPaste()" class="bg-amber-100 hover:bg-amber-200 text-amber-700 px-4 py-2 rounded-xl font-bold text-xs cursor-pointer border border-amber-200 transition-colors">👁 ตรวจสอบก่อน</button>
+            <button type="button" onclick="processPaste()" class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer transition-colors">✅ นำเข้าข้อมูล</button>
+            <button type="button" onclick="closePasteHelper()" class="bg-white text-amber-600 px-4 py-2 rounded-xl font-bold text-xs border border-amber-200 cursor-pointer">ยกเลิก</button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <span class="font-bold text-slate-700">รายการพาร์ท</span>
+            <span id="pic-row-count" class="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">0 รายการ</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="pic-table">
+              <thead>
+                <tr>
+                  <th style="width:32px">#</th>
+                  <th style="min-width:120px">Date *</th>
+                  <th style="min-width:90px">Time</th>
+                  <th style="min-width:180px">Vendor Name *</th>
+                  <th style="min-width:120px">PIC</th>
+                  <th style="min-width:120px">PO No.</th>
+                  <th style="min-width:140px">Part No. *</th>
+                  <th style="min-width:80px">QTY *</th>
+                  <th style="width:40px"></th>
+                </tr>
+              </thead>
+              <tbody id="pic-table-body"></tbody>
+            </table>
+          </div>
+          <div id="pic-empty-state" class="py-16 text-center">
+            <div class="text-3xl mb-3">📄</div>
+            <div class="font-bold text-slate-300 text-sm">ยังไม่มีรายการ</div>
+            <div class="text-slate-300 text-xs mt-1">กด "+ เพิ่มแถว" หรือ "Paste จาก Excel"</div>
+          </div>
+        </div>
+
+        <!-- Saved Plans -->
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+          <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center gap-3 justify-between">
+            <span class="font-bold text-slate-700">📅 แผนที่บันทึกแล้ว</span>
+            <div class="flex items-center gap-2">
+              <label class="text-[9px] font-black text-slate-400 uppercase">วันที่</label>
+              <input type="date" id="pic-saved-date" onchange="loadTodayPICParts()"
+                class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 outline-none focus:border-violet-500 font-bold text-xs cursor-pointer">
+              <button type="button" onclick="loadTodayPICParts()" class="text-xs font-bold text-violet-600 hover:text-violet-800 cursor-pointer">🔄</button>
+            </div>
+          </div>
+          <div id="pic-saved-list" class="divide-y divide-slate-50"></div>
+          <div id="pic-saved-empty" class="py-10 text-center text-slate-300 text-xs font-bold">ยังไม่มีแผนบันทึกไว้</div>
+        </div>
+      </div><!-- end pic-page-plan -->
 
       <!-- ================= PIC Tab: Upload 503 ================= -->
       <div id="pic-page-upload503" class="hidden max-w-6xl mx-auto p-4 space-y-5 fade-in">
@@ -659,34 +632,59 @@
           <div class="font-bold text-slate-500 text-sm">กำลังอ่านไฟล์...</div>
         </div>
 
-        <!-- ผลลัพธ์หลังอัพโหลด -->
-        <div id="upload503-result" class="hidden bg-white rounded-2xl p-6 shadow-sm border text-center">
-          <div class="text-4xl mb-3">✅</div>
-          <div id="upload503-result-text" class="font-black text-slate-700 text-base"></div>
-          <div class="text-xs text-slate-400 mt-2">PIC แต่ละคนสามารถเข้าไปจัดการได้ที่ Tab <strong>"🗂️ รายการของฉัน"</strong></div>
+        <!-- ปุ่มบันทึก + Filter (แสดงหลังอัพโหลด) -->
+        <div id="upload503-actions" class="hidden bg-white rounded-2xl p-5 shadow-sm border flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3 flex-wrap">
+            <label class="text-xs font-black text-slate-400 uppercase tracking-widest">กรอง Arrival Date:</label>
+            <input type="date" id="upload503-date-filter" onchange="render503Sections()" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 text-xs font-bold outline-none focus:border-violet-400 cursor-pointer">
+            <button type="button" onclick="document.getElementById('upload503-date-filter').value=''; render503Sections()" class="text-[10px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer">✕ ล้าง</button>
+          </div>
+          <button type="button" onclick="save503Selected()" id="upload503-save-btn"
+            class="bg-violet-600 hover:bg-violet-700 text-white px-8 py-3 rounded-xl font-bold text-sm shadow-md cursor-pointer transition-colors flex items-center gap-2">
+            💾 บันทึกรายการที่เลือกทั้งหมด → Google Sheet
+          </button>
+        </div>
+
+        <!-- สรุปภาพรวม — PIC Cards -->
+        <div id="upload503-summary" class="hidden bg-white rounded-2xl shadow-sm border overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div class="font-black text-slate-700">📊 รายการแยกตาม PIC — คลิก Card เพื่อจัดการ</div>
+              <div id="upload503-summary-sub" class="text-[10px] text-slate-400 mt-0.5"></div>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+              <button type="button" onclick="upload503SelectAll(true)" class="text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-emerald-100">✅ เลือกทั้งหมด</button>
+              <button type="button" onclick="upload503SelectAll(false)" class="text-[10px] font-bold bg-rose-50 text-rose-500 border border-rose-200 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-rose-100">☐ ยกเลิกทั้งหมด</button>
+            </div>
+          </div>
+          <div id="upload503-pic-sections" class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
         <!-- Modal รายละเอียดแต่ละ PIC -->
         <div id="modal503" class="fixed inset-0 z-[200] hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl">
+          <div class="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl">
             <!-- Modal Header -->
             <div class="flex items-center justify-between px-6 py-4 border-b bg-gradient-to-r from-violet-600 to-purple-500 rounded-t-2xl">
               <div>
                 <div id="modal503-pic-name" class="font-black text-white text-base"></div>
                 <div id="modal503-pic-sub" class="text-violet-200 text-[10px] mt-0.5"></div>
               </div>
-              <button type="button" data-action="closeModal503" class="text-white/70 hover:text-white text-xl font-black cursor-pointer ml-2">✕</button>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="modal503ToggleAll(true)" class="text-[9px] font-black bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg cursor-pointer">✅ ทั้งหมด</button>
+                <button type="button" onclick="modal503ToggleAll(false)" class="text-[9px] font-black bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg cursor-pointer">☐ ยกเลิก</button>
+                <button type="button" onclick="closeModal503()" class="text-white/70 hover:text-white text-xl font-black cursor-pointer ml-2">✕</button>
+              </div>
             </div>
-            <!-- Modal Body — grouped by vendor -->
-            <div id="modal503-body" class="overflow-y-auto flex-1 p-4 space-y-4"></div>
+            <!-- Modal Body -->
+            <div id="modal503-body" class="overflow-y-auto flex-1 divide-y divide-slate-50"></div>
             <!-- Modal Footer -->
             <div class="px-6 py-4 border-t flex items-center justify-between gap-3 bg-slate-50 rounded-b-2xl">
               <div id="modal503-selected-count" class="text-xs font-bold text-slate-500"></div>
               <div class="flex gap-3">
-                <button type="button" data-action="closeModal503" class="bg-slate-200 text-slate-600 px-5 py-2.5 rounded-xl font-bold text-sm cursor-pointer hover:bg-slate-300">ปิด</button>
-                <button type="button" data-action="save503ForPic" id="modal503-save-btn"
+                <button type="button" onclick="closeModal503()" class="bg-slate-200 text-slate-600 px-5 py-2.5 rounded-xl font-bold text-sm cursor-pointer hover:bg-slate-300">ปิด</button>
+                <button type="button" onclick="save503ForPic()" id="modal503-save-btn"
                   class="bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-md cursor-pointer transition-colors">
-                  💾 บันทึกของฉัน → Google Sheet
+                  💾 บันทึก PIC นี้
                 </button>
               </div>
             </div>
@@ -694,72 +692,6 @@
         </div>
 
       </div><!-- end pic-page-upload503 -->
-
-      <!-- ================= PIC Tab: My Parts ================= -->
-      <div id="pic-page-myparts" class="hidden max-w-6xl mx-auto p-4 space-y-4 fade-in">
-
-        <!-- Deadline Banner -->
-      <div id="myparts-deadline-banner" class="bg-white rounded-2xl px-5 py-3 shadow-sm border-2 border-amber-200 flex items-center justify-between gap-3">
-        <div id="myparts-deadline-text" class="font-black text-sm text-amber-600"></div>
-        <div class="text-[10px] text-slate-400 font-bold">Confirm ได้ถึง: วันจันทร์ 08:30 น.</div>
-      </div>
-
-      <!-- Filter Bar -->
-        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-wrap gap-3 items-center justify-between">
-          <div class="flex flex-wrap gap-3 items-center">
-            <button type="button" data-action="loadMyParts" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer">🔄 โหลดแผนสัปดาห์นี้</button>
-            <div id="myparts-week-range" class="text-xs font-bold text-slate-500 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2"></div>
-          </div>
-          <div id="myparts-summary-badge" class="hidden text-[10px] font-bold bg-violet-50 border border-violet-200 rounded-xl px-4 py-2 text-violet-600"></div>
-        </div>
-
-        <!-- Loading -->
-        <div id="myparts-loading" class="hidden bg-white rounded-2xl p-8 text-center shadow-sm border">
-          <div class="text-2xl animate-pulse mb-2">⏳</div>
-          <div class="text-slate-400 font-bold text-sm">กำลังโหลด...</div>
-        </div>
-
-        <!-- Empty -->
-        <div id="myparts-empty" class="hidden bg-white rounded-2xl p-10 text-center shadow-sm border">
-          <div class="text-4xl mb-3">📭</div>
-          <div class="font-black text-slate-500">ไม่พบรายการที่รอ Confirm สัปดาห์นี้</div>
-          <div class="text-xs text-slate-400 mt-1">อัพโหลดไฟล์ 503 ก่อน หรือทุกคน Confirm แล้ว</div>
-        </div>
-
-        <!-- PIC Cards Grid -->
-        <div id="myparts-pic-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-
-        <!-- Modal รายละเอียด PIC -->
-        <div id="myparts-modal" class="fixed inset-0 z-[200] hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl">
-            <div class="flex items-center justify-between px-6 py-4 border-b bg-gradient-to-r from-violet-600 to-purple-500 rounded-t-2xl">
-              <div>
-                <div id="myparts-modal-pic-name" class="font-black text-white text-base"></div>
-                <div id="myparts-modal-pic-sub" class="text-violet-200 text-[10px] mt-0.5"></div>
-              </div>
-              <button type="button" data-action="closeMyPartsModal" class="text-white/70 hover:text-white text-xl font-black cursor-pointer">✕</button>
-            </div>
-            <div id="myparts-modal-body" class="overflow-y-auto flex-1 p-4 space-y-3"></div>
-            <div class="px-6 py-4 border-t bg-slate-50 rounded-b-2xl flex items-center justify-between gap-3">
-              <div class="flex items-center gap-3">
-                <div id="myparts-modal-count" class="text-xs font-bold text-slate-500"></div>
-                <button type="button" data-action="bulkDeleteMyParts"
-                  class="text-[10px] font-black text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-lg cursor-pointer transition-colors">
-                  🗑 ลบที่เลือก
-                </button>
-              </div>
-              <div class="flex gap-3">
-                <button type="button" data-action="closeMyPartsModal" class="bg-slate-200 text-slate-600 px-5 py-2.5 rounded-xl font-bold text-sm cursor-pointer hover:bg-slate-300">ปิด</button>
-                <button type="button" data-action="confirmMyPartsPic" id="myparts-modal-confirm-btn"
-                  class="bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-md cursor-pointer transition-colors">
-                  ✅ Confirm ของฉัน → ส่งคลัง
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div><!-- end pic-page-myparts -->
 
       <!-- ================= PIC Tab: Responsibility ================= -->
       <div id="pic-page-responsibility" class="hidden max-w-6xl mx-auto p-4 space-y-4 fade-in">
@@ -776,7 +708,7 @@
               <option value="ALL">ทั้งหมด</option>
             </select>
           </div>
-          <button type="button" data-action="updatePicResponsibility" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer transition-colors">🔍 ค้นหา</button>
+          <button type="button" onclick="updatePicResponsibility()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer transition-colors">🔍 ค้นหา</button>
         </div>
 
         <!-- PIC Cards Grid -->
@@ -819,7 +751,7 @@
           </div>
           <div class="flex gap-2 flex-wrap">
 
-            <button type="button" data-action="addPicCard"
+            <button type="button" onclick="addPicCard()"
               class="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md cursor-pointer transition-colors">
               + เพิ่ม PIC
             </button>
@@ -845,9 +777,9 @@
           <input type="text" id="pm-new-pic-name" placeholder="ชื่อ PIC" maxlength="60"
             class="w-full border-2 border-slate-100 rounded-xl px-4 py-3 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm mb-4">
           <div class="flex gap-3">
-            <button type="button" data-action="closePmModal"
+            <button type="button" onclick="closePmModal()"
               class="flex-1 bg-slate-100 text-slate-500 py-3 rounded-xl font-bold text-sm cursor-pointer">ยกเลิก</button>
-            <button type="button" data-action="savePicCard"
+            <button type="button" onclick="savePicCard()"
               class="flex-1 bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">บันทึก</button>
           </div>
         </div>
@@ -869,7 +801,7 @@
                 maxlength="100" oninput="filterPmSuggestions()"
                 onkeydown="if(event.key==='Enter'){event.preventDefault();addPmSupToSelected()}"
                 class="flex-1 border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm">
-              <button type="button" data-action="addPmSupToSelected"
+              <button type="button" onclick="addPmSupToSelected()"
                 class="bg-violet-600 hover:bg-violet-700 text-white px-4 rounded-xl font-black text-lg cursor-pointer">+</button>
             </div>
             <!-- Selected list -->
@@ -885,9 +817,9 @@
           </div>
           <!-- Footer -->
           <div class="px-6 py-4 border-t flex gap-3">
-            <button type="button" data-action="closePmSupModal"
+            <button type="button" onclick="closePmSupModal()"
               class="flex-1 bg-slate-100 text-slate-500 py-3 rounded-xl font-bold text-sm cursor-pointer">ยกเลิก</button>
-            <button type="button" data-action="savePicSup" id="pm-save-sup-btn"
+            <button type="button" onclick="savePicSup()" id="pm-save-sup-btn"
               class="flex-1 bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">
               เพิ่ม (<span id="pm-selected-count">0</span>)
             </button>
@@ -903,7 +835,7 @@
       <div id="guard-camera-container" class="flex-1 flex flex-col w-full h-full">
          <div class="bg-emerald-600 backdrop-blur-md border-b border-emerald-500 shadow-lg text-center p-4 flex justify-between items-center z-10">
             <div class="font-bold text-xl text-white flex items-center gap-2"><span>👮‍♂️</span> ตรวจปล่อยรถ (Tablet)</div>
-            <button type="button" data-action="guardLogout" class="text-emerald-100 bg-black/20 hover:bg-black/40 px-4 py-2 rounded-xl font-bold text-sm transition-colors border border-emerald-500 cursor-pointer">ออกระบบ</button>
+            <button type="button" onclick="guardLogout()" class="text-emerald-100 bg-black/20 hover:bg-black/40 px-4 py-2 rounded-xl font-bold text-sm transition-colors border border-emerald-500 cursor-pointer">ออกระบบ</button>
          </div>
          <div class="flex-1 flex flex-col items-center justify-center p-4 md:p-8 relative">
             <div class="bg-slate-800 p-6 md:p-8 rounded-[2.5rem] shadow-2xl border border-slate-700 w-full max-w-2xl text-center flex flex-col items-center">
@@ -911,7 +843,7 @@
                   <span class="pulse-dot w-4 h-4 bg-rose-500 rounded-full"></span> นำ QR Code มาส่องที่กล้อง
                </div>
                <div id="qr-reader" class="mx-auto w-full max-w-lg min-h-[300px] md:min-h-[400px] rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-black relative"></div>
-               <button type="button" id="btn-start-camera" data-action="initGuardScanner" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg hidden w-full max-w-sm cursor-pointer transition-colors">เปิดกล้องใหม่อีกครั้ง</button>
+               <button type="button" id="btn-start-camera" onclick="initGuardScanner()" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg hidden w-full max-w-sm cursor-pointer transition-colors">เปิดกล้องใหม่อีกครั้ง</button>
             </div>
          </div>
       </div>
@@ -924,9 +856,9 @@
         <div id="login-icon" class="text-4xl mb-4">🏢</div>
         <h2 id="login-title" class="text-2xl font-bold mb-8 text-slate-800">เข้าสู่ระบบ</h2>
         <input type="password" id="unified-password" placeholder="รหัสผ่าน" class="w-full px-6 py-4 border-2 border-slate-100 rounded-2xl mb-5 outline-none text-center bg-slate-50 focus:border-blue-500 transition-all font-bold">
-        <button type="button" data-action="processLogin" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold shadow-xl hover:bg-black transition-all text-lg cursor-pointer">เข้าสู่ระบบ</button>
+        <button type="button" onclick="processLogin()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold shadow-xl hover:bg-black transition-all text-lg cursor-pointer">เข้าสู่ระบบ</button>
         <p id="login-error-msg" class="text-rose-500 mt-4 hidden text-sm font-bold">รหัสผ่านไม่ถูกต้อง</p>
-        <button type="button" data-action="showRoleSelection" class="mt-4 text-slate-400 text-sm mx-auto block hover:text-slate-600 transition-colors cursor-pointer">กลับหน้าหลัก</button>
+        <button type="button" onclick="showRoleSelection()" class="mt-4 text-slate-400 text-sm mx-auto block hover:text-slate-600 transition-colors cursor-pointer">กลับหน้าหลัก</button>
       </div>
     </div>
 
@@ -959,9 +891,9 @@
           </div>
         </div>
         <div class="flex gap-3 mt-5">
-          <button type="button" data-action="closePicEditModal"
+          <button type="button" onclick="closePicEditModal()"
             class="flex-1 bg-slate-100 text-slate-500 py-3 rounded-xl font-bold text-sm cursor-pointer">ยกเลิก</button>
-          <button type="button" data-action="savePicEdit" id="pic-edit-save-btn"
+          <button type="button" onclick="savePicEdit()" id="pic-edit-save-btn"
             class="flex-1 bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">บันทึก</button>
         </div>
       </div>
@@ -974,10 +906,10 @@
         <h3 class="text-xl font-black text-slate-800 mb-1">เลือกโรงงานปลายทาง</h3>
         <p id="factory-modal-company" class="text-sm text-slate-400 font-bold mb-8 truncate"></p>
         <div class="grid grid-cols-2 gap-4 mb-4">
-          <button type="button" data-action="confirmFactory" data-arg="โรงงาน 1" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-8 rounded-2xl text-lg shadow-lg active:scale-95 transition-transform cursor-pointer leading-relaxed">🏭<br><span class="text-base">โรงงาน 1</span></button>
-          <button type="button" data-action="confirmFactory" data-arg="โรงงาน 2" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-8 rounded-2xl text-lg shadow-lg active:scale-95 transition-transform cursor-pointer leading-relaxed">🏭<br><span class="text-base">โรงงาน 2</span></button>
+          <button type="button" onclick="confirmFactory('โรงงาน 1')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-8 rounded-2xl text-lg shadow-lg active:scale-95 transition-transform cursor-pointer leading-relaxed">🏭<br><span class="text-base">โรงงาน 1</span></button>
+          <button type="button" onclick="confirmFactory('โรงงาน 2')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-8 rounded-2xl text-lg shadow-lg active:scale-95 transition-transform cursor-pointer leading-relaxed">🏭<br><span class="text-base">โรงงาน 2</span></button>
         </div>
-        <button type="button" data-action="closeFactoryModal" class="text-slate-400 text-sm font-bold hover:text-slate-600 cursor-pointer mt-2 w-full py-3">ยกเลิก</button>
+        <button type="button" onclick="closeFactoryModal()" class="text-slate-400 text-sm font-bold hover:text-slate-600 cursor-pointer mt-2 w-full py-3">ยกเลิก</button>
       </div>
     </div>
 
@@ -990,7 +922,7 @@
             <div class="font-black text-lg text-slate-800" id="pcm-title">ยืนยันรายการพาร์ท</div>
             <div class="text-xs text-slate-400 font-bold mt-0.5" id="pcm-subtitle"></div>
           </div>
-          <button type="button" data-action="closePartsModal" class="text-slate-300 hover:text-slate-500 cursor-pointer text-2xl leading-none">×</button>
+          <button type="button" onclick="closePartsModal()" class="text-slate-300 hover:text-slate-500 cursor-pointer text-2xl leading-none">×</button>
         </div>
 
         <!-- Body -->
@@ -1047,8 +979,8 @@
 
         <!-- Footer -->
         <div class="px-8 py-5 border-t border-slate-100 flex gap-3 flex-shrink-0">
-          <button type="button" data-action="closePartsModal" class="flex-1 bg-slate-100 text-slate-500 py-3 rounded-2xl font-bold text-sm cursor-pointer hover:bg-slate-200">ยกเลิก</button>
-          <button type="button" data-action="submitPartsConfirm" id="pcm-submit-btn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl font-bold text-sm shadow-md cursor-pointer transition-colors">
+          <button type="button" onclick="closePartsModal()" class="flex-1 bg-slate-100 text-slate-500 py-3 rounded-2xl font-bold text-sm cursor-pointer hover:bg-slate-200">ยกเลิก</button>
+          <button type="button" onclick="submitPartsConfirm()" id="pcm-submit-btn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl font-bold text-sm shadow-md cursor-pointer transition-colors">
             ✓ ยืนยันและเรียกเข้าพื้นที่
           </button>
         </div>
@@ -1061,29 +993,18 @@
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwvu_FiWEZOX1UEmo85MloZEt93jUhQ0dfJiVAPX27BV2UVnqV1eJaIJOkMWoWcMyU/exec";
 
-    async function callAPI(action, payload = {}, retries = 2) {
-      for (let attempt = 0; attempt <= retries; attempt++) {
-        try {
-          const body = new URLSearchParams({ action, ...payload });
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 20000);
-          const response = await fetch(GAS_API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: body.toString(),
-            signal: controller.signal,
-          });
-          clearTimeout(timeout);
-          const text = await response.text();
-          try { return JSON.parse(text); }
-          catch(e) { return { success: false, message: 'Parse error' }; }
-        } catch(err) {
-          if (attempt < retries) { await new Promise(r => setTimeout(r, 2000)); continue; }
-          console.warn('API Error:', action, err.message);
-          return { success: false, message: err.toString() };
-        }
+    async function callAPI(action, payload = {}) {
+      try {
+        const response = await fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action, ...payload })
+        });
+        return await response.json();
+      } catch (err) {
+        console.error("API Error:", err);
+        return { success: false, message: err.toString() };
       }
-      return { success: false, message: 'Network error' };
     }
 
     window.addEventListener('error', function(e) {
@@ -1091,16 +1012,16 @@
       if (errDiv) { errDiv.classList.remove('hidden'); errDiv.innerText = "System Alert: " + e.message; setTimeout(() => errDiv.classList.add('hidden'), 5000); }
     });
 
-    window.safeGetLocal = function(key) { try { return localStorage.getItem(key); } catch(e) { return null; } }
-    window.safeSetLocal = function(key, val) { try { localStorage.setItem(key, val); } catch(e) {} }
-    window.safeRemoveLocal = function(key) { try { localStorage.removeItem(key); } catch(e) {} }
-    window.safeGetSession = function(key) { try { return sessionStorage.getItem(key); } catch(e) { return null; } }
-    window.safeSetSession = function(key, val) { try { sessionStorage.setItem(key, val); } catch(e) {} }
-    window.safeRemoveSession = function(key) { try { sessionStorage.removeItem(key); } catch(e) {} }
+    function safeGetLocal(key) { try { return localStorage.getItem(key); } catch(e) { return null; } }
+    function safeSetLocal(key, val) { try { localStorage.setItem(key, val); } catch(e) {} }
+    function safeRemoveLocal(key) { try { localStorage.removeItem(key); } catch(e) {} }
+    function safeGetSession(key) { try { return sessionStorage.getItem(key); } catch(e) { return null; } }
+    function safeSetSession(key, val) { try { sessionStorage.setItem(key, val); } catch(e) {} }
+    function safeRemoveSession(key) { try { sessionStorage.removeItem(key); } catch(e) {} }
 
     let allData = [];
     let globalPlanData = [];
-    let allPartData = [];       // <- NEW: Part ที่ PIC กรอกไว้
+    let allPartData = [];       // ← NEW: Part ที่ PIC กรอกไว้
     let currentSupplierRecord = null;
     let isStaffLoggedIn = false;
     let isPICLoggedIn = false;
@@ -1130,56 +1051,49 @@
     let _fetchFailCount = 0;
     let allPicMaster = []; // PIC_Master จาก Sheet
 
-    // Hash สำหรับเปรียบเทียบข้อมูล -- ป้องกัน render ซ้ำเมื่อข้อมูลไม่เปลี่ยน
+    // Hash สำหรับเปรียบเทียบข้อมูล — ป้องกัน render ซ้ำเมื่อข้อมูลไม่เปลี่ยน
     let _hashCheckin  = '';
     let _hashParts    = '';
     let _hashPicMaster= '';
     let _hashSupplier = '';
 
-    window._quickHash = function(obj) {
-      // hash แบบเร็ว -- JSON string แต่ตัดช่องว่างออก
+    function _quickHash(obj) {
+      // hash แบบเร็ว — JSON string แต่ตัดช่องว่างออก
       try { return JSON.stringify(obj); } catch(e) { return ''; }
     }
-    let _isFetching = false;
-
-    window.fetchAll = function() {
-      if (_isFetching) return; // ถ้ายังรอ response อยู่ ข้ามไป
-      _isFetching = true;
-
+    function fetchAll() {
       callAPI('readAllData').then(res => {
-        _isFetching = false;
-        try {
-          if (res && res.success) {
-            _fetchFailCount = 0;
-            allData = res.data || [];
-            if (res.plans) globalPlanData = res.plans;
-            if (res.parts) {
-              allPartData = res.parts || [];
-              if (allPartData.length > 0) {
-                syncPicMasterToSheet(allPartData.map(p => ({
-                  pic:    p.pic    || '',
-                  vendor: p.vendor || ''
-                })));
-              }
+        if (res && res.success) {
+          _fetchFailCount = 0;
+          allData = res.data || [];
+          if (res.plans) globalPlanData = res.plans; // legacy — ไม่ใช้แล้ว
+          if (res.parts) {
+            allPartData = res.parts || [];
+            // auto-sync PIC+Vendor → PIC_Master Sheet
+            if (allPartData.length > 0) {
+              syncPicMasterToSheet(allPartData.map(p => ({
+                pic:    p.pic    || '',
+                vendor: p.vendor || ''
+              })));
             }
-            if (res.picMaster) allPicMaster = res.picMaster || [];
-            refreshUI();
-          } else {
-            _fetchFailCount++;
           }
-        } catch(err) {
-          console.warn('[fetchAll] render error:', err.message);
+          if (res.picMaster) {
+            allPicMaster = res.picMaster || [];
+          }
+          refreshUI();
+        } else {
+          _fetchFailCount++;
+          if (_fetchFailCount > 5) {
+            console.warn('[fetchAll] ล้มเหลว ' + _fetchFailCount + ' ครั้งติดต่อกัน');
+          }
         }
       }).catch(function(err) {
-        _isFetching = false;
         _fetchFailCount++;
         console.warn('[fetchAll] error:', err.message || err);
       });
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      showRoleSelection();
-
       const savedQueue = safeGetLocal('my_active_queue');
       if (savedQueue) {
         try {
@@ -1204,16 +1118,15 @@
       }
 
       fetchAll();
-      setInterval(fetchAll, 30000); // ทุก 30 วินาที (GAS ตอบช้า)
+      setInterval(fetchAll, 6000);
       // อัปเดต PIC access banner ทุก 1 นาที
       setInterval(() => { if (isPICLoggedIn) updatePICAccessUI(); }, 60000);
     });
 
-    window.refreshUI = function() {
-      try {
-        const today = getThaiDate();
+    function refreshUI() {
+      const today = getThaiDate();
 
-      // --- Staff -------------------------------------------
+      // ─── Staff ───────────────────────────────────────────
       if (isStaffLoggedIn) {
         // เปรียบเทียบ checkin + parts ของวันนี้เท่านั้น (เร็วกว่า hash ทั้งหมด)
         const todayCheckin = allData.filter(r => r.date === today);
@@ -1227,11 +1140,11 @@
         }
       }
 
-      // --- PIC ---------------------------------------------
+      // ─── PIC ─────────────────────────────────────────────
       if (isPICLoggedIn) {
         const planPage = document.getElementById('pic-page-plan');
         if (planPage && !planPage.classList.contains('hidden')) {
-          // saved list -- เปรียบเทียบ parts วันนี้
+          // saved list — เปรียบเทียบ parts วันนี้
           const todayParts = allPartData.filter(p => String(p.date||'') === today);
           const newHashP   = _quickHash(todayParts);
           if (newHashP !== _hashParts) {
@@ -1260,7 +1173,7 @@
         }
       }
 
-      // --- Supplier -----------------------------------------
+      // ─── Supplier ─────────────────────────────────────────
       if (currentSupplierRecord) {
         const match = allData.find(r =>
           String(r.queue_number) === String(currentSupplierRecord.queue_number) && r.date === today
@@ -1273,57 +1186,22 @@
           }
         }
       }
-      } catch(err) { console.warn('[refreshUI] error:', err.message); }
     }
 
     // ==========================================
     // NAVIGATION
     // ==========================================
-    window.hideAll = function() {
+    function hideAll() {
       ['role-selection','supplier-view','unified-login','staff-view','pic-view','guard-view'].forEach(id => {
         const el = document.getElementById(id);
         if (el) { el.classList.add('hidden'); if (id === 'guard-view') el.classList.remove('flex'); }
       });
     }
 
-    window.showRoleSelection = function() { hideAll(); if (typeof stopGuardScanner === 'function') stopGuardScanner(); document.getElementById('role-selection').classList.remove('hidden'); }
-    window.showSupplierView  = function() { hideAll(); document.getElementById('supplier-view').classList.remove('hidden'); }
+    function showRoleSelection() { hideAll(); stopGuardScanner(); document.getElementById('role-selection').classList.remove('hidden'); }
+    function showSupplierView() { hideAll(); document.getElementById('supplier-view').classList.remove('hidden'); }
 
-    // -- data-action event delegation --
-    document.addEventListener('DOMContentLoaded', function() {
-      // Enter key บน password field
-      const pwdInput = document.getElementById('unified-password');
-      if (pwdInput) pwdInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') window.processLogin && window.processLogin();
-      });
-
-      document.body.addEventListener('click', function(e) {
-        // data-action buttons
-        const btn = e.target.closest('[data-action]');
-        if (!btn) return;
-        const action = btn.dataset.action;
-        if (!window[action]) return;
-        e.stopPropagation();
-
-        // openPicEditModal -- หลาย data attributes
-        if (action === 'openPicEditModal') {
-          window[action](btn.dataset.id, btn.dataset.supplier, btn.dataset.pono, btn.dataset.partno, btn.dataset.qty, btn.dataset.slot);
-          return;
-        }
-        // deletePicPart
-        if (action === 'deletePicPart') {
-          window[action](btn.dataset.id, btn.dataset.partno);
-          return;
-        }
-        // 2 args: data-arg + data-arg2
-        const arg  = btn.dataset.arg  !== undefined ? btn.dataset.arg  : btn.dataset.target;
-        const arg2 = btn.dataset.arg2 !== undefined ? btn.dataset.arg2 : undefined;
-        if (arg2 !== undefined) { window[action](arg, arg2); return; }
-        window[action](arg !== undefined ? arg : undefined);
-      }, true);
-    });
-
-    window.showLogin = function(target) {
+    function showLogin(target) {
       loginTarget = target || 'staff';
       hideAll();
       const icons = { staff: '🏢', pic: '📋' };
@@ -1337,18 +1215,18 @@
       if (pwdInput) { pwdInput.value = ''; pwdInput.focus(); }
     }
 
-    window.enterGuardView = function() {
+    function enterGuardView() {
       isGuardLoggedIn = true;
       hideAll();
       const gView = document.getElementById('guard-view');
       if (gView) { gView.classList.remove('hidden'); gView.classList.add('flex'); setTimeout(() => initGuardScanner(), 800); }
     }
 
-    window.staffLogout = function() { isStaffLoggedIn = false; showRoleSelection(); }
-    window.picLogout   = function() { isPICLoggedIn = false; showRoleSelection(); }
-    window.guardLogout = function() { isGuardLoggedIn = false; showRoleSelection(); }
+    function staffLogout() { isStaffLoggedIn = false; showRoleSelection(); }
+    function picLogout()   { isPICLoggedIn = false; showRoleSelection(); }
+    function guardLogout() { isGuardLoggedIn = false; showRoleSelection(); }
 
-    window.processLogin = function() {
+    function processLogin() {
       const pwdInput = document.getElementById('unified-password');
       const pwd = pwdInput ? pwdInput.value : '';
       const err = document.getElementById('login-error-msg');
@@ -1357,7 +1235,9 @@
           isPICLoggedIn = true;
           hideAll();
           document.getElementById('pic-view').classList.remove('hidden');
-          showPicTab('upload503');
+          showPicTab('plan');
+          loadTodayPICParts();
+          updatePICAccessUI();
         } else {
           isStaffLoggedIn = true;
           hideAll();
@@ -1370,9 +1250,9 @@
     }
 
     // ==========================================
-    // PIC -- TABLE LOGIC
+    // PIC — TABLE LOGIC
     // ==========================================
-    window.addPICRow = function(data = {}) {
+    function addPICRow(data = {}) {
       picRowCounter++;
       const id = picRowCounter;
       picRows.push(id);
@@ -1387,7 +1267,7 @@
         <td><input type="date" value="${esc(data.date||getThaiDate())}" class="pic-input" data-field="date" data-id="${id}"></td>
         <td>
           <select class="pic-input" data-field="time" data-id="${id}">
-            <option value="" ${!data.time?'selected':''}>--</option>
+            <option value="" ${!data.time?'selected':''}>—</option>
             <option value="AM" ${data.time==='AM'?'selected':''}>AM</option>
             <option value="PM" ${data.time==='PM'?'selected':''}>PM</option>
             <option value="PICK UP" ${(data.time==='PICK UP'||data.time==='PICKUP')?'selected':''}>PICK UP</option>
@@ -1408,7 +1288,7 @@
         <td><input type="text" placeholder="PART-XXXX" value="${esc(data.part_no||'')}" class="pic-input font-mono" data-field="part_no" data-id="${id}"></td>
         <td><input type="number" placeholder="0" value="${normalizeQty(data.qty)||''}" min="0" class="pic-input text-center" data-field="qty" data-id="${id}"></td>
         <td class="text-center">
-          <button type="button" data-action="removePICRow" data-arg="${id}" class="text-slate-200 hover:text-rose-500 transition-colors cursor-pointer p-2">✕</button>
+          <button type="button" onclick="removePICRow(${id})" class="text-slate-200 hover:text-rose-500 transition-colors cursor-pointer p-2">✕</button>
         </td>
       `;
       tbody.appendChild(tr);
@@ -1424,9 +1304,9 @@
       return tr;
     }
 
-    window.esc = function(str) { return String(str).replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+    function esc(str) { return String(str).replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
 
-    window.removePICRow = function(id) {
+    function removePICRow(id) {
       const tr = document.getElementById(`pic-row-${id}`);
       if (tr) tr.remove();
       picRows = picRows.filter(r => r !== id);
@@ -1437,12 +1317,12 @@
       }
     }
 
-    window.updatePICRowCount = function() {
+    function updatePICRowCount() {
       const el = document.getElementById('pic-row-count');
       if (el) el.innerText = `${picRows.length} รายการ`;
     }
 
-    window.getPICTableData = function() {
+    function getPICTableData() {
       return picRows.map(id => {
         const row = document.getElementById(`pic-row-${id}`);
         if (!row) return null;
@@ -1454,12 +1334,12 @@
       }).filter(Boolean);
     }
 
-    window.pastePICTable = function() {
+    function pastePICTable() {
       const helper = document.getElementById('pic-paste-helper');
       if (helper) { helper.classList.remove('hidden'); document.getElementById('pic-paste-area').focus(); }
     }
 
-    window.closePasteHelper = function() {
+    function closePasteHelper() {
       document.getElementById('pic-paste-helper').classList.add('hidden');
       document.getElementById('paste-preview').classList.add('hidden');
       document.getElementById('pic-paste-area').value = '';
@@ -1482,7 +1362,7 @@
       'whse confirmed','whse signed','remarks (planning)','remarks','remark'];
 
     // =====================================================
-    // PATTERN DETECTION -- จำรูปแบบจากตัวข้อมูลจริง
+    // PATTERN DETECTION — จำรูปแบบจากตัวข้อมูลจริง
     // =====================================================
     // วันที่: YYYY/MM/DD, YYYY-MM-DD, DD/MM/YYYY
     const RE_DATE = /^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$|^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/;
@@ -1497,7 +1377,7 @@
     // ชื่อบริษัท: มีอักษรอย่างน้อย 2 ตัว ไม่ใช่ตัวเลขล้วน
     const RE_VENDOR = /[A-Za-zก-๙]{2,}/;
 
-    window.detectCellType = function(val) {
+    function detectCellType(val) {
       const v = String(val||'').trim();
       if (!v || v==='-') return 'empty';
       if (RE_DATE.test(v)) return 'date';
@@ -1510,8 +1390,8 @@
     }
 
     // วิเคราะห์ว่าแต่ละ column index ควรเป็น field อะไร โดยดูจากข้อมูล
-    window.detectColumnTypes = function(dataLines) {
-      const colTypes = {}; // col_idx -> {type: count}
+    function detectColumnTypes(dataLines) {
+      const colTypes = {}; // col_idx → {type: count}
       dataLines.forEach(line => {
         const cells = line.split('\t').map(c => c.trim());
         cells.forEach((val, i) => {
@@ -1530,8 +1410,8 @@
       return result;
     }
 
-    // Map detected type -> field name (เลือก col แรกที่เจอ)
-    window.buildColIndexMap = function(colTypeMap, dataLines) {
+    // Map detected type → field name (เลือก col แรกที่เจอ)
+    function buildColIndexMap(colTypeMap, dataLines) {
       const typeToField = {
         'date':'date','time':'time','part_no':'part_no',
         'po_no':'po_no','text':'vendor'
@@ -1557,7 +1437,7 @@
         if (picCol !== undefined && !used.has('pic')) { map['pic'] = picCol; used.add('pic'); }
       }
 
-      // qty -- เลือก column qty ที่มีค่าเฉลี่ยสูงสุด (กรองเลข 1 หลักออก)
+      // qty — เลือก column qty ที่มีค่าเฉลี่ยสูงสุด (กรองเลข 1 หลักออก)
       // เพราะ "1", "2" มักเป็น sequence number ไม่ใช่ QTY จริง
       const qtyCols = Object.entries(colTypeMap)
         .filter(([i,t]) => t==='qty')
@@ -1586,17 +1466,17 @@
       return map;
     }
 
-    window.parsePasteData = function(raw) {
+    function parsePasteData(raw) {
       const lines = raw.split('\n').map(l => l.trimEnd()).filter(l => l.trim());
       if (lines.length === 0) return { rows: [] };
 
-      // --- Detect origin จาก Title row ---
+      // ─── Detect origin จาก Title row ───
       const titleText = lines[0].toLowerCase();
       const origin = titleText.includes('overseas') ? 'import'
                    : titleText.includes('local')    ? 'local'
                    : 'local'; // default
 
-      // --- ตรวจว่า format เป็น Overseas (ใช้ pattern detection ทั้งหมด) ---
+      // ─── ตรวจว่า format เป็น Overseas (ใช้ pattern detection ทั้งหมด) ───
       const isOverseas = origin === 'import';
 
       // สแกนสูงสุด 5 บรรทัดเพื่อหา Header row
@@ -1632,7 +1512,7 @@
         // Local พร้อม header
         dataLines = lines.slice(headerLineIdx + 1);
       } else {
-        // ไม่มี header -> pattern detection
+        // ไม่มี header → pattern detection
         dataLines = lines;
         const colTypeMap = detectColumnTypes(dataLines);
         colIndexMap = buildColIndexMap(colTypeMap, dataLines);
@@ -1641,7 +1521,7 @@
       const rows = dataLines.map(line => {
         const cells = line.split('\t').map(c => c.trim());
         if (cells.every(c=>!c)) return null;
-        const obj = { origin }; // [OK] แนบ origin ทุก row
+        const obj = { origin }; // ✅ แนบ origin ทุก row
         Object.entries(colIndexMap).forEach(([field, idx]) => {
           obj[field] = cells[idx] || '';
         });
@@ -1656,7 +1536,7 @@
             if (t==='qty'     && !obj.qty)     obj.qty     = val;
           });
         }
-        // Overseas: vendor fallback -- ใช้ TEXT cell ที่ยาวที่สุดที่ไม่ใช่ PIC
+        // Overseas: vendor fallback — ใช้ TEXT cell ที่ยาวที่สุดที่ไม่ใช่ PIC
         if (isOverseas && !obj.vendor) {
           const textCells = cells.filter(c => c.length > 3 && detectCellType(c) === 'text');
           if (textCells.length > 0) obj.vendor = textCells[0];
@@ -1667,7 +1547,7 @@
       return { rows, origin };
     }
 
-    window.normalizeDate = function(raw) {
+    function normalizeDate(raw) {
       if (!raw) return getThaiDate();
       const v = raw.trim();
       // YYYY/MM/DD หรือ YYYY-MM-DD
@@ -1681,13 +1561,13 @@
       return getThaiDate();
     }
 
-    window.normalizeTime = function(raw) {
+    function normalizeTime(raw) {
       if (!raw) return '';
       const up = raw.trim().toUpperCase().replace(/\s+/g,' ');
       if (up === 'AM' || up === 'A.M.' || up === 'A.M') return 'AM';
       if (up === 'PM' || up === 'P.M.' || up === 'P.M') return 'PM';
       if (up.includes('PICK')) return 'PICK UP';
-      // เวลา HH:MM -- ถ้าน้อยกว่า 12:00 = AM, มากกว่า = PM
+      // เวลา HH:MM — ถ้าน้อยกว่า 12:00 = AM, มากกว่า = PM
       const timeMatch = up.match(/^(\d{1,2}):(\d{2})$/);
       if (timeMatch) {
         const h = parseInt(timeMatch[1]);
@@ -1696,14 +1576,14 @@
       return up || ''; // คืนค่าเดิมถ้าไม่รู้จัก
     }
 
-    window.normalizeQty = function(raw) {
-      // ลบ comma และ space เช่น "6,000.00" -> 6000
+    function normalizeQty(raw) {
+      // ลบ comma และ space เช่น "6,000.00" → 6000
       const n = parseFloat(String(raw||'').replace(/,/g,'').trim());
       return isNaN(n) ? 0 : n;
     }
 
     // Merge rows by date+vendor+po_no+part_no (for preview)
-    window.mergeRows = function(rows) {
+    function mergeRows(rows) {
       const map = new Map();
       const order = [];
       rows.forEach(r => {
@@ -1723,7 +1603,7 @@
       return order.map(k => map.get(k));
     }
 
-    window.previewPaste = function() {
+    function previewPaste() {
       const raw = document.getElementById('pic-paste-area').value.trim();
       if (!raw) { alert('กรุณาวางข้อมูลก่อน'); return; }
       const { rows } = parsePasteData(raw);
@@ -1771,7 +1651,7 @@
         </table>`;
     }
 
-    window.processPaste = function() {
+    function processPaste() {
       const raw = document.getElementById('pic-paste-area').value.trim();
       if (!raw) return alert('กรุณาวางข้อมูลก่อน');
       const { rows } = parsePasteData(raw);
@@ -1810,7 +1690,7 @@
     // ==========================================
 
     // Normalize ชื่อสำหรับเปรียบเทียบ
-    window.normalizeVendor = function(str) {
+    function normalizeVendor(str) {
       return String(str||'')
         .toLowerCase()
         .replace(/บริษัท|จำกัด|co\.?|ltd\.?|inc\.?|corp\.?|thailand|\(|\)|,|\./g, '')
@@ -1819,7 +1699,7 @@
     }
 
     // คะแนนความใกล้เคียง 0-100
-    window.vendorScore = function(a, b) {
+    function vendorScore(a, b) {
       const na = normalizeVendor(a);
       const nb = normalizeVendor(b);
       if (!na || !nb) return 0;
@@ -1844,15 +1724,15 @@
     }
 
     // รายชื่อ Supplier ที่รู้จัก (จาก allData history)
-    window.getKnownVendors = function() {
+    function getKnownVendors() {
       const fromCheckin = [...new Set(allData.map(r => r.company_name).filter(Boolean))];
       const fromParts   = [...new Set(allPartData.map(r => r.vendor || r.supplier).filter(Boolean))];
       return [...new Set([...fromCheckin, ...fromParts])].sort();
     }
 
-    let vendorDropdownActive = {}; // id -> selected index
+    let vendorDropdownActive = {}; // id → selected index
 
-    window.onVendorInput = function(inp, id) {
+    function onVendorInput(inp, id) {
       const q = inp.value.trim();
       const known = getKnownVendors();
       const drop = document.getElementById('vdrop-' + id);
@@ -1900,14 +1780,14 @@
       drop.classList.add('show');
     }
 
-    window.onVendorBlur = function(id) {
+    function onVendorBlur(id) {
       setTimeout(() => {
         const drop = document.getElementById('vdrop-' + id);
         if (drop) drop.classList.remove('show');
       }, 200);
     }
 
-    window.onVendorKeydown = function(e, id) {
+    function onVendorKeydown(e, id) {
       const drop = document.getElementById('vdrop-' + id);
       if (!drop || !drop.classList.contains('show')) return;
       const opts = drop.querySelectorAll('.vendor-option');
@@ -1920,7 +1800,7 @@
       opts.forEach((o,i) => o.classList.toggle('active', i === idx));
     }
 
-    window.selectVendor = function(e, name, id) {
+    function selectVendor(e, name, id) {
       e.preventDefault();
       const inp = document.querySelector(`[data-field="vendor"][data-id="${id}"]`);
       if (inp) {
@@ -1939,8 +1819,8 @@
         // ==========================================
     // MERGE DUPLICATE PO+PART ROWS
     // ==========================================
-    // Key = date|vendor|po_no|part_no -> รวม QTY
-    window.mergeDuplicatePICRows = function() {
+    // Key = date|vendor|po_no|part_no → รวม QTY
+    function mergeDuplicatePICRows() {
       const rows = getPICTableData();
       if (rows.length === 0) return;
 
@@ -1987,15 +1867,15 @@
     }
 
     // ==========================================
-    // PIC ACCESS WINDOW -- ตรวจสอบสิทธิ์กรอกข้อมูล
+    // PIC ACCESS WINDOW — ตรวจสอบสิทธิ์กรอกข้อมูล
     // ==========================================
-    window.getThaiNow = function() {
+    function getThaiNow() {
       const now = new Date();
       const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
       return new Date(utc + (3600000 * 7)); // Bangkok TZ
     }
 
-    window.getCurrentWeekRange = function() {
+    function getCurrentWeekRange() {
       const now = getThaiNow();
       const day = now.getDay(); // 0=อาทิตย์
       const diffToMon = (day === 0) ? -6 : 1 - day;
@@ -2004,7 +1884,7 @@
       return { mon, fri };
     }
 
-    window.checkPICAccessWindow = function() {
+    function checkPICAccessWindow() {
       const now  = getThaiNow();
       const day  = now.getDay();   // 1 = จันทร์
       const hour = now.getHours();
@@ -2018,32 +1898,32 @@
       const currentWeekAllowed = isMonday && !pastDeadline;
 
       // minAllowedDate:
-      //   - วันจันทร์ก่อน 08:30 -> กรอกได้ตั้งแต่วันจันทร์นี้
-      //   - อื่นๆ              -> กรอกได้ตั้งแต่จันทร์หน้า
+      //   - วันจันทร์ก่อน 08:30 → กรอกได้ตั้งแต่วันจันทร์นี้
+      //   - อื่นๆ              → กรอกได้ตั้งแต่จันทร์หน้า
       const minAllowedDate = currentWeekAllowed ? mon : nextMon;
 
       return { pastDeadline, isMonday, currentWeekAllowed, mon, fri, nextMon, minAllowedDate };
     }
 
-    window.isDateInLockedRange = function(dateStr) {
+    function isDateInLockedRange(dateStr) {
       if (!dateStr) return false;
       const { currentWeekAllowed, mon, fri } = checkPICAccessWindow();
       const d = new Date(dateStr + 'T00:00:00');
-      // ถ้าอยู่ในสัปดาห์นี้ -> lock ถ้า currentWeekAllowed = false
+      // ถ้าอยู่ในสัปดาห์นี้ → lock ถ้า currentWeekAllowed = false
       if (d >= mon && d <= fri) return !currentWeekAllowed;
-      // ถ้าอยู่ก่อนสัปดาห์นี้ -> lock เสมอ
+      // ถ้าอยู่ก่อนสัปดาห์นี้ → lock เสมอ
       if (d < mon) return true;
       return false;
     }
 
-    window.updatePICAccessUI = function() {
+    function updatePICAccessUI() {
       const { pastDeadline, isMonday, currentWeekAllowed, mon, fri, nextMon } = checkPICAccessWindow();
       const saveBtn  = document.getElementById('pic-save-btn');
       const bannerEl = document.getElementById('pic-access-banner');
       const fmt = d => d.toLocaleDateString('th-TH', { day:'numeric', month:'short', year:'numeric' });
       const fmtShort = d => d.toLocaleDateString('th-TH', { day:'numeric', month:'short' });
 
-      // -- Case 1: วันจันทร์ + ก่อน 08:30 -> กรอกได้ทั้งสัปดาห์นี้ --
+      // ── Case 1: วันจันทร์ + ก่อน 08:30 → กรอกได้ทั้งสัปดาห์นี้ ──
       if (currentWeekAllowed) {
         if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove('opacity-40','cursor-not-allowed'); saveBtn.classList.add('cursor-pointer'); }
         if (bannerEl) {
@@ -2061,7 +1941,7 @@
         return;
       }
 
-      // -- Case 2: วันจันทร์ + หลัง 08:30 -> กรอกสัปดาห์หน้าได้ --
+      // ── Case 2: วันจันทร์ + หลัง 08:30 → กรอกสัปดาห์หน้าได้ ──
       if (isMonday && pastDeadline) {
         if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove('opacity-40','cursor-not-allowed'); saveBtn.classList.add('cursor-pointer'); }
         if (bannerEl) {
@@ -2080,7 +1960,7 @@
         return;
       }
 
-      // -- Case 3: วันอื่นๆ (อังคาร–อาทิตย์) -> กรอกสัปดาห์หน้าได้ตลอดเวลา --
+      // ── Case 3: วันอื่นๆ (อังคาร–อาทิตย์) → กรอกสัปดาห์หน้าได้ตลอดเวลา ──
       if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove('opacity-40','cursor-not-allowed'); saveBtn.classList.add('cursor-pointer'); }
       if (bannerEl) {
         bannerEl.className = 'bg-amber-50 border-2 border-amber-200 rounded-2xl px-5 py-3 flex items-center gap-3 text-sm mb-4';
@@ -2114,7 +1994,7 @@
       if (btn) { btn.disabled = false; btn.innerText = '💾 บันทึกแผน'; }
 
       if (result && result.success) {
-        // Auto-sync PIC+Vendor -> PIC_Master Sheet ทันที (ไม่รอ debounce)
+        // Auto-sync PIC+Vendor → PIC_Master Sheet ทันที (ไม่รอ debounce)
         const savedRows = getPICTableData();
         const newPairs = savedRows
           .map(r => ({ pic: String(r.pic||'').trim(), vendor: String(r.vendor||'').trim() }))
@@ -2211,19 +2091,9 @@
                 </div>
                 <div class="flex-shrink-0 flex gap-1 ml-1">
                   ${editable ? `
-                    <button type="button"
-                      data-action="openPicEditModal"
-                      data-id="${it.id||''}"
-                      data-supplier="${supplier}"
-                      data-pono="${it.po_no||it.po_number||''}"
-                      data-partno="${it.part_no||it.part_number||''}"
-                      data-qty="${it.qty_plan||it.qty||0}"
-                      data-slot="${it.time_slot||''}"
+                    <button type="button" onclick="openPicEditModal('${(it.id||'').replace(/'/g,"\'")}','${supplier.replace(/'/g,"\'")}','${(it.po_no||it.po_number||'').replace(/'/g,"\'")}','${(it.part_no||it.part_number||'').replace(/'/g,"\'")}','${it.qty_plan||it.qty||0}','${it.time_slot||''}')"
                       class="text-slate-300 hover:text-violet-500 transition-colors cursor-pointer p-1" title="แก้ไข">✏️</button>
-                    <button type="button"
-                      data-action="deletePicPart"
-                      data-id="${it.id||''}"
-                      data-partno="${it.part_no||it.part_number||''}"
+                    <button type="button" onclick="deletePicPart('${(it.id||'').replace(/'/g,"\'")}','${(it.part_no||it.part_number||'').replace(/'/g,"\'")}')"
                       class="text-slate-300 hover:text-rose-500 transition-colors cursor-pointer p-1" title="ลบ">🗑</button>
                   ` : lockIcon}
                 </div>
@@ -2241,7 +2111,7 @@
     // ==========================================
     let _picEditId = null; // id ของ part ที่กำลังแก้
 
-    window.openPicEditModal = function(id, vendor, poNo, partNo, qty, timeSlot) {
+    function openPicEditModal(id, vendor, poNo, partNo, qty, timeSlot) {
       _picEditId = id;
       const label = document.getElementById('pic-edit-label');
       if (label) label.innerText = '👤 ' + vendor;
@@ -2255,7 +2125,7 @@
       setTimeout(() => document.getElementById('pic-edit-part')?.focus(), 100);
     }
 
-    window.closePicEditModal = function() {
+    function closePicEditModal() {
       _picEditId = null;
       const modal = document.getElementById('pic-edit-modal');
       if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
@@ -2314,7 +2184,7 @@
         // ==========================================
     // FACTORY MODAL
     // ==========================================
-    window.callQueueWithFactory = function(qNum, companyName) {
+    function callQueueWithFactory(qNum, companyName) {
       pendingQueueNum = qNum;
       pendingQueueCompany = companyName;
       const compEl = document.getElementById('factory-modal-company');
@@ -2323,13 +2193,13 @@
       if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
     }
 
-    window.closeFactoryModal = function() {
+    function closeFactoryModal() {
       pendingQueueNum = null; pendingQueueCompany = null;
       const modal = document.getElementById('factory-modal');
       if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
     }
 
-    window.confirmFactory = function(factory) {
+    function confirmFactory(factory) {
       if (!pendingQueueNum) return;
       const qNum = pendingQueueNum;
       closeFactoryModal();
@@ -2393,7 +2263,7 @@
       modal._parts = parts;
     }
 
-    window.checkQtyInput = function(inp, plan) {
+    function checkQtyInput(inp, plan) {
       const val = parseFloat(inp.value) || 0;
       inp.classList.remove('over', 'short');
       if (val > plan)       inp.classList.add('over');
@@ -2410,7 +2280,7 @@
       checkUnplanned();
     }
 
-    window.checkUnplanned = function() {
+    function checkUnplanned() {
       // ตรวจว่ามี Qty ที่ไม่ตรงแผนไหม (Qty ที่กรอกมากกว่าแผน = ของนอกแผน)
       const qtyInputs = document.querySelectorAll('#pcm-parts-tbody .qty-input');
       let hasUnplanned = false;
@@ -2477,7 +2347,7 @@
       showToast('เรียกเข้าพื้นที่เรียบร้อย ✅');
     }
 
-    window.closePartsModal = function() {
+    function closePartsModal() {
       const modal = document.getElementById('parts-confirm-modal');
       if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
       pcmQueueNum = null; pcmFactory = null;
@@ -2488,7 +2358,7 @@
     // ==========================================
     // GUARD SCANNER
     // ==========================================
-    window.initGuardScanner = function() {
+    function initGuardScanner() {
       const btnRetry = document.getElementById('btn-start-camera');
       if (btnRetry) btnRetry.classList.add('hidden');
       const overlay = document.getElementById('guard-result-overlay');
@@ -2511,13 +2381,13 @@
           }));
     }
 
-    window.stopGuardScanner = function() {
+    function stopGuardScanner() {
       if (html5QrCode && html5QrCode.isScanning) {
         html5QrCode.stop().then(() => html5QrCode.clear()).catch(() => {});
       }
     }
 
-    window.closeGuardResult = function() {
+    function closeGuardResult() {
       const overlay = document.getElementById('guard-result-overlay');
       if (overlay) overlay.classList.add('hidden');
       const camContainer = document.getElementById('guard-camera-container');
@@ -2528,15 +2398,15 @@
     window.confirmExit = function(qNum) { updateStatus(qNum, 'exited'); closeGuardResult(); };
 
     let lastScannedText = "";
-    window.onScanSuccess = function(decodedText) {
+    function onScanSuccess(decodedText) {
       if (decodedText === lastScannedText) return;
       lastScannedText = decodedText;
       try { new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play(); } catch(e) {}
       processScanResult(decodedText);
     }
-    window.onScanFailure = function() {}
+    function onScanFailure() {}
 
-    window.processScanResult = function(text) {
+    function processScanResult(text) {
       const camContainer = document.getElementById('guard-camera-container');
       if (camContainer) camContainer.classList.add('hidden');
       const overlay = document.getElementById('guard-result-overlay');
@@ -2563,7 +2433,7 @@
               <div class="pt-4 border-t-2 border-slate-200"><div class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">ทะเบียนรถ</div><div class="text-4xl md:text-6xl font-black text-slate-900 bg-yellow-300 border-4 border-yellow-400 px-8 py-4 inline-block rounded-2xl tracking-widest">${match.license_plate || '-'}</div></div>
               ${match.factory ? `<div class="pt-4 border-t-2 border-slate-200"><div class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">ส่งที่</div><div class="text-3xl md:text-5xl font-black text-indigo-700 bg-indigo-100 border-4 border-indigo-300 px-8 py-4 inline-block rounded-2xl">🏭 ${match.factory}</div></div>` : ''}
             </div>
-            <button type="button" data-action="closeGuardResult" class="w-full bg-slate-900 hover:bg-black text-white text-2xl md:text-3xl font-bold py-6 rounded-3xl shadow-xl uppercase tracking-wider cursor-pointer">สแกนคันถัดไป</button>
+            <button type="button" onclick="closeGuardResult()" class="w-full bg-slate-900 hover:bg-black text-white text-2xl md:text-3xl font-bold py-6 rounded-3xl shadow-xl uppercase tracking-wider cursor-pointer">สแกนคันถัดไป</button>
           </div>`;
       } else if (match.status === 'completed') {
         overlay.className = "fixed inset-0 z-50 flex flex-col items-center justify-center p-4 md:p-8 bg-blue-500 fade-in";
@@ -2576,8 +2446,8 @@
               <div class="pt-4 border-t-2 border-slate-200"><div class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">ทะเบียนรถ</div><div class="text-4xl md:text-6xl font-black text-slate-900 bg-yellow-300 border-4 border-yellow-400 px-8 py-4 inline-block rounded-2xl tracking-widest">${match.license_plate || '-'}</div></div>
             </div>
             <div class="grid grid-cols-2 gap-4 w-full">
-              <button type="button" data-action="closeGuardResult" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 text-xl font-bold py-6 rounded-3xl cursor-pointer">ยกเลิก</button>
-              <button type="button" data-action="confirmExit" data-arg="${match.queue_number}" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xl font-bold py-6 rounded-3xl shadow-xl cursor-pointer">ยืนยันรถออก</button>
+              <button type="button" onclick="closeGuardResult()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 text-xl font-bold py-6 rounded-3xl cursor-pointer">ยกเลิก</button>
+              <button type="button" onclick="confirmExit('${match.queue_number}')" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xl font-bold py-6 rounded-3xl shadow-xl cursor-pointer">ยืนยันรถออก</button>
             </div>
           </div>`;
       } else if (match.status === 'waiting') {
@@ -2589,7 +2459,7 @@
       }
     }
 
-    window.showGuardErrorResult = function(title, subtitle, bgColorClass, match = null) {
+    function showGuardErrorResult(title, subtitle, bgColorClass, match = null) {
       const overlay = document.getElementById('guard-result-overlay');
       overlay.className = `fixed inset-0 z-50 flex flex-col items-center justify-center p-4 md:p-8 ${bgColorClass} fade-in`;
       let detailHtml = "";
@@ -2606,14 +2476,14 @@
           <h2 class="text-4xl md:text-6xl font-black text-slate-800 mb-6">${title.replace(/🛑|⚠️|❌/g, '').trim()}</h2>
           <p class="text-2xl font-bold text-slate-500 mb-8">${subtitle}</p>
           ${detailHtml}
-          <button type="button" data-action="closeGuardResult" class="w-full bg-slate-900 hover:bg-black text-white text-2xl font-bold py-6 rounded-3xl shadow-xl uppercase cursor-pointer">สแกนคันถัดไป</button>
+          <button type="button" onclick="closeGuardResult()" class="w-full bg-slate-900 hover:bg-black text-white text-2xl font-bold py-6 rounded-3xl shadow-xl uppercase cursor-pointer">สแกนคันถัดไป</button>
         </div>`;
     }
 
     // ==========================================
     // SUPPLIER CHECKIN
     // ==========================================
-    window.supplierCheckin = function() {
+    function supplierCheckin() {
       const nameInput = document.getElementById('supplier-name');
       const licenseInput = document.getElementById('supplier-license');
       if (!nameInput || !licenseInput) return;
@@ -2634,7 +2504,7 @@
       });
     }
 
-    window.showSupplierStatus = function(record) {
+    function showSupplierStatus(record) {
       const f = document.getElementById('checkin-form');
       const s = document.getElementById('queue-status');
       if (f) f.classList.add('hidden');
@@ -2673,7 +2543,7 @@
       }
     }
 
-    window.updateSupplierStatusDisplay = function(record) {
+    function updateSupplierStatusDisplay(record) {
       if (currentSupplierRecord && String(currentSupplierRecord.queue_number) === String(record.queue_number)) {
         currentSupplierRecord = record;
         safeSetLocal('my_active_queue', JSON.stringify(record));
@@ -2755,7 +2625,7 @@
     // ==========================================
     // UPDATE STATUS
     // ==========================================
-    window.updateStatus = function(qNum, nextStatus, factory = null) {
+    function updateStatus(qNum, nextStatus, factory = null) {
       if (nextStatus === 'cancelled' && !confirm('ต้องการยกเลิกคิวนี้?')) return;
       const today = getThaiDate();
       const recordIdx = allData.findIndex(r => String(r.queue_number) === String(qNum) && r.date === today && r.status !== 'cancelled');
@@ -2785,7 +2655,7 @@
     // STAFF UI
     // ==========================================
     // คำนวณ plan_status จาก PartDetail (แทน WeeklyPlan)
-    window.getPlanStatusFromParts = function(companyName, date) {
+    function getPlanStatusFromParts(companyName, date) {
       const parts = allPartData.filter(p => String(p.date||'').trim() === date);
       if (parts.length === 0) return 'นอกแผน';
 
@@ -2825,7 +2695,7 @@
       return `<span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded shadow-sm text-[9px] font-bold border border-slate-200 whitespace-nowrap">${planStatus}</span>`;
     };
 
-    window.getPartCountBadge = function(companyName) {
+    function getPartCountBadge(companyName) {
       const today = getThaiDate();
       const parts = getPartsForSupplier(companyName, today);
       if (parts.length === 0) return `<span class="text-[9px] font-bold text-slate-300 bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">ไม่มีแผนพาร์ท</span>`;
@@ -2837,7 +2707,7 @@
     }
 
     // คำนวณ plan_status realtime จาก allPartData (override ค่าจาก sheet ถ้าเดิมเป็น นอกแผน)
-    window.getEffectivePlanStatus = function(r) {
+    function getEffectivePlanStatus(r) {
       const stored = r.plan_status || '';
       // ถ้ามีค่าจาก sheet และไม่ใช่ นอกแผน ใช้ค่าเดิม
       if (stored && stored !== 'นอกแผน') return stored;
@@ -2847,7 +2717,7 @@
     }
 
     // ดึง Parts ของ Supplier โดย match ชื่อแบบ fuzzy
-    window.getPartsForSupplier = function(companyName, date) {
+    function getPartsForSupplier(companyName, date) {
       if (!allPartData || allPartData.length === 0) {
         console.log('[Parts] allPartData ว่างเปล่า');
         return [];
@@ -2877,7 +2747,7 @@
     }
 
     // สร้าง mini Part list HTML สำหรับ Staff card
-    window.getPartMiniList = function(companyName, date) {
+    function getPartMiniList(companyName, date) {
       const parts = getPartsForSupplier(companyName, date);
       if (parts.length === 0) return '';
       return `<div class="mt-2 bg-violet-50 rounded-xl border border-violet-100 overflow-hidden">
@@ -2895,7 +2765,7 @@
       </div>`;
     }
 
-    window.updateStaffUI = function() {
+    function updateStaffUI() {
       const today = getThaiDate();
 
       // Banner
@@ -2952,10 +2822,10 @@
       if (cLoad) cLoad.innerText = loadList.length;
       if (cComp) cComp.innerText = compList.length;
 
-      // Waiting card -- ปุ่มเรียกเข้าพื้นที่ -> เปิด Factory Modal
+      // Waiting card — ปุ่มเรียกเข้าพื้นที่ → เปิด Factory Modal
       const renderWaitCard = (r) => `
         <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 fade-in relative pt-10 text-left">
-          <button type="button" data-action="updateStatus" data-arg="${r.queue_number}" data-arg2="cancelled" class="absolute top-2 left-1/2 -translate-x-1/2 text-slate-300 hover:text-rose-500 transition-colors p-1 cursor-pointer" title="ยกเลิก">
+          <button type="button" onclick="updateStatus('${r.queue_number}', 'cancelled')" class="absolute top-2 left-1/2 -translate-x-1/2 text-slate-300 hover:text-rose-500 transition-colors p-1 cursor-pointer" title="ยกเลิก">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
           </button>
           <div class="flex justify-between items-center mb-1">
@@ -2970,15 +2840,15 @@
             <div class="text-[10px] font-bold text-slate-700 bg-yellow-100 inline-block px-2 py-1 rounded-md border border-yellow-200">ทะเบียน: ${r.license_plate || '-'}</div>
             ${getPartCountBadge(r.company_name)}
           </div>
-          <button type="button" data-action="callQueueWithFactory" data-arg="${r.queue_number}" data-arg2="${r.company_name}" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white active:scale-95 shadow-lg py-2.5 rounded-2xl text-[10px] font-black tracking-widest transition-all uppercase cursor-pointer">
+          <button type="button" onclick="callQueueWithFactory('${r.queue_number}', '${r.company_name.replace(/'/g, "\\'")}')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white active:scale-95 shadow-lg py-2.5 rounded-2xl text-[10px] font-black tracking-widest transition-all uppercase cursor-pointer">
               🏭 เรียกเข้าพื้นที่ (เลือกโรงงาน)
           </button>
         </div>`;
 
-      // Loading card -- ปุ่ม Complete เปิด Parts Confirm Modal
+      // Loading card — ปุ่ม Complete เปิด Parts Confirm Modal
       const renderLoadCard = (r) => `
         <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 fade-in relative pt-10 text-left">
-          <button type="button" data-action="updateStatus" data-arg="${r.queue_number}" data-arg2="cancelled" class="absolute top-2 left-1/2 -translate-x-1/2 text-slate-300 hover:text-rose-500 transition-colors p-1 cursor-pointer" title="ยกเลิก">
+          <button type="button" onclick="updateStatus('${r.queue_number}', 'cancelled')" class="absolute top-2 left-1/2 -translate-x-1/2 text-slate-300 hover:text-rose-500 transition-colors p-1 cursor-pointer" title="ยกเลิก">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
           </button>
           <div class="flex justify-between items-center mb-1">
@@ -2995,7 +2865,7 @@
           </div>
           <div class="mb-2">${getPartCountBadge(r.company_name)}</div>
           ${getPartMiniList(r.company_name, r.date)}
-          <button type="button" data-action="openCompletePartsModal" data-arg="${r.queue_number}" data-arg2="${r.company_name}" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-2xl text-[10px] font-black active:scale-95 transition-all uppercase shadow-lg cursor-pointer">
+          <button type="button" onclick="openCompletePartsModal('${r.queue_number}', '${r.company_name.replace(/'/g, "\\'")}')" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-2xl text-[10px] font-black active:scale-95 transition-all uppercase shadow-lg cursor-pointer">
               📦 ยืนยันรับพาร์ทและเสร็จสิ้น
           </button>
         </div>`;
@@ -3043,7 +2913,7 @@
       _setIfChanged(stWait,  waitList.length + loadList.length);
     }
 
-    // Complete flow -- เปิด Parts Modal สำหรับ loading -> completed
+    // Complete flow — เปิด Parts Modal สำหรับ loading → completed
     async function openCompletePartsModal(qNum, company) {
       pcmQueueNum = qNum;
       pcmFactory = null; // ไม่ต้องเลือกโรงงานอีกแล้ว
@@ -3126,7 +2996,7 @@
     // ==========================================
     // STAFF TABS
     // ==========================================
-    window.showStaffTab = function(tab) {
+    function showStaffTab(tab) {
       ['queue','daily','parts'].forEach(t => {
         const p = document.getElementById('page-' + t);
         const b = document.getElementById('tab-' + t);
@@ -3134,10 +3004,10 @@
         if (b) b.className = t === tab ? 'tab-active px-6 py-2.5 rounded-xl text-xs font-bold shadow-md cursor-pointer' : 'bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold cursor-pointer';
       });
       if (tab === 'daily') { updateDailyChart(); updateDailyHistoryList(); }
-      if (tab === 'parts') { populatePartsDashboardFilters(); updatePartsDashboard(); initHistoryYearFilter(); }
+      if (tab === 'parts') { populatePartsDashboardFilters(); updatePartsDashboard(); }
     }
 
-    window.populateMonthSelector = function(elementId) {
+    function populateMonthSelector(elementId) {
       const sel = document.getElementById(elementId);
       if (sel && sel.options.length === 0) {
         if (elementId === 'kpi-month') sel.add(new Option('ทุกเดือน (ตั้งแต่เริ่มต้น)', 'ALL'));
@@ -3149,7 +3019,7 @@
       }
     }
 
-    window.populateSupplierSelector = function(elementId) {
+    function populateSupplierSelector(elementId) {
       const sel = document.getElementById(elementId);
       if (!sel) return;
       const currentValue = sel.value;
@@ -3159,7 +3029,7 @@
       if (currentValue && uniqueSups.includes(currentValue)) sel.value = currentValue;
     }
 
-    window.updateKPIUI = function() {
+    function updateKPIUI() {
       const mEl = document.getElementById('kpi-month');
       const sEl = document.getElementById('kpi-supplier');
       if (!mEl || !sEl) return;
@@ -3210,7 +3080,7 @@
       generateAllSuppliersTable(myData);
     }
 
-    window.generateAllSuppliersTable = function(validData) {
+    function generateAllSuppliersTable(validData) {
       const supStats = {};
       validData.forEach(r => {
         const name = r.company_name;
@@ -3237,7 +3107,7 @@
       }
     }
 
-    window.updateKPIChart = function(ontime, late, unplanned, pickup) {
+    function updateKPIChart(ontime, late, unplanned, pickup) {
       const canvas = document.getElementById('kpiPieChart');
       if (!canvas || typeof Chart === 'undefined') return;
       const ctx = canvas.getContext('2d');
@@ -3249,7 +3119,7 @@
       kpiPieChart = new Chart(ctx, { type:'doughnut', data:{ labels:['ตรงเวลา/ก่อนเวลา','ล่าช้า','นอกแผน','Pickup'], datasets:[{ data:[ontime,late,unplanned,pickup], backgroundColor:['#10b981','#f43f5e','#f59e0b','#3b82f6'], borderWidth:0, hoverOffset:4 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ font:{ family:'Prompt' } } } }, cutout:'70%' } });
     }
 
-    window.updateDailyHistoryList = function() {
+    function updateDailyHistoryList() {
       const container = document.getElementById('daily-history-list');
       if (!container) return;
       let html = '<h3 class="font-bold text-slate-800 mt-10 mb-6">รายละเอียดประวัติ (7 วันล่าสุด)</h3>';
@@ -3290,7 +3160,7 @@
       container.innerHTML = html;
     }
 
-    window.updateMonthlySummary = function() {
+    function updateMonthlySummary() {
       const selValue = document.getElementById('month-selector').value;
       if (!selValue) return;
       const parts = selValue.split('-'); const year = parts[0]; const month = parts[1];
@@ -3314,7 +3184,7 @@
       updateMonthlyChart(year, month, mData);
     }
 
-    window.updateMonthlyChart = function(y, m, data) {
+    function updateMonthlyChart(y, m, data) {
       const canvas = document.getElementById('monthlyChart');
       if (!canvas || typeof Chart === 'undefined') return;
       const ctx = canvas.getContext('2d');
@@ -3329,7 +3199,7 @@
       monthlyChart = new Chart(ctx, { type:'line', data:{ labels, datasets:[{ label:'คิว', data:counts, borderColor:'#4f46e5', borderWidth:3, pointRadius:0, fill:true, tension:0.4, backgroundColor:'rgba(79,70,229,0.05)' }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 } } } } });
     }
 
-    window.updateDailyChart = function() {
+    function updateDailyChart() {
       const canvas = document.getElementById('dailyChart');
       if (!canvas || typeof Chart === 'undefined') return;
       const ctx = canvas.getContext('2d');
@@ -3354,7 +3224,7 @@
     let pdQtyChart  = null;
     let pdBarChart  = null;
 
-    window.populatePartsDashboardFilters = function() {
+    function populatePartsDashboardFilters() {
       const mSel = document.getElementById('parts-month');
       if (mSel && mSel.options.length === 0) {
         mSel.add(new Option('ทุกเดือน', 'ALL'));
@@ -3379,12 +3249,12 @@
       if (cur && vendors.includes(cur)) sSel.value = cur;
     }
 
-    window.getOriginBadge = function(origin) {
+    function getOriginBadge(origin) {
       if (!origin || origin === 'local') return '<span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[9px] font-black">🏠 Local</span>';
       return '<span class="bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded text-[9px] font-black">✈️ Import</span>';
     }
 
-    window.getPartStatusBadge = function(status) {
+    function getPartStatusBadge(status) {
       const map = {
         'completed': '<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-lg text-[9px] font-black">ครบ ✅</span>',
         'short':     '<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-lg text-[9px] font-black">ไม่ครบ ⚠️</span>',
@@ -3395,17 +3265,17 @@
       return map[status] || map['pending'];
     }
 
-    window.starsHtml = function(score) {
-      const filled = Math.round(score / 20); // 0-100 -> 0-5 stars
+    function starsHtml(score) {
+      const filled = Math.round(score / 20); // 0-100 → 0-5 stars
       return '⭐'.repeat(filled) + '☆'.repeat(5 - filled);
     }
 
-    window.updatePartsDashboard = function() {
+    function updatePartsDashboard() {
       if (!allPartData) return;
       const mVal = document.getElementById('parts-month')?.value || 'ALL';
       const sVal = document.getElementById('parts-supplier')?.value || 'ALL';
 
-      // --- Filter checkin data ---
+      // ─── Filter checkin data (เฉพาะที่มีการรับของจริง) ───
       const filteredCheckin = allData.filter(r => {
         if (r.status === 'cancelled') return false;
         if (mVal !== 'ALL') {
@@ -3414,15 +3284,16 @@
           if (dp[0] !== y || dp[1] !== m) return false;
         }
         if (sVal !== 'ALL') {
-          if (!String(r.company_name||'').toLowerCase().includes(String(sVal||'').toLowerCase())) return false;
+          if (vendorScore(r.company_name, sVal) < 60 &&
+              !String(r.company_name||'').toLowerCase().includes(String(sVal||'').toLowerCase())) return false;
         }
         return true;
       });
-
+      // visits = unique checkin (1 คัน = 1 ครั้ง ไม่ใช่นับ row part)
       const uniqueVisitKeys = new Set(filteredCheckin.map(r => r.date + '_' + r.queue_number));
       const visits = uniqueVisitKeys.size;
 
-      // --- Filter parts data (จำกัดแค่ completed/short/missing เพื่อ performance) ---
+      // ─── Filter parts data ───
       const filteredParts = allPartData.filter(p => {
         if (mVal !== 'ALL') {
           const [y, m] = mVal.split('-');
@@ -3430,12 +3301,13 @@
           if (dp[0] !== y || dp[1] !== m) return false;
         }
         if (sVal !== 'ALL') {
-          if (!String(p.vendor||'').toLowerCase().includes(String(sVal||'').toLowerCase())) return false;
+          if (vendorScore(p.vendor, sVal) < 60 &&
+              !String(p.vendor||'').toLowerCase().includes(String(sVal||'').toLowerCase())) return false;
         }
         return true;
       });
 
-      // --- Checkin stats ---
+      // ─── Checkin stats ───
       // visits คำนวณแล้วข้างบน
       const ontime   = filteredCheckin.filter(r => (r.plan_status||'').includes('ตรงเวลา')).length;
       const late     = filteredCheckin.filter(r => (r.plan_status||'').includes('ล่าช้า')).length;
@@ -3451,7 +3323,7 @@
       set('pd-early',         early);    set('pd-early-pct',     pct(early, visits));
       set('pd-unplanned',     unplanned);set('pd-unplanned-pct', pct(unplanned, visits));
 
-      // --- Parts stats ---
+      // ─── Parts stats ───
       const partsTotal   = filteredParts.length;
       const partsComp    = filteredParts.filter(p => p.status === 'completed').length;
       const partsShort   = filteredParts.filter(p => p.status === 'short').length;
@@ -3462,7 +3334,7 @@
       set('pd-parts-short',          partsShort);   set('pd-parts-short-pct',     pct(partsShort, partsTotal));
       set('pd-parts-missing',        partsMissing); set('pd-parts-missing-pct',   pct(partsMissing, partsTotal));
 
-      // --- Local vs Import stats ---
+      // ─── Local vs Import stats ───
       const localParts  = filteredParts.filter(p => !p.origin || p.origin === 'local');
       const importParts = filteredParts.filter(p => p.origin === 'import');
       const localComp   = localParts.filter(p => p.status === 'completed').length;
@@ -3477,7 +3349,7 @@
       set('pd-import-comp',     importComp);
       set('pd-import-comp-pct', importParts.length > 0 ? ((importComp/importParts.length)*100).toFixed(0)+'%' : '0%');
 
-      // --- Combo: QTY × เวลา ---
+      // ─── Combo: QTY × เวลา ───
       // join checkin กับ parts ด้วย date+vendor
       let comboAA = 0, comboAB = 0, comboBA = 0, comboBB = 0;
       filteredCheckin.forEach(r => {
@@ -3501,7 +3373,7 @@
       set('pd-combo-ba', comboBA); set('pd-combo-ba-pct', pctC(comboBA));
       set('pd-combo-bb', comboBB); set('pd-combo-bb-pct', pctC(comboBB));
 
-      // --- QTY totals ---
+      // ─── QTY totals ───
       const qtyPlan = filteredParts.reduce((s,p) => s+(parseFloat(String(p.qty_plan||0).replace(/,/g,''))||0), 0);
       const qtyRecv = filteredParts.reduce((s,p) => s+(parseFloat(String(p.qty_received||0).replace(/,/g,''))||0), 0);
       const fillRate = qtyPlan > 0 ? ((qtyRecv/qtyPlan)*100).toFixed(1) : 0;
@@ -3514,20 +3386,20 @@
       const barRecv = document.getElementById('pd-bar-received');
       if (barRecv) barRecv.style.width = fillPct + '%';
 
-      // --- Last update ---
+      // ─── Last update ───
       const lu = document.getElementById('pd-last-update');
       if (lu) lu.innerText = 'อัปเดต ' + formatThaiTime(new Date().toISOString());
 
-      // --- Charts ---
+      // ─── Charts ───
       updatePdTimeChart(ontime, late, early, unplanned);
       updatePdQtyChart(partsComp, partsShort, partsMissing, partsTotal - partsComp - partsShort - partsMissing);
       updatePdBarChart(filteredCheckin, filteredParts);
 
-      // --- Tables ---
+      // ─── Tables ───
       updatePdPerfTable(filteredCheckin, filteredParts);
     }
 
-    window.updatePdTimeChart = function(ontime, late, early, unplanned) {
+    function updatePdTimeChart(ontime, late, early, unplanned) {
       const canvas = document.getElementById('pd-time-chart');
       if (!canvas || typeof Chart === 'undefined') return;
       if (pdTimeChart) pdTimeChart.destroy();
@@ -3545,7 +3417,7 @@
       });
     }
 
-    window.updatePdQtyChart = function(comp, short, missing, pending) {
+    function updatePdQtyChart(comp, short, missing, pending) {
       const canvas = document.getElementById('pd-qty-chart');
       if (!canvas || typeof Chart === 'undefined') return;
       if (pdQtyChart) { pdQtyChart.destroy(); pdQtyChart = null; }
@@ -3562,7 +3434,7 @@
       });
     }
 
-    window.updatePdBarChart = function(checkinData, partsData) {
+    function updatePdBarChart(checkinData, partsData) {
       const canvas = document.getElementById('pd-bar-chart');
       if (!canvas || typeof Chart === 'undefined') return;
       if (pdBarChart) { pdBarChart.destroy(); pdBarChart = null; }
@@ -3576,16 +3448,14 @@
       if (vendors.length === 0) return;
 
       const ontimePcts = vendors.map(v => {
-        const vl   = v.toLowerCase();
-        const rows = checkinData.filter(r => String(r.company_name||'').toLowerCase().includes(vl) || vl.includes(String(r.company_name||'').toLowerCase().substring(0,8)));
+        const rows = checkinData.filter(r => vendorScore(r.company_name, v) >= 70 || r.company_name === v);
         if (!rows.length) return 0;
         const ot = rows.filter(r => (r.plan_status||'').includes('ตรงเวลา')).length;
         return parseFloat(((ot/rows.length)*100).toFixed(1));
       });
 
       const qtyPcts = vendors.map(v => {
-        const vl    = v.toLowerCase();
-        const parts = partsData.filter(p => String(p.vendor||'').toLowerCase().includes(vl) || vl.includes(String(p.vendor||'').toLowerCase().substring(0,8)));
+        const parts = partsData.filter(p => vendorScore(p.vendor, v) >= 70 || p.vendor === v);
         if (!parts.length) return 0;
         const comp = parts.filter(p => p.status === 'completed').length;
         return parseFloat(((comp/parts.length)*100).toFixed(1));
@@ -3612,7 +3482,7 @@
       });
     }
 
-    window.updatePdPerfTable = function(checkinData, partsData) {
+    function updatePdPerfTable(checkinData, partsData) {
       const tbody = document.getElementById('pd-perf-table');
       const countEl = document.getElementById('pd-table-count');
       if (!tbody) return;
@@ -3623,9 +3493,8 @@
       ].filter(Boolean))].sort();
 
       const rows = vendors.map(v => {
-        const vl = v.toLowerCase();
-        const ci = checkinData.filter(r => String(r.company_name||'').toLowerCase().includes(vl) || vl.includes(String(r.company_name||'').toLowerCase().substring(0,8)));
-        const pp = partsData.filter(p => String(p.vendor||'').toLowerCase().includes(vl) || vl.includes(String(p.vendor||'').toLowerCase().substring(0,8)));
+        const ci = checkinData.filter(r => r.company_name === v || vendorScore(r.company_name, v) >= 70);
+        const pp = partsData.filter(p => p.vendor === v || vendorScore(p.vendor, v) >= 70);
         const visits = ci.length;
         const ontime = ci.filter(r => (r.plan_status||'').includes('ตรงเวลา')).length;
         const late   = ci.filter(r => (r.plan_status||'').includes('ล่าช้า')).length;
@@ -3673,8 +3542,8 @@
         // ==========================================
     // PIC TAB NAVIGATION
     // ==========================================
-    window.showPicTab = function(tab) {
-      ['upload503','myparts','responsibility','pic-master'].forEach(t => {
+    function showPicTab(tab) {
+      ['plan','upload503','responsibility','pic-master'].forEach(t => {
         const p = document.getElementById('pic-page-' + t);
         const b = document.getElementById('pic-tab-' + t);
         if (p) p.classList.toggle('hidden', t !== tab);
@@ -3682,15 +3551,22 @@
           ? 'tab-active px-6 py-2.5 rounded-xl text-xs font-bold shadow-md cursor-pointer'
           : 'bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer';
       });
-      if (tab === 'myparts') initMyParts();
-      if (tab === 'responsibility') { initPicResponsibility(); updatePicResponsibility(); }
-      if (tab === 'pic-master') updatePicMaster();
+      if (tab === 'plan') {
+        updatePICAccessUI();
+      }
+      if (tab === 'responsibility') {
+        initPicResponsibility();
+        updatePicResponsibility();
+      }
+      if (tab === 'pic-master') {
+        updatePicMaster();
+      }
     }
 
     // ==========================================
     // PIC RESPONSIBILITY
     // ==========================================
-    window.initPicResponsibility = function() {
+    function initPicResponsibility() {
       // ตั้ง date default = วันนี้ (ตั้งเฉพาะครั้งแรก)
       const dateEl = document.getElementById('pic-resp-date');
       if (dateEl && !dateEl.value) dateEl.value = getThaiDate();
@@ -3702,7 +3578,7 @@
       fetchAll();
     }
 
-    window._populatePicRespFilter = function() {
+    function _populatePicRespFilter() {
       const sel = document.getElementById('pic-resp-filter');
       if (!sel) return;
       const cur = sel.value;
@@ -3712,7 +3588,7 @@
       if (cur && pics.includes(cur)) sel.value = cur;
     }
 
-    window.updatePicResponsibility = function() {
+    function updatePicResponsibility() {
       const dateEl = document.getElementById('pic-resp-date');
       const filterEl = document.getElementById('pic-resp-filter');
       const dateVal = dateEl?.value || getThaiDate();
@@ -3737,7 +3613,7 @@
       const cntEl = document.getElementById('pic-resp-count');
       if (cntEl) cntEl.innerText = filtered.length + ' รายการ';
 
-      // Group by PIC -> Suppliers
+      // Group by PIC → Suppliers
       const picMap = {};
       filtered.forEach(p => {
         const pic     = p.pic     || '(ไม่ระบุ PIC)';
@@ -3876,12 +3752,12 @@
 
         // ==========================================
     // ==========================================
-    // PIC MASTER -- Card-based (ใช้ Google Sheet แทน localStorage)
+    // PIC MASTER — Card-based (ใช้ Google Sheet แทน localStorage)
     // ==========================================
     let pmCurrentPic = null; // ชื่อ PIC ที่กำลังเพิ่ม Supplier
 
-    // แปลง allPicMaster (flat rows จาก Sheet) -> { pics: [{name, suppliers:[]}] }
-    window.buildPicStructure = function(rows) {
+    // แปลง allPicMaster (flat rows จาก Sheet) → { pics: [{name, suppliers:[]}] }
+    function buildPicStructure(rows) {
       const map = {};
       (rows || []).forEach(r => {
         const pic = String(r.pic_name || '').trim();
@@ -3897,7 +3773,7 @@
     let _syncQueue = [];
     let _syncTimer = null;
 
-    window.syncPicMasterToSheet = function(rows) {
+    function syncPicMasterToSheet(rows) {
       if (!rows || rows.length === 0) return;
       rows.forEach(r => {
         const pic    = String(r.pic    || '').trim();
@@ -3932,7 +3808,7 @@
     // ลบ localStorage เก่าถ้ายังมีค้างอยู่
     try { localStorage.removeItem('pic_master_data'); } catch(e) {}
 
-    window.updatePicMaster = function() {
+    function updatePicMaster() {
       const data = buildPicStructure(allPicMaster);
       const grid = document.getElementById('pm-cards-grid');
       const empty = document.getElementById('pm-empty');
@@ -3953,9 +3829,9 @@
           <div class="bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-3 flex items-center justify-between">
             <div class="font-black text-white">👤 ${pic.name}</div>
             <div class="flex gap-2">
-              <button type="button" data-action="openAddSupModal" data-arg="${pi}"
+              <button type="button" onclick="openAddSupModal(${pi})"
                 class="bg-white/20 hover:bg-white/30 text-white text-[10px] font-black px-2.5 py-1 rounded-lg cursor-pointer">+ Supplier</button>
-              <button type="button" data-action="deletePicCard" data-arg="${pi}"
+              <button type="button" onclick="deletePicCard(${pi})"
                 class="bg-white/10 hover:bg-rose-500 text-white text-[10px] font-black px-2 py-1 rounded-lg cursor-pointer" title="ลบ PIC นี้">✕</button>
             </div>
           </div>
@@ -3966,7 +3842,7 @@
               : sups.map((s, si) => `
                   <div class="flex items-center justify-between px-4 py-2.5 hover:bg-violet-50 transition-colors group">
                     <span class="font-bold text-slate-700 text-sm">${s}</span>
-                    <button type="button" data-action="deleteSupFromPic" data-arg="${pi}" data-arg2="${si}"
+                    <button type="button" onclick="deleteSupFromPic(${pi},${si})"
                       class="opacity-0 group-hover:opacity-100 text-slate-200 hover:text-rose-500 transition-all cursor-pointer ml-2 text-base leading-none flex-shrink-0">✕</button>
                   </div>`).join('')
             }
@@ -3979,14 +3855,14 @@
       }).join('');
     }
 
-    window.addPicCard = function() {
+    function addPicCard() {
       document.getElementById('pm-new-pic-name').value = '';
       const modal = document.getElementById('pm-add-pic-modal');
       if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
       setTimeout(() => document.getElementById('pm-new-pic-name')?.focus(), 100);
     }
 
-    window.closePmModal = function() {
+    function closePmModal() {
       const modal = document.getElementById('pm-add-pic-modal');
       if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
     }
@@ -4023,7 +3899,7 @@
     let _pmSelectedSups = new Set(); // ชื่อ Supplier ที่เลือกไว้ใน modal
     let _pmAllSuggestions = [];      // รายการ suggestions ทั้งหมด
 
-    window.openAddSupModal = function(pi) {
+    function openAddSupModal(pi) {
       pmCurrentPic = pi;
       _pmSelectedSups = new Set();
       const data = buildPicStructure(allPicMaster);
@@ -4049,7 +3925,7 @@
       setTimeout(() => inp?.focus(), 100);
     }
 
-    window.filterPmSuggestions = function() {
+    function filterPmSuggestions() {
       const q = (document.getElementById('pm-new-sup-name')?.value || '').toLowerCase().trim();
       const filtered = q
         ? _pmAllSuggestions.filter(s => s.toLowerCase().includes(q))
@@ -4057,7 +3933,7 @@
       _renderPmSuggestions(filtered);
     }
 
-    window._renderPmSuggestions = function(list) {
+    function _renderPmSuggestions(list) {
       const sugDiv = document.getElementById('pm-sup-suggestions');
       if (!sugDiv) return;
       if (list.length === 0) {
@@ -4066,7 +3942,7 @@
       }
       sugDiv.innerHTML = list.map(s => {
         const selected = _pmSelectedSups.has(s);
-        return `<button type="button" data-action="togglePmSup" data-arg="${s}"
+        return `<button type="button" onclick="togglePmSup('${s.replace(/'/g,"\'")}')"
           class="px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition-colors border
             ${selected
               ? 'bg-violet-600 text-white border-violet-600'
@@ -4075,7 +3951,7 @@
       }).join('');
     }
 
-    window.togglePmSup = function(name) {
+    function togglePmSup(name) {
       if (_pmSelectedSups.has(name)) {
         _pmSelectedSups.delete(name);
       } else {
@@ -4085,7 +3961,7 @@
       _renderPmSelected();
     }
 
-    window.addPmSupToSelected = function() {
+    function addPmSupToSelected() {
       const inp = document.getElementById('pm-new-sup-name');
       const name = inp?.value.trim();
       if (!name) return;
@@ -4095,13 +3971,13 @@
       _renderPmSelected();
     }
 
-    window.removePmSelected = function(name) {
+    function removePmSelected(name) {
       _pmSelectedSups.delete(name);
       filterPmSuggestions();
       _renderPmSelected();
     }
 
-    window._renderPmSelected = function() {
+    function _renderPmSelected() {
       const container = document.getElementById('pm-selected-list');
       const chips     = document.getElementById('pm-selected-chips');
       const countEl   = document.getElementById('pm-selected-count');
@@ -4114,13 +3990,13 @@
       chips.innerHTML = arr.map(s =>
         `<span class="flex items-center gap-1 bg-violet-100 text-violet-700 px-2.5 py-1 rounded-lg text-[10px] font-bold">
           ${s}
-          <button type="button" data-action="removePmSelected" data-arg="${s}"
+          <button type="button" onclick="removePmSelected('${s.replace(/'/g,"\'")}')"
             class="text-violet-400 hover:text-rose-500 font-black cursor-pointer leading-none">✕</button>
         </span>`
       ).join('');
     }
 
-    window.closePmSupModal = function() {
+    function closePmSupModal() {
       pmCurrentPic = null;
       _pmSelectedSups = new Set();
       const modal = document.getElementById('pm-add-sup-modal');
@@ -4178,14 +4054,14 @@
     }
 
     // ==========================================
-    // PIC MASTER -- ความรับผิดชอบ PIC (All-time) -- OLD (ยังใช้บางส่วน)
+    // PIC MASTER — ความรับผิดชอบ PIC (All-time) — OLD (ยังใช้บางส่วน)
     // ==========================================
-    window._updatePicMasterAllTime = function() {
+    function _updatePicMasterAllTime() {
       const searchPic = (document.getElementById('pic-master-search')?.value || '').toLowerCase().trim();
       const searchSup = (document.getElementById('pic-master-sup-search')?.value || '').toLowerCase().trim();
 
-      // Build PIC -> Set of Suppliers (all-time จาก allPartData ทั้งหมด)
-      const picMap = {};  // pic -> { vendors: Set, parts: [], lastDate: '' }
+      // Build PIC → Set of Suppliers (all-time จาก allPartData ทั้งหมด)
+      const picMap = {};  // pic → { vendors: Set, parts: [], lastDate: '' }
       allPartData.forEach(p => {
         const pic    = String(p.pic    || '(ไม่ระบุ PIC)').trim();
         const vendor = String(p.vendor || '(ไม่ระบุ)').trim();
@@ -4322,14 +4198,14 @@
         // ==========================================
     // UTILITIES
     // ==========================================
-    window.getThaiDate = function() {
+    function getThaiDate() {
       const d = new Date();
       const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
       const nd = new Date(utc + (3600000 * 7));
       return `${nd.getFullYear()}-${String(nd.getMonth()+1).padStart(2,'0')}-${String(nd.getDate()).padStart(2,'0')}`;
     }
 
-    window.formatThaiTime = function(iso) {
+    function formatThaiTime(iso) {
       if (!iso || iso === '-') return '-';
       try {
         const d = new Date(iso);
@@ -4339,7 +4215,7 @@
       } catch(e) { return '-'; }
     }
 
-    window.showToast = function(msg) {
+    function showToast(msg) {
       const toast = document.createElement('div');
       toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-2xl z-[9999] fade-in';
       toast.innerText = msg;
@@ -4347,7 +4223,7 @@
       setTimeout(() => toast.remove(), 3000);
     }
 
-    window.resetSupplierView = function() {
+    function resetSupplierView() {
       currentSupplierRecord = null;
       safeRemoveLocal('my_active_queue');
       safeRemoveSession('qr_auto_triggered');
@@ -4361,7 +4237,7 @@
     }
 
     // =====================================================
-    // UPLOAD 503 -- SheetJS parse XLS/XLSX
+    // UPLOAD 503 — SheetJS parse XLS/XLSX
     // =====================================================
     let upload503Data = [];      // raw rows จากไฟล์ (กรอง blank PO แล้ว)
     let modal503CurrentPic = ''; // PIC ที่เปิด modal อยู่
@@ -4381,25 +4257,24 @@
       });
     })();
 
-    window.handle503Upload = function(input) {
+    function handle503Upload(input) {
       const file = input.files[0];
       if (file) process503File(file);
     }
 
-    window.process503File = function(file) {
+    function process503File(file) {
       const ext = file.name.split('.').pop().toLowerCase();
       if (!['xls','xlsx'].includes(ext)) { showToast('❌ รองรับเฉพาะ .xls และ .xlsx เท่านั้น'); return; }
 
       const fnEl = document.getElementById('upload503-filename');
       if (fnEl) { fnEl.innerText = '📄 ' + file.name; fnEl.classList.remove('hidden'); }
 
-      // ซ่อน result เก่า แสดง loading
-      const resultEl = document.getElementById('upload503-result');
-      if (resultEl) resultEl.classList.add('hidden');
       document.getElementById('upload503-loading').classList.remove('hidden');
+      document.getElementById('upload503-summary').classList.add('hidden');
+      document.getElementById('upload503-actions').classList.add('hidden');
 
       const reader = new FileReader();
-      reader.onload = async function(e) {
+      reader.onload = function(e) {
         try {
           const data = new Uint8Array(e.target.result);
           const wb   = XLSX.read(data, { type: 'array', cellDates: true });
@@ -4433,8 +4308,8 @@
 
             return {
               po_no:           g(['po no.','po no','po_no','pono']),
-              no:              g(['no.','no']),
-              part_no:         g(['item no.','item no','item_no','part no.','part no','part_no','vendor item#','vendor item #']),
+              no:              g(['item no.','item no','no','no.']),
+              part_no:         g(['vendor item#','vendor item #','vendor item']),
               part_name:       g(['item description','item desc','description']),
               order_qty:       parseFloat(g(['order qty','order_qty','orderqty'])) || 0,
               undelivered_qty: parseFloat(g(['undelivered qty','undelivered_qty','undelivered'])) || 0,
@@ -4456,8 +4331,9 @@
             return;
           }
 
-          // บันทึกลง Sheet ทันทีเป็น draft -- ไม่ต้องแสดง Card
-          await autoSave503ToSheet();
+          render503Sections();
+          document.getElementById('upload503-summary').classList.remove('hidden');
+          document.getElementById('upload503-actions').classList.remove('hidden');
 
         } catch(err) {
           document.getElementById('upload503-loading').classList.add('hidden');
@@ -4467,56 +4343,13 @@
       reader.readAsArrayBuffer(file);
     }
 
-    window.get503Filtered = function() {
-      return upload503Data;
+    function get503Filtered() {
+      const dateFilter = (document.getElementById('upload503-date-filter') || {}).value || '';
+      if (!dateFilter) return upload503Data;
+      return upload503Data.filter(function(r) { return r.arrival_date === dateFilter; });
     }
 
-    // บันทึกทั้งหมดลง Sheet เป็น draft ทันทีหลังอัพโหลด
-    async function autoSave503ToSheet() {
-      const loadingEl = document.getElementById('upload503-loading');
-      const resultEl  = document.getElementById('upload503-result');
-      const resultTxt = document.getElementById('upload503-result-text');
-      if (loadingEl) { loadingEl.classList.remove('hidden'); }
-
-      try {
-        const rows = upload503Data.map(function(r) {
-          return {
-            date:      r.arrival_date || '',
-            vendor:    r.vendor       || '',
-            pic:       r.pic_name     || '',
-            po_no:     r.po_no        || '',
-            part_no:   r.part_no      || '',
-            no:        r.no           || '',
-            qty:       r.undelivered_qty || r.order_qty || 0,
-            time_slot: '',
-            origin:    'import',
-          };
-        });
-
-        // แบ่ง batch ทีละ 300 rows กัน timeout
-        const batchSize = 300;
-        let totalSaved = 0, totalUpdated = 0;
-        for (let i = 0; i < rows.length; i += batchSize) {
-          const batch = rows.slice(i, i + batchSize);
-          const res   = await callAPI('savePlanParts', { rows: JSON.stringify(batch) });
-          if (res && res.success) {
-            totalSaved   += res.saved   || 0;
-            totalUpdated += res.updated || 0;
-          }
-        }
-
-        if (loadingEl) loadingEl.classList.add('hidden');
-        if (resultEl)  resultEl.classList.remove('hidden');
-        if (resultTxt) resultTxt.innerText = `บันทึกสำเร็จ ${totalSaved} รายการใหม่, อัพเดต ${totalUpdated} รายการ — รอ PIC แต่ละคน Confirm`;
-        showToast(`✅ บันทึก ${totalSaved} รายการใหม่`);
-
-      } catch(err) {
-        if (loadingEl) loadingEl.classList.add('hidden');
-        showToast('❌ บันทึกไม่สำเร็จ: ' + err.message);
-      }
-    }
-
-    window.render503Sections = function() {
+    function render503Sections() {
       const rows = get503Filtered();
 
       // แยกตาม PIC
@@ -4573,110 +4406,50 @@
       });
     }
 
-    // --- Modal per PIC -- grouped by Vendor -------------------
-    window.openModal503 = function(pic) {
+    // ─── Modal per PIC ───────────────────────────────
+    function openModal503(pic) {
       modal503CurrentPic = pic;
       const rows = get503Filtered();
-      const items = rows.filter(function(r) {
-        return (r.pic_name || '(ไม่ระบุ PIC)') === pic;
-      });
+      const items = rows
+        .map(function(r) { return { r, trueIdx: upload503Data.indexOf(r) }; })
+        .filter(function(x) { return (x.r.pic_name || '(ไม่ระบุ PIC)') === pic; });
 
       document.getElementById('modal503-pic-name').innerText = '👤 ' + pic;
-      document.getElementById('modal503-pic-sub').innerText = items.length + ' รายการ · ' + new Set(items.map(r=>r.po_no)).size + ' PO · ' + new Set(items.map(r=>r.vendor)).size + ' Supplier';
-
-      // group by vendor
-      const byVendor = {};
-      items.forEach(function(r, i) {
-        const v = r.vendor || '(ไม่ระบุ Vendor)';
-        if (!byVendor[v]) byVendor[v] = [];
-        byVendor[v].push({ r, origIdx: upload503Data.indexOf(r) });
-      });
 
       const body = document.getElementById('modal503-body');
       body.innerHTML = '';
 
-      Object.keys(byVendor).sort().forEach(function(vendor) {
-        const vendorItems = byVendor[vendor];
-        const vendorKey   = vendor.replace(/[^a-zA-Z0-9]/g,'_');
+      items.forEach(function(x) {
+        const rowId = 'chk503_' + x.trueIdx;
+        const isChecked = (function() {
+          const cb = document.getElementById(rowId);
+          return cb ? cb.checked : true;
+        })();
 
-        const card = document.createElement('div');
-        card.className = 'border-2 border-slate-100 rounded-2xl overflow-hidden';
-        card.innerHTML = `
-          <!-- Vendor Header -->
-          <div class="bg-slate-50 px-4 py-3 flex flex-wrap items-center justify-between gap-3 border-b">
-            <div>
-              <div class="font-black text-slate-700 text-sm">🏭 ${vendor}</div>
-              <div class="text-[10px] text-slate-400">${vendorItems.length} รายการ</div>
-            </div>
-            <div class="flex items-center gap-2 flex-shrink-0">
-              <span class="text-[10px] font-black text-slate-400 uppercase">รอบส่ง:</span>
-              <select id="ampm_${vendorKey}" onchange="apply503VendorAmPm('${vendorKey}')"
-                class="border-2 border-violet-200 bg-white text-violet-700 font-black text-xs rounded-xl px-3 py-1.5 outline-none focus:border-violet-500 cursor-pointer">
-                <option value="">-- เลือก --</option>
-                <option value="AM">🌅 AM</option>
-                <option value="PM">🌆 PM</option>
-                <option value="PICK UP">🚚 PICK UP</option>
-              </select>
-            </div>
-          </div>
-          <!-- Rows -->
-          <div id="vrows_${vendorKey}" class="divide-y divide-slate-50"></div>`;
-
-        // render rows ของ vendor นี้
-        const rowsContainer = card.querySelector('#vrows_' + vendorKey);
-        vendorItems.forEach(function(x) {
-          const idx = x.origIdx;
-          const r   = x.r;
-          const row = document.createElement('div');
-          row.className = 'flex items-start gap-3 px-4 py-3 hover:bg-violet-50 transition-colors';
-          row.id = 'modalrow503_' + idx;
-          row.innerHTML = `
-            <input type="checkbox" id="modalchk503_${idx}" data-idx="${idx}" checked
-              class="w-4 h-4 accent-violet-600 cursor-pointer flex-shrink-0 mt-1"
-              onchange="sync503Check(${idx}, this.checked)">
-            <div class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-2 text-xs">
-              <div>
-                <div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">PO No.</div>
-                <div class="font-bold text-slate-700">${r.po_no||'-'}</div>
-              </div>
-              <div>
-                <div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">Part No.</div>
-                <div class="font-mono text-violet-700 font-bold">${r.part_no||'-'}</div>
-              </div>
-              <div class="col-span-2">
-                <div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">Description</div>
-                <div class="text-slate-500">${r.part_name||'-'}</div>
-              </div>
-              <div>
-                <div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">Undeliv. Qty</div>
-                <input type="number" id="qty503_${idx}" value="${r.undelivered_qty||0}"
-                  class="w-full border border-slate-200 rounded-lg px-2 py-1 font-black text-slate-700 outline-none focus:border-violet-400 bg-white text-xs">
-              </div>
-              <div>
-                <div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">Arrival Date 📅</div>
-                <input type="date" id="date503_${idx}" value="${r.arrival_date||''}"
-                  class="w-full border border-slate-200 rounded-lg px-2 py-1 font-bold text-emerald-600 outline-none focus:border-violet-400 bg-white text-xs cursor-pointer">
-              </div>
-              <div>
-                <div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">รอบส่ง (AM/PM)</div>
-                <select id="slot503_${idx}"
-                  class="w-full border border-slate-200 rounded-lg px-2 py-1 font-bold text-slate-700 outline-none focus:border-violet-400 bg-white text-xs cursor-pointer">
-                  <option value="">--</option>
-                  <option value="AM">AM</option>
-                  <option value="PM">PM</option>
-                  <option value="PICK UP">PICK UP</option>
-                </select>
-              </div>
-              <div>
-                <div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">หมายเหตุ</div>
-                <input type="text" id="note503_${idx}" placeholder="ระบุ..."
-                  class="w-full border border-slate-200 rounded-lg px-2 py-1 text-slate-500 outline-none focus:border-violet-400 bg-white text-xs">
-              </div>
-            </div>`;
-          rowsContainer.appendChild(row);
-        });
-
-        body.appendChild(card);
+        const div = document.createElement('div');
+        div.className = 'u503-row' + (isChecked ? '' : ' deselected');
+        div.id = 'modalrow503_' + x.trueIdx;
+        div.innerHTML = `
+          <input type="checkbox" id="modalchk503_${x.trueIdx}" data-idx="${x.trueIdx}" ${isChecked ? 'checked' : ''}
+            class="w-4 h-4 accent-violet-600 cursor-pointer flex-shrink-0"
+            onchange="sync503Check(${x.trueIdx}, this.checked)">
+          <label for="modalchk503_${x.trueIdx}" class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1 cursor-pointer">
+            <div><div class="text-[9px] text-slate-400 uppercase font-black">PO No.</div>
+              <div class="font-bold text-slate-700 text-xs">${x.r.po_no||'-'}</div></div>
+            <div><div class="text-[9px] text-slate-400 uppercase font-black">Part No.</div>
+              <div class="font-mono text-xs text-violet-700 font-bold">${x.r.part_no||'-'}</div></div>
+            <div class="col-span-2"><div class="text-[9px] text-slate-400 uppercase font-black">Description</div>
+              <div class="text-slate-500 text-[10px]">${x.r.part_name||'-'}</div></div>
+            <div><div class="text-[9px] text-slate-400 uppercase font-black">Vendor</div>
+              <div class="text-slate-600 font-bold text-[10px]">${x.r.vendor||'-'}</div></div>
+            <div><div class="text-[9px] text-slate-400 uppercase font-black">Undeliv. Qty</div>
+              <div class="font-black text-slate-700 text-sm">${x.r.undelivered_qty||0}</div></div>
+            <div><div class="text-[9px] text-slate-400 uppercase font-black">Arrival Date 📅</div>
+              <div class="text-emerald-600 font-bold text-xs">${x.r.arrival_date||'-'}</div></div>
+            <div><div class="text-[9px] text-slate-400 uppercase font-black">Shipping Date</div>
+              <div class="text-slate-500 text-[10px]">${x.r.shipping_date||'-'}</div></div>
+          </label>`;
+        body.appendChild(div);
       });
 
       updateModal503Count();
@@ -4685,16 +4458,7 @@
       modal.classList.add('flex');
     }
 
-    // Apply AM/PM จาก vendor-level dropdown ไปทุก row ของ vendor นั้น
-    window.apply503VendorAmPm = function(vendorKey) {
-      const val = (document.getElementById('ampm_' + vendorKey) || {}).value || '';
-      if (!val) return;
-      document.querySelectorAll('#vrows_' + vendorKey + ' select[id^="slot503_"]').forEach(function(sel) {
-        sel.value = val;
-      });
-    }
-
-    window.closeModal503 = function() {
+    function closeModal503() {
       const modal = document.getElementById('modal503');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
@@ -4702,56 +4466,50 @@
       render503Sections();
     }
 
-    window.sync503Check = function(trueIdx, checked) {
+    function sync503Check(trueIdx, checked) {
       // sync main array checkbox (hidden) และ modal row style
       const row = document.getElementById('modalrow503_' + trueIdx);
       if (row) row.classList.toggle('deselected', !checked);
       updateModal503Count();
     }
 
-    window.modal503ToggleAll = function(checked) {
+    function modal503ToggleAll(checked) {
       document.querySelectorAll('#modal503-body input[type="checkbox"]').forEach(function(cb) {
         cb.checked = checked;
         sync503Check(parseInt(cb.dataset.idx), checked);
       });
     }
 
-    window.updateModal503Count = function() {
+    function updateModal503Count() {
       const total    = document.querySelectorAll('#modal503-body input[type="checkbox"]').length;
       const selected = document.querySelectorAll('#modal503-body input[type="checkbox"]:checked').length;
       const el = document.getElementById('modal503-selected-count');
       if (el) el.innerText = `เลือกแล้ว ${selected} / ${total} รายการ`;
     }
 
-    // --- Save per PIC (จาก Modal) -------------------
+    // ─── Save per PIC (จาก Modal) ───────────────────
     async function save503ForPic() {
       const selected = [];
       document.querySelectorAll('#modal503-body input[type="checkbox"]:checked').forEach(function(cb) {
         const idx = parseInt(cb.dataset.idx);
-        if (isNaN(idx) || !upload503Data[idx]) return;
-        const r = upload503Data[idx];
-        // อ่านค่าที่อาจแก้ไขใน Modal
-        const qtyEl  = document.getElementById('qty503_'  + idx);
-        const dateEl = document.getElementById('date503_' + idx);
-        const slotEl = document.getElementById('slot503_' + idx);
-        const noteEl = document.getElementById('note503_' + idx);
-        selected.push({
-          ...r,
-          undelivered_qty: qtyEl  ? (parseFloat(qtyEl.value)||0)  : (r.undelivered_qty||0),
-          arrival_date:    dateEl ? (dateEl.value || r.arrival_date) : r.arrival_date,
-          time_slot:       slotEl ? slotEl.value : '',
-          remark:          noteEl ? noteEl.value : '',
-        });
+        if (upload503Data[idx]) selected.push(upload503Data[idx]);
       });
       if (selected.length === 0) { showToast('⚠️ ยังไม่ได้เลือกรายการใดเลย'); return; }
       await _do503Save(selected, 'modal503-save-btn');
     }
 
-    // --- Save All Selected (ปุ่มหลัก) --------------
+    // ─── Save All Selected (ปุ่มหลัก) ──────────────
     async function save503Selected() {
+      // รวบรวมจาก modal checkboxes ที่เคย toggle + default checked
+      const selected = upload503Data.filter(function(r, idx) {
+        const modalCb = document.getElementById('modalchk503_' + idx);
+        if (modalCb) return modalCb.checked;
+        return true; // default = เลือก
+      });
       const filtered = get503Filtered();
-      if (filtered.length === 0) { showToast('⚠️ ไม่มีรายการ'); return; }
-      await _do503Save(filtered, 'upload503-save-btn');
+      const finalSelected = selected.filter(function(r) { return filtered.includes(r); });
+      if (finalSelected.length === 0) { showToast('⚠️ ยังไม่ได้เลือกรายการใดเลย'); return; }
+      await _do503Save(finalSelected, 'upload503-save-btn');
     }
 
     async function _do503Save(selected, btnId) {
@@ -4761,14 +4519,13 @@
       try {
         const rows = selected.map(function(r) {
           return {
-            date:      r.arrival_date || getThaiDate(),
+            date:      r.arrival_date || getThaiDate(),  // *** ใช้ arrival_date ***
             vendor:    r.vendor       || '',
             pic:       r.pic_name     || '',
             po_no:     r.po_no        || '',
             part_no:   r.part_no      || '',
             qty:       r.undelivered_qty || r.order_qty || 0,
-            time_slot: r.time_slot    || '',
-            remark:    r.remark       || '',
+            time_slot: '',
             origin:    'import',
           };
         });
@@ -4778,20 +4535,18 @@
           showToast(`✅ บันทึกสำเร็จ ${res.saved||0} รายการใหม่, อัพเดต ${res.updated||0} รายการ`);
           if (btn) btn.innerText = '✅ บันทึกแล้ว';
           if (typeof loadAllData === 'function') loadAllData();
-          if (btnId === 'modal503-save-btn') {
-            setTimeout(function() { closeModal503(); }, 1200);
-          }
+          if (btnId === 'modal503-save-btn') closeModal503();
         } else {
           showToast('❌ บันทึกไม่สำเร็จ: ' + ((res && res.message)||''));
-          if (btn) { btn.disabled = false; btn.innerText = btnId === 'modal503-save-btn' ? '💾 บันทึกของฉัน → Google Sheet' : '💾 บันทึก'; }
+          if (btn) { btn.disabled = false; btn.innerText = btnId === 'modal503-save-btn' ? '💾 บันทึก PIC นี้' : '💾 บันทึกรายการที่เลือกทั้งหมด → Google Sheet'; }
         }
       } catch(err) {
         showToast('❌ Error: ' + err.message);
-        if (btn) { btn.disabled = false; btn.innerText = btnId === 'modal503-save-btn' ? '💾 บันทึกของฉัน → Google Sheet' : '💾 บันทึก'; }
+        if (btn) { btn.disabled = false; btn.innerText = btnId === 'modal503-save-btn' ? '💾 บันทึก PIC นี้' : '💾 บันทึกรายการที่เลือกทั้งหมด → Google Sheet'; }
       }
     }
 
-    window.upload503SelectAll = function(checked) {
+    function upload503SelectAll(checked) {
       // mark ทุก row ใน upload503Data ผ่าน modal checkbox ถ้ามี ไม่งั้นเก็บ state
       upload503Data.forEach(function(r, idx) {
         const cb = document.getElementById('modalchk503_' + idx);
@@ -4800,539 +4555,6 @@
       render503Sections();
     }
     // =====================================================
-
-    // =====================================================
-    // PART HISTORY DASHBOARD
-    // =====================================================
-    let histTrendChart = null;
-
-    window.initHistoryYearFilter = function() {
-      const sel = document.getElementById('hist-year');
-      if (!sel) return;
-      const now = new Date();
-      sel.innerHTML = '';
-      for (let y = now.getFullYear(); y >= now.getFullYear() - 3; y--) {
-        sel.innerHTML += `<option value="${y}" ${y === now.getFullYear() ? 'selected' : ''}>${y}</option>`;
-      }
-    }
-
-    async function loadHistorySummary() {
-      const year  = (document.getElementById('hist-year')||{}).value  || new Date().getFullYear();
-      const month = (document.getElementById('hist-month')||{}).value || '';
-
-      document.getElementById('hist-loading').classList.remove('hidden');
-      document.getElementById('hist-empty').classList.add('hidden');
-      document.getElementById('hist-kpi').classList.add('hidden');
-
-      try {
-        const res = await callAPI('getHistorySummary', { year, month });
-        document.getElementById('hist-loading').classList.add('hidden');
-
-        if (!res || !res.success || res.total_rows === 0) {
-          document.getElementById('hist-empty').classList.remove('hidden');
-          return;
-        }
-
-        renderHistoryDashboard(res.summary);
-        document.getElementById('hist-kpi').classList.remove('hidden');
-
-      } catch(err) {
-        document.getElementById('hist-loading').classList.add('hidden');
-        showToast('❌ โหลด History ไม่สำเร็จ: ' + err.message);
-      }
-    }
-
-    window.renderHistoryDashboard = function(s) {
-      const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
-
-      // KPI หลัก
-      set('hist-total-po',    s.total_po    || 0);
-      set('hist-total-parts', s.total_parts || 0);
-      set('hist-qty-plan',    (s.total_qty_plan||0).toLocaleString());
-      set('hist-qty-recv',    (s.total_qty_recv||0).toLocaleString());
-      const fillRate = s.total_qty_plan > 0 ? ((s.total_qty_recv / s.total_qty_plan) * 100).toFixed(1) : 0;
-      set('hist-fill-rate',   fillRate + '%');
-
-      // สถานะ
-      const total = s.total_parts || 1;
-      const comp  = (s.by_status && s.by_status.completed) || 0;
-      const short = (s.by_status && s.by_status.short)     || 0;
-      const miss  = (s.by_status && s.by_status.missing)   || 0;
-      set('hist-completed',     comp);  set('hist-completed-pct', ((comp/total)*100).toFixed(0)+'%');
-      set('hist-short',         short); set('hist-short-pct',     ((short/total)*100).toFixed(0)+'%');
-      set('hist-missing',       miss);  set('hist-missing-pct',   ((miss/total)*100).toFixed(0)+'%');
-
-      // AM/PM
-      const sl = s.by_slot || {};
-      set('hist-am',     'AM: '      + (sl.AM||0));
-      set('hist-pm',     'PM: '      + (sl.PM||0));
-      set('hist-pickup', 'PICK UP: ' + (sl['PICK UP']||0));
-
-      // Trend chart
-      const byMonth = s.by_month || {};
-      const months  = Array.from({length:12}, (_,i) => String(i+1));
-      const monthLabels = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-      const trendData   = months.map(m => byMonth[m] || 0);
-      const canvas = document.getElementById('hist-trend-chart');
-      if (canvas && typeof Chart !== 'undefined') {
-        if (histTrendChart) { histTrendChart.destroy(); histTrendChart = null; }
-        histTrendChart = new Chart(canvas.getContext('2d'), {
-          type: 'bar',
-          data: {
-            labels: monthLabels,
-            datasets: [{
-              label: 'จำนวน Part',
-              data: trendData,
-              backgroundColor: '#6366f1',
-              borderRadius: 6,
-              barPercentage: 0.6,
-            }]
-          },
-          options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              y: { beginAtZero: true, ticks: { font: { family: 'Prompt', size: 10 } }, grid: { color: '#f1f5f9' } },
-              x: { ticks: { font: { family: 'Prompt', size: 10 } } }
-            }
-          }
-        });
-      }
-
-      // Vendor Table
-      const byVendor = s.by_vendor || {};
-      const vendors  = Object.keys(byVendor).sort((a,b) => (byVendor[b].parts||0) - (byVendor[a].parts||0));
-      const vtbody   = document.getElementById('hist-vendor-table');
-      const vcountEl = document.getElementById('hist-vendor-count');
-      if (vcountEl) vcountEl.innerText = vendors.length + ' ซัพ';
-      if (vtbody) {
-        vtbody.innerHTML = vendors.map(v => {
-          const vd   = byVendor[v];
-          const fr   = vd.qty_plan > 0 ? ((vd.qty_recv/vd.qty_plan)*100).toFixed(0) : '-';
-          const frColor = fr >= 90 ? '#10b981' : fr >= 70 ? '#f59e0b' : '#f43f5e';
-          return `<tr class="hover:bg-slate-50">
-            <td class="px-4 py-2 font-bold text-slate-700 max-w-[180px] truncate">${v}</td>
-            <td class="px-4 py-2 text-center text-slate-600">${vd.parts||0}</td>
-            <td class="px-4 py-2 text-center text-slate-500">${(vd.qty_plan||0).toLocaleString()}</td>
-            <td class="px-4 py-2 text-center text-emerald-600 font-bold">${(vd.qty_recv||0).toLocaleString()}</td>
-            <td class="px-4 py-2 text-center font-black" style="color:${frColor}">${fr}%</td>
-            <td class="px-4 py-2 text-center text-emerald-600">${(byVendor[v].completed||0)}</td>
-            <td class="px-4 py-2 text-center text-amber-500">${(byVendor[v].short||0)+' / '+(byVendor[v].missing||0)}</td>
-          </tr>`;
-        }).join('') || '<tr><td colspan="7" class="text-center py-4 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
-      }
-
-      // PIC Table
-      const byPic   = s.by_pic || {};
-      const pics    = Object.keys(byPic).sort();
-      const ptbody  = document.getElementById('hist-pic-table');
-      if (ptbody) {
-        ptbody.innerHTML = pics.map(p => {
-          const pd  = byPic[p];
-          const fr  = pd.qty_plan > 0 ? ((pd.qty_recv||0)/pd.qty_plan*100).toFixed(0) : '-';
-          return `<tr class="hover:bg-slate-50">
-            <td class="px-4 py-2 font-bold text-slate-700">${p}</td>
-            <td class="px-4 py-2 text-center text-slate-600">${pd.po_count||0}</td>
-            <td class="px-4 py-2 text-center text-slate-600">${pd.parts||0}</td>
-            <td class="px-4 py-2 text-center font-black ${fr >= 90 ? 'text-emerald-600' : fr >= 70 ? 'text-amber-500' : 'text-rose-500'}">${fr}%</td>
-          </tr>`;
-        }).join('') || '<tr><td colspan="4" class="text-center py-4 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
-      }
-    }
-    // =====================================================
-    // =====================================================
-    let myPartsData   = [];
-    let myPartsModal  = null; // PIC ที่เปิด modal อยู่
-
-    // -- Deadline Check -- จันทร์ก่อน 08:30 --------------
-    window.getWeekRange = function() {
-      // คืน { start: จันทร์, end: เสาร์ } ของสัปดาห์ปัจจุบัน
-      const now   = new Date();
-      const day   = now.getDay(); // 0=Sun,1=Mon,...,6=Sat
-      const monday = new Date(now);
-      // ถ้าอาทิตย์ (0) ให้นับเป็นสัปดาห์ถัดไป
-      const diffToMonday = day === 0 ? -6 : 1 - day;
-      monday.setDate(now.getDate() + diffToMonday);
-      monday.setHours(0, 0, 0, 0);
-      const saturday = new Date(monday);
-      saturday.setDate(monday.getDate() + 5);
-      saturday.setHours(23, 59, 59, 999);
-      return { start: monday, end: saturday };
-    }
-
-    window.isDeadlinePassed = function() {
-      // Deadline = วันจันทร์ 08:30
-      const now = new Date();
-      if (now.getDay() !== 1) return false; // ไม่ใช่จันทร์ = ยังไม่เลย
-      const cutoff = new Date(now);
-      cutoff.setHours(8, 30, 0, 0);
-      return now > cutoff;
-    }
-
-    window.isConfirmAllowed = function(arrivalDate) {
-      // ถ้ายังไม่เลย deadline = อนุญาตเสมอ
-      if (!isDeadlinePassed()) return true;
-      // เลย deadline แล้ว -> เช็ค arrival date
-      if (!arrivalDate) return false;
-      const arrival = new Date(arrivalDate);
-      const week    = getWeekRange();
-      // ถ้า arrival date อยู่ในสัปดาห์นี้ (จันทร์-เสาร์) = ไม่อนุญาต
-      if (arrival >= week.start && arrival <= week.end) return false;
-      return true;
-    }
-
-    window.getDeadlineText = function() {
-      const now = new Date();
-      if (!isDeadlinePassed()) {
-        const deadline = new Date(now);
-        const day = now.getDay();
-        const diffToMonday = day === 0 ? 1 : day === 1 ? 0 : 8 - day;
-        deadline.setDate(now.getDate() + diffToMonday);
-        deadline.setHours(8, 30, 0, 0);
-        const diff  = deadline - now;
-        const days  = Math.floor(diff / 86400000);
-        const hours = Math.floor((diff % 86400000) / 3600000);
-        const mins  = Math.floor((diff % 3600000) / 60000);
-        if (days > 0)  return `⏰ Deadline: จันทร์ 08:30 (อีก ${days} วัน ${hours} ชม.)`;
-        if (hours > 0) return `⚠️ Deadline: จันทร์ 08:30 (อีก ${hours} ชม. ${mins} นาที)`;
-        return `🔴 Deadline: จันทร์ 08:30 (อีก ${mins} นาที!)`;
-      }
-      return '❌ เลย Deadline แล้ว — รายการสัปดาห์นี้ไม่สามารถ Confirm ได้';
-    }
-
-    window.initMyParts = function() {
-      // แสดง week range
-      const week = getWeekRange();
-      const fmt  = d => d.toLocaleDateString('th-TH', { day:'numeric', month:'short' });
-      const el   = document.getElementById('myparts-week-range');
-      if (el) el.innerText = `📅 สัปดาห์: ${fmt(week.start)} – ${fmt(week.end)}`;
-      // แสดง deadline banner
-      const bannerEl = document.getElementById('myparts-deadline-banner');
-      const textEl   = document.getElementById('myparts-deadline-text');
-      if (textEl) textEl.innerText = getDeadlineText();
-      if (bannerEl) {
-        const passed = isDeadlinePassed();
-        bannerEl.className = 'bg-white rounded-2xl px-5 py-3 shadow-sm border-2 flex items-center justify-between gap-3 ' +
-          (passed ? 'border-rose-300 bg-rose-50' : 'border-amber-200');
-        if (textEl) textEl.className = 'font-black text-sm ' + (passed ? 'text-rose-600' : 'text-amber-600');
-      }
-      loadMyParts();
-    }
-
-    async function loadMyParts() {
-      const week = getWeekRange();
-      // สร้าง array ของวันจันทร์-เสาร์
-      const dates = [];
-      for (let i = 0; i < 6; i++) {
-        const d = new Date(week.start);
-        d.setDate(week.start.getDate() + i);
-        dates.push(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'));
-      }
-
-      document.getElementById('myparts-loading').classList.remove('hidden');
-      document.getElementById('myparts-empty').classList.add('hidden');
-      document.getElementById('myparts-pic-cards').innerHTML = '';
-      document.getElementById('myparts-summary-badge').classList.add('hidden');
-
-      try {
-        // โหลดทุกวันใน week พร้อมกัน
-        const results = await Promise.all(dates.map(date => callAPI('getPartsByDate', { date })));
-        document.getElementById('myparts-loading').classList.add('hidden');
-
-        // รวมข้อมูลทั้งหมด
-        let allRows = [];
-        results.forEach(res => {
-          if (res && res.data) allRows = allRows.concat(res.data);
-        });
-
-        // เฉพาะ draft
-        myPartsData = allRows.filter(r => r.status === 'draft' || r.status === '');
-
-        if (myPartsData.length === 0) {
-          document.getElementById('myparts-empty').classList.remove('hidden');
-          return;
-        }
-
-        renderMyPartsPicCards();
-
-        const badge = document.getElementById('myparts-summary-badge');
-        badge.innerText = `${myPartsData.length} รายการ · ${new Set(myPartsData.map(r=>r.pic)).size} PIC รอ Confirm`;
-        badge.classList.remove('hidden');
-
-      } catch(err) {
-        document.getElementById('myparts-loading').classList.add('hidden');
-        showToast('❌ โหลดไม่สำเร็จ: ' + err.message);
-      }
-    }
-
-    window.renderMyPartsPicCards = function() {
-      const container = document.getElementById('myparts-pic-cards');
-      container.innerHTML = '';
-
-      // group by PIC
-      const byPic = {};
-      myPartsData.forEach(function(r) {
-        const p = r.pic || '(ไม่ระบุ PIC)';
-        if (!byPic[p]) byPic[p] = [];
-        byPic[p].push(r);
-      });
-
-      Object.keys(byPic).sort().forEach(function(pic) {
-        const items    = byPic[pic];
-        const vendors  = [...new Set(items.map(r => r.vendor||'-'))];
-        const picKey   = pic.replace(/[^a-zA-Z0-9]/g,'_');
-
-        const card = document.createElement('div');
-        card.className = 'u503-pic-card cursor-pointer hover:shadow-md transition-shadow';
-        card.id = 'piccard_' + picKey;
-        card.onclick = function() { openMyPartsModal(pic); };
-        card.innerHTML = `
-          <div class="u503-pic-header">
-            <div class="flex-1 min-w-0">
-              <div class="font-black text-sm">👤 ${pic}</div>
-              <div class="text-violet-200 text-[10px] mt-0.5">${items.length} รายการ · ${vendors.length} Supplier</div>
-            </div>
-            <div class="text-right flex-shrink-0">
-              <div class="text-white font-black text-sm bg-amber-400/80 rounded-lg px-3 py-1">⏳ รอ Confirm</div>
-              <div class="text-violet-200 text-[9px] mt-1">คลิกเพื่อจัดการ →</div>
-            </div>
-          </div>
-          <div class="px-4 py-3 bg-white flex flex-wrap gap-3 text-[10px] text-slate-500 font-bold">
-            <span>🏭 ${vendors.slice(0,3).join(', ')}${vendors.length>3?' +'+( vendors.length-3)+' อื่นๆ':''}</span>
-            <span class="text-slate-300">|</span>
-            <span>📅 ${[...new Set(items.map(r=>r.date).filter(Boolean))].sort().slice(0,4).join(', ')}</span>
-          </div>`;
-        container.appendChild(card);
-      });
-    }
-
-    window.openMyPartsModal = function(pic) {
-      myPartsModal = pic;
-      const items = myPartsData.filter(r => (r.pic||'(ไม่ระบุ PIC)') === pic);
-
-      document.getElementById('myparts-modal-pic-name').innerText = '👤 ' + pic;
-      document.getElementById('myparts-modal-pic-sub').innerText  = items.length + ' รายการ · ' + new Set(items.map(r=>r.vendor)).size + ' Supplier';
-
-      // group by vendor -- Accordion
-      const byVendor = {};
-      items.forEach(function(r) {
-        const v = r.vendor || '(ไม่ระบุ)';
-        if (!byVendor[v]) byVendor[v] = [];
-        byVendor[v].push(r);
-      });
-
-      const body = document.getElementById('myparts-modal-body');
-      body.innerHTML = '';
-
-      Object.keys(byVendor).sort().forEach(function(vendor) {
-        const vItems = byVendor[vendor];
-        const vk     = vendor.replace(/[^a-zA-Z0-9]/g,'_') + '_' + Date.now();
-
-        const section = document.createElement('div');
-        section.className = 'border-2 border-slate-100 rounded-2xl overflow-hidden';
-        section.innerHTML = `
-          <!-- Vendor Accordion Header -->
-          <div class="px-4 py-3 bg-slate-50 border-b flex flex-wrap items-center justify-between gap-3 cursor-pointer select-none"
-               data-action="toggleMpAccordion" data-arg="${vk}">
-            <div class="flex items-center gap-3">
-              <span id="mpacc_icon_${vk}" class="text-slate-400 font-black text-sm transition-transform">▶</span>
-              <div>
-                <div class="font-black text-slate-700 text-sm">🏭 ${vendor}</div>
-                <div class="text-[10px] text-slate-400">${vItems.length} รายการ</div>
-              </div>
-            </div>
-            <div class="flex items-center gap-2" >
-              <span class="text-[9px] font-black text-slate-400 uppercase">รอบส่ง:</span>
-              <select id="mpvampm_${vk}" onchange="applyMpVendorAmPm('${vk}')"
-                class="border-2 border-violet-200 bg-white text-violet-700 font-black text-xs rounded-xl px-3 py-1.5 outline-none cursor-pointer">
-                <option value="">-- เลือก --</option>
-                <option value="AM">🌅 AM</option>
-                <option value="PM">🌆 PM</option>
-                <option value="PICK UP">🚚 PICK UP</option>
-              </select>
-            </div>
-          </div>
-          <!-- Accordion Body (hidden by default) -->
-          <div id="mpacc_body_${vk}" class="hidden divide-y divide-slate-50"></div>`;
-
-        const accBody = section.querySelector('#mpacc_body_' + vk);
-        vItems.forEach(function(r) {
-          const row = document.createElement('div');
-          row.className = 'flex items-start gap-3 px-4 py-3 hover:bg-violet-50 transition-colors';
-          row.id = 'mpmodalrow_' + r.id;
-          row.innerHTML = `
-            <input type="checkbox" id="mpmodalchk_${r.id}" data-id="${r.id}" checked
-              class="w-4 h-4 accent-violet-600 cursor-pointer flex-shrink-0 mt-1"
-              onchange="updateMyPartsModalCount()">
-            <div class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-2 text-xs">
-              <div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">No.</div>
-                <div class="font-bold text-slate-500">${r.no||'-'}</div></div>
-              <div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">PO No.</div>
-                <div class="font-bold text-slate-700">${r.po_no||'-'}</div></div>
-              <div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">Part No.</div>
-                <div class="font-mono text-violet-700 font-bold">${r.part_no||'-'}</div></div>
-              <div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">Qty Plan</div>
-                <input type="number" id="mpmodalqty_${r.id}" value="${r.qty_plan||0}"
-                  class="w-full border border-slate-200 rounded-lg px-2 py-1 font-black text-slate-700 outline-none focus:border-violet-400 text-xs"></div>
-              <div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">Arrival Date 📅</div>
-                <input type="date" id="mpmodaldate_${r.id}" value="${r.date||''}"
-                  class="w-full border border-slate-200 rounded-lg px-2 py-1 font-bold text-emerald-600 outline-none focus:border-violet-400 text-xs cursor-pointer"></div>
-              <div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">AM/PM</div>
-                <select id="mpmodalslot_${r.id}" data-vk="${vk}"
-                  class="w-full border border-slate-200 rounded-lg px-2 py-1 font-bold text-slate-700 outline-none focus:border-violet-400 text-xs cursor-pointer">
-                  <option value="">--</option>
-                  <option value="AM" ${r.time_slot==='AM'?'selected':''}>AM</option>
-                  <option value="PM" ${r.time_slot==='PM'?'selected':''}>PM</option>
-                  <option value="PICK UP" ${r.time_slot==='PICK UP'?'selected':''}>PICK UP</option>
-                </select></div>
-              <div class="flex items-end">
-                <button type="button" data-action="deleteMpModalRow" data-arg="${r.id}"
-                  class="text-[9px] font-black text-rose-400 hover:text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2 py-1 rounded-lg cursor-pointer">
-                  🗑 ลบ
-                </button>
-              </div>
-            </div>`;
-          accBody.appendChild(row);
-        });
-
-        body.appendChild(section);
-      });
-
-      updateMyPartsModalCount();
-      const modal = document.getElementById('myparts-modal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    window.toggleMpAccordion = function(vk) {
-      const body = document.getElementById('mpacc_body_' + vk);
-      const icon = document.getElementById('mpacc_icon_' + vk);
-      if (!body) return;
-      const isOpen = !body.classList.contains('hidden');
-      body.classList.toggle('hidden', isOpen);
-      if (icon) icon.style.transform = isOpen ? '' : 'rotate(90deg)';
-    }
-
-    window.applyMpVendorAmPm = function(vk) {
-      const val = (document.getElementById('mpvampm_' + vk)||{}).value || '';
-      if (!val) return;
-      document.querySelectorAll(`select[data-vk="${vk}"]`).forEach(s => s.value = val);
-    }
-
-    window.updateMyPartsModalCount = function() {
-      const total    = document.querySelectorAll('#myparts-modal-body input[type="checkbox"]').length;
-      const selected = document.querySelectorAll('#myparts-modal-body input[type="checkbox"]:checked').length;
-      const el = document.getElementById('myparts-modal-count');
-      if (el) el.innerText = `เลือก ${selected} / ${total} รายการ`;
-    }
-
-    async function bulkDeleteMyParts() {
-      const checked = document.querySelectorAll('#myparts-modal-body input[type="checkbox"]:checked');
-      if (checked.length === 0) { showToast('⚠️ ยังไม่ได้เลือกรายการ'); return; }
-      if (!confirm(`ลบ ${checked.length} รายการที่เลือก?`)) return;
-
-      const ids = [...checked].map(cb => cb.dataset.id);
-      let deleted = 0;
-
-      for (const id of ids) {
-        try {
-          const res = await callAPI('deletePartDetail', { id });
-          if (res && res.success) {
-            document.getElementById('mpmodalrow_' + id)?.remove();
-            myPartsData = myPartsData.filter(r => r.id !== id);
-            deleted++;
-          }
-        } catch(e) {}
-      }
-
-      updateMyPartsModalCount();
-      showToast(`🗑 ลบแล้ว ${deleted} รายการ`);
-    }
-
-    async function deleteMpModalRow(id) {
-      if (!confirm('ลบรายการนี้?')) return;
-      try {
-        const res = await callAPI('deletePartDetail', { id });
-        if (res && res.success) {
-          document.getElementById('mpmodalrow_' + id)?.remove();
-          myPartsData = myPartsData.filter(r => r.id !== id);
-          updateMyPartsModalCount();
-          showToast('🗑 ลบแล้ว');
-        } else { showToast('❌ ' + ((res&&res.message)||'ลบไม่สำเร็จ')); }
-      } catch(err) { showToast('❌ ' + err.message); }
-    }
-
-    window.closeMyPartsModal = function() {
-      const btn = document.getElementById('myparts-modal-confirm-btn');
-      if (btn) { btn.disabled = false; btn.innerText = '✅ Confirm ของฉัน → ส่งคลัง'; }
-      document.getElementById('myparts-modal').classList.add('hidden');
-      document.getElementById('myparts-modal').classList.remove('flex');
-    }
-
-    async function confirmMyPartsPic() {
-      // -- Deadline Check --
-      if (isDeadlinePassed()) {
-        // เช็คว่ามีรายการที่ arrival date อยู่ในสัปดาห์นี้ไหม
-        const checked = [...document.querySelectorAll('#myparts-modal-body input[type="checkbox"]:checked')];
-        const blockedItems = checked.filter(cb => {
-          const r = myPartsData.find(x => x.id === cb.dataset.id);
-          return r && !isConfirmAllowed(r.date);
-        });
-        if (blockedItems.length > 0) {
-          showToast(`❌ มี ${blockedItems.length} รายการที่เลย Deadline — Arrival Date อยู่ในสัปดาห์นี้ Confirm ไม่ได้แล้ว`);
-          return;
-        }
-      }
-      const toConfirm = [];
-      document.querySelectorAll('#myparts-modal-body input[type="checkbox"]:checked').forEach(function(cb) {
-        const id = cb.dataset.id;
-        toConfirm.push({
-          id,
-          qty_plan:  parseFloat((document.getElementById('mpmodalqty_' +id)||{}).value||0),
-          date:      (document.getElementById('mpmodaldate_'+id)||{}).value || '',
-          time_slot: (document.getElementById('mpmodalslot_'+id)||{}).value || '',
-        });
-      });
-      if (toConfirm.length === 0) { showToast('⚠️ ยังไม่ได้เลือกรายการ'); return; }
-
-      const btn = document.getElementById('myparts-modal-confirm-btn');
-      btn.disabled = true; btn.innerText = '⏳ กำลัง Confirm...';
-
-      try {
-        const res = await callAPI('confirmPlanParts', { items: JSON.stringify(toConfirm) });
-        if (res && res.success) {
-          showToast(`✅ Confirm สำเร็จ ${res.confirmed||0} รายการ`);
-          btn.disabled = false; btn.innerText = '✅ Confirm ของฉัน → ส่งคลัง';
-          closeMyPartsModal();
-          // ลบ Card ของ PIC นี้ออก
-          const picKey = (myPartsModal||'').replace(/[^a-zA-Z0-9]/g,'_');
-          document.getElementById('piccard_' + picKey)?.remove();
-          // ลบออกจาก data
-          const confirmedIds = new Set(toConfirm.map(x=>x.id));
-          myPartsData = myPartsData.filter(r => !confirmedIds.has(r.id));
-          // ถ้าไม่มีรายการเหลือ แสดง empty
-          if (myPartsData.length === 0) {
-            document.getElementById('myparts-empty').classList.remove('hidden');
-            document.getElementById('myparts-summary-badge').classList.add('hidden');
-          } else {
-            const badge = document.getElementById('myparts-summary-badge');
-            badge.innerText = `${myPartsData.length} รายการ · ${new Set(myPartsData.map(r=>r.pic)).size} PIC รอ Confirm`;
-          }
-          if (typeof loadAllData === 'function') loadAllData();
-        } else {
-          showToast('❌ ' + ((res&&res.message)||'ไม่สำเร็จ'));
-          btn.disabled = false; btn.innerText = '✅ Confirm ของฉัน → ส่งคลัง';
-        }
-      } catch(err) {
-        showToast('❌ ' + err.message);
-        btn.disabled = false; btn.innerText = '✅ Confirm ของฉัน → ส่งคลัง';
-      }
-    }
-    // =====================================================
-
-
   </script>
-
-
 </body>
 </html>
