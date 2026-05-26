@@ -4226,8 +4226,8 @@
       if (fnEl) { fnEl.innerText = '📄 ' + file.name; fnEl.classList.remove('hidden'); }
 
       document.getElementById('upload503-loading').classList.remove('hidden');
-      document.getElementById('upload503-summary').classList.add('hidden');
-      document.getElementById('upload503-actions').classList.add('hidden');
+      document.getElementById('upload503-preview')?.classList.add('hidden');
+      document.getElementById('upload503-done')?.classList.add('hidden');
 
       const reader = new FileReader();
       reader.onload = function(e) {
