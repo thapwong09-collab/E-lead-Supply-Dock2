@@ -513,38 +513,32 @@
           <div class="font-bold text-slate-500 text-sm">กำลังอ่านไฟล์...</div>
         </div>
 
-        <!-- ปุ่มบันทึก + Filter (แสดงหลังอัพโหลด) -->
-        <div id="upload503-actions" class="hidden bg-white rounded-2xl p-5 shadow-sm border flex flex-wrap items-center justify-between gap-4">
-          <div class="flex items-center gap-3 flex-wrap">
-            <label class="text-xs font-black text-slate-400 uppercase tracking-widest">กรอง Arrival Date:</label>
-            <input type="date" id="upload503-date-filter" onchange="render503Sections()" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 text-xs font-bold outline-none focus:border-violet-400 cursor-pointer">
-            <button type="button" onclick="document.getElementById('upload503-date-filter').value=''; render503Sections()" class="text-[10px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer">✕ ล้าง</button>
-          </div>
-          <button type="button" onclick="save503Selected()" id="upload503-save-btn"
-            class="bg-violet-600 hover:bg-violet-700 text-white px-8 py-3 rounded-xl font-bold text-sm shadow-md cursor-pointer transition-colors flex items-center gap-2">
-            💾 บันทึกรายการที่เลือกทั้งหมด → Google Sheet
-          </button>
+        <!-- Filter -->
+        <div id="upload503-actions" class="hidden bg-white rounded-2xl p-4 shadow-sm border flex flex-wrap items-center gap-3">
+          <label class="text-xs font-black text-slate-400 uppercase tracking-widest">กรอง Arrival Date:</label>
+          <input type="date" id="upload503-date-filter" onchange="render503Sections()" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 text-xs font-bold outline-none focus:border-violet-400 cursor-pointer">
+          <button type="button" onclick="document.getElementById('upload503-date-filter').value=''; render503Sections()" class="text-[10px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer">✕ ล้าง</button>
         </div>
 
         <!-- สรุปภาพรวม — PIC Cards -->
         <div id="upload503-summary" class="hidden bg-white rounded-2xl shadow-sm border overflow-hidden">
-          <div class="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <div class="font-black text-slate-700">📊 รายการแยกตาม PIC — คลิก Card เพื่อจัดการ</div>
-              <div id="upload503-summary-sub" class="text-[10px] text-slate-400 mt-0.5"></div>
-            </div>
-            <div class="flex gap-2 flex-wrap">
-              <button type="button" onclick="upload503SelectAll(true)" class="text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-emerald-100">✅ เลือกทั้งหมด</button>
-              <button type="button" onclick="upload503SelectAll(false)" class="text-[10px] font-bold bg-rose-50 text-rose-500 border border-rose-200 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-rose-100">☐ ยกเลิกทั้งหมด</button>
-            </div>
+          <div class="px-6 py-4 border-b border-slate-100">
+            <div class="font-black text-slate-700">📊 รายการแยกตาม PIC — คลิก Card เพื่อจัดการ</div>
+            <div id="upload503-summary-sub" class="text-[10px] text-slate-400 mt-0.5"></div>
           </div>
           <div id="upload503-pic-sections" class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <!-- ข้อความหลังบันทึกหมดแล้ว -->
+        <div id="upload503-done" class="hidden bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-8 text-center">
+          <div class="text-4xl mb-3">✅</div>
+          <div class="font-black text-emerald-700 text-base">บันทึกทุก PIC เรียบร้อยแล้ว</div>
+          <div class="text-sm text-emerald-600 mt-2">PIC แต่ละคนสามารถเข้าไปจัดการและ Confirm ได้ที่ Tab <strong>"📅 Weekly Plan"</strong></div>
         </div>
 
         <!-- Modal รายละเอียดแต่ละ PIC -->
         <div id="modal503" class="fixed inset-0 z-[200] hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div class="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl">
-            <!-- Modal Header -->
             <div class="flex items-center justify-between px-6 py-4 border-b bg-gradient-to-r from-violet-600 to-purple-500 rounded-t-2xl">
               <div>
                 <div id="modal503-pic-name" class="font-black text-white text-base"></div>
@@ -556,15 +550,12 @@
                 <button type="button" onclick="closeModal503()" class="text-white/70 hover:text-white text-xl font-black cursor-pointer ml-2">✕</button>
               </div>
             </div>
-            <!-- Modal Body -->
             <div id="modal503-body" class="overflow-y-auto flex-1 divide-y divide-slate-50"></div>
-            <!-- Modal Footer -->
             <div class="px-6 py-4 border-t flex items-center justify-between gap-3 bg-slate-50 rounded-b-2xl">
               <div id="modal503-selected-count" class="text-xs font-bold text-slate-500"></div>
               <div class="flex gap-3">
                 <button type="button" onclick="closeModal503()" class="bg-slate-200 text-slate-600 px-5 py-2.5 rounded-xl font-bold text-sm cursor-pointer hover:bg-slate-300">ปิด</button>
-                <button type="button" onclick="save503ForPic()" id="modal503-save-btn"
-                  class="bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-md cursor-pointer transition-colors">
+                <button type="button" onclick="save503ForPic()" id="modal503-save-btn" class="bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-md cursor-pointer transition-colors">
                   💾 บันทึก PIC นี้
                 </button>
               </div>
@@ -4267,8 +4258,8 @@
 
             return {
               po_no:           g(['po no.','po no','po_no','pono']),
-              no:              g(['item no.','item no','no','no.']),
-              part_no:         g(['vendor item#','vendor item #','vendor item']),
+              no:              g(['no.','no']),
+              part_no:         g(['item no.','item no','item_no','part no.','part no','part_no']),
               part_name:       g(['item description','item desc','description']),
               order_qty:       parseFloat(g(['order qty','order_qty','orderqty'])) || 0,
               undelivered_qty: parseFloat(g(['undelivered qty','undelivered_qty','undelivered'])) || 0,
@@ -4339,6 +4330,7 @@
 
         const card = document.createElement('div');
         card.className = 'u503-pic-card cursor-pointer hover:shadow-md transition-shadow';
+        card.id = 'pic503card_' + pic.replace(/[^a-zA-Z0-9]/g,'_');
         card.onclick = function() { openModal503(pic); };
 
         card.innerHTML = `
@@ -4492,10 +4484,22 @@
 
         const res = await callAPI('savePlanParts', { rows: JSON.stringify(rows) });
         if (res && res.success) {
-          showToast(`✅ บันทึกสำเร็จ ${res.saved||0} รายการใหม่, อัพเดต ${res.updated||0} รายการ`);
-          if (btn) btn.innerText = '✅ บันทึกแล้ว';
+          showToast('บันทึกสำเร็จ ' + (res.saved||0) + ' รายการใหม่');
+          // ลบ Card ของ PIC นี้ออก
+          if (btnId === 'modal503-save-btn') {
+            const picName = document.getElementById('modal503-pic-name')?.innerText || '';
+            const picKey  = picName.replace(/[^a-zA-Z0-9]/g,'_');
+            document.getElementById('pic503card_' + picKey)?.remove();
+            closeModal503();
+            // ถ้าไม่มี Card เหลือแล้ว แสดง done message
+            const remaining = document.querySelectorAll('#upload503-pic-sections .u503-pic-card').length;
+            if (remaining === 0) {
+              document.getElementById('upload503-summary').classList.add('hidden');
+              document.getElementById('upload503-actions').classList.add('hidden');
+              document.getElementById('upload503-done').classList.remove('hidden');
+            }
+          }
           if (typeof loadAllData === 'function') loadAllData();
-          if (btnId === 'modal503-save-btn') closeModal503();
         } else {
           showToast('❌ บันทึกไม่สำเร็จ: ' + ((res && res.message)||''));
           if (btn) { btn.disabled = false; btn.innerText = btnId === 'modal503-save-btn' ? '💾 บันทึก PIC นี้' : '💾 บันทึกรายการที่เลือกทั้งหมด → Google Sheet'; }
