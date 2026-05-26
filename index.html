@@ -4777,7 +4777,7 @@
         card.className = 'u503-pic-card cursor-pointer hover:shadow-md transition-shadow';
         card.id = 'piccard_' + picKey;
         card.onclick = function() { openMyPartsModal(pic); };
-        card.innerHTML = '<div class="u503-pic-header"><div class="flex-1 min-w-0"><div class="font-black text-sm">👤 ' + pic + '</div><div class="text-violet-200 text-[10px] mt-0.5">' + items.length + ' รายการ · ' + vendors.length + ' Supplier</div></div><div class="text-right flex-shrink-0"><div class="text-white font-black text-sm bg-amber-400/80 rounded-lg px-3 py-1">รอ Confirm</div><div class="text-violet-200 text-[9px] mt-1">คลิกเพื่อจัดการ</div></div></div><div class="px-4 py-3 bg-white text-[10px] text-slate-500 font-bold">' + vendors.slice(0,3).join(', ') + (vendors.length>3?' +'+( vendors.length-3)+' อื่นๆ':'') + '</div>';
+        card.innerHTML = '<div class="u503-pic-header"><div class="flex-1 min-w-0"><div class="font-black text-sm">👤 ' + pic + '</div><div class="text-violet-200 text-[10px] mt-0.5">' + items.length + ' รายการ · ' + vendors.length + ' Supplier</div></div><div class="text-right flex-shrink-0"><div id="ampm-badge-' + picKey + '" class="text-white font-black text-sm bg-amber-400/80 rounded-lg px-3 py-1 mb-1">⏳ รอ Confirm</div><div class="text-violet-200 text-[9px]">คลิกเพื่อจัดการ</div></div></div><div class="px-4 py-3 bg-white text-[10px] text-slate-500 font-bold">' + vendors.slice(0,3).join(', ') + (vendors.length>3?' +'+( vendors.length-3)+' อื่นๆ':'') + '</div>';
         container.appendChild(card);
       });
     }
@@ -4806,7 +4806,7 @@
           const row = document.createElement('div');
           row.className = 'flex items-start gap-3 px-4 py-3 hover:bg-violet-50';
           row.id = 'mpmodalrow_' + r.id;
-          row.innerHTML = '<input type="checkbox" id="mpmodalchk_' + r.id + '" data-id="' + r.id + '" checked class="w-4 h-4 accent-violet-600 cursor-pointer flex-shrink-0 mt-1" onchange="updateMyPartsModalCount()"><div class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-2 text-xs"><div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">No.</div><div class="text-slate-500">' + (r.no||'-') + '</div></div><div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">PO No.</div><div class="font-bold text-slate-700">' + (r.po_no||'-') + '</div></div><div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">Part No.</div><div class="font-mono text-violet-700 font-bold">' + (r.part_no||'-') + '</div></div><div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">Qty Plan</div><input type="number" id="mpmodalqty_' + r.id + '" value="' + (r.qty_plan||0) + '" class="w-full border border-slate-200 rounded-lg px-2 py-1 font-black text-slate-700 outline-none focus:border-violet-400 text-xs"></div><div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">Arrival Date</div><input type="date" id="mpmodaldate_' + r.id + '" value="' + (r.date||'') + '" class="w-full border border-slate-200 rounded-lg px-2 py-1 font-bold text-emerald-600 outline-none focus:border-violet-400 text-xs cursor-pointer"></div><div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">AM/PM</div><select id="mpmodalslot_' + r.id + '" data-vk="' + vk + '" class="w-full border border-slate-200 rounded-lg px-2 py-1 font-bold text-slate-700 outline-none focus:border-violet-400 text-xs cursor-pointer"><option value="">--</option><option value="AM" ' + (r.time_slot==='AM'?'selected':'') + '>AM</option><option value="PM" ' + (r.time_slot==='PM'?'selected':'') + '>PM</option><option value="PICK UP" ' + (r.time_slot==='PICK UP'?'selected':'') + '>PICK UP</option></select></div><div class="flex items-end"><button type="button" onclick="deleteMpModalRow(\'' + r.id + '\')" class="text-[9px] font-black text-rose-400 hover:text-rose-600 bg-rose-50 border border-rose-200 px-2 py-1 rounded-lg cursor-pointer">ลบ</button></div></div>';
+          row.innerHTML = '<input type="checkbox" id="mpmodalchk_' + r.id + '" data-id="' + r.id + '" checked class="w-4 h-4 accent-violet-600 cursor-pointer flex-shrink-0 mt-1" onchange="updateMyPartsModalCount();updateAmPmBadge()"><div class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-2 text-xs"><div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">No.</div><div class="text-slate-500">' + (r.no||'-') + '</div></div><div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">PO No.</div><div class="font-bold text-slate-700">' + (r.po_no||'-') + '</div></div><div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">Part No.</div><div class="font-mono text-violet-700 font-bold">' + (r.part_no||'-') + '</div></div><div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">Qty Plan</div><input type="number" id="mpmodalqty_' + r.id + '" value="' + (r.qty_plan||0) + '" class="w-full border border-slate-200 rounded-lg px-2 py-1 font-black text-slate-700 outline-none focus:border-violet-400 text-xs"></div><div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">Arrival Date</div><input type="date" id="mpmodaldate_' + r.id + '" value="' + (r.date||'') + '" class="w-full border border-slate-200 rounded-lg px-2 py-1 font-bold text-emerald-600 outline-none focus:border-violet-400 text-xs cursor-pointer"></div><div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">AM/PM</div><select id="mpmodalslot_' + r.id + '" data-vk="' + vk + '" onchange="updateAmPmBadge()" class="w-full border border-slate-200 rounded-lg px-2 py-1 font-bold text-slate-700 outline-none focus:border-violet-400 text-xs cursor-pointer"><option value="">--</option><option value="AM" ' + (r.time_slot==='AM'?'selected':'') + '>AM</option><option value="PM" ' + (r.time_slot==='PM'?'selected':'') + '>PM</option><option value="PICK UP" ' + (r.time_slot==='PICK UP'?'selected':'') + '>PICK UP</option></select></div><div class="flex items-end"><button type="button" onclick="deleteMpModalRow(\'' + r.id + '\')" class="text-[9px] font-black text-rose-400 hover:text-rose-600 bg-rose-50 border border-rose-200 px-2 py-1 rounded-lg cursor-pointer">ลบ</button></div></div>';
           accBody.appendChild(row);
         });
         body.appendChild(section);
@@ -4832,6 +4832,30 @@
       document.querySelectorAll('select[data-vk="' + vk + '"]').forEach(function(s){ s.value = val; });
     }
 
+    function updateAmPmBadge() {
+      if (!myPartsModal) return;
+      const picKey = myPartsModal.replace(/[^a-zA-Z0-9]/g,'_');
+      const total    = document.querySelectorAll('#myparts-modal-body input[type="checkbox"]:checked').length;
+      const withSlot = document.querySelectorAll('#myparts-modal-body input[type="checkbox"]:checked ~ div select[id^="mpmodalslot_"]').length;
+      // นับจากทุก checked row ว่ามี slot ครบไหม
+      let filled = 0;
+      document.querySelectorAll('#myparts-modal-body input[type="checkbox"]:checked').forEach(function(cb) {
+        const slot = (document.getElementById('mpmodalslot_'+cb.dataset.id)||{}).value||'';
+        if (slot) filled++;
+      });
+      const badge = document.getElementById('ampm-badge-' + picKey);
+      if (!badge) return;
+      if (total === 0) {
+        badge.className = 'text-white font-black text-sm bg-amber-400/80 rounded-lg px-3 py-1 mb-1';
+        badge.innerText = 'รอ Confirm';
+      } else if (filled >= total) {
+        badge.className = 'text-white font-black text-sm bg-emerald-500 rounded-lg px-3 py-1 mb-1';
+        badge.innerText = 'AM/PM ครบแล้ว ✅';
+      } else {
+        badge.className = 'text-white font-black text-sm bg-amber-400/80 rounded-lg px-3 py-1 mb-1';
+        badge.innerText = 'AM/PM ' + filled + '/' + total;
+      }
+    }
     function updateMyPartsModalCount() {
       const total    = document.querySelectorAll('#myparts-modal-body input[type="checkbox"]').length;
       const selected = document.querySelectorAll('#myparts-modal-body input[type="checkbox"]:checked').length;
@@ -4876,6 +4900,23 @@
     }
 
     async function confirmMyPartsPic() {
+      // ── เช็ค AM/PM ครบทุกรายการไหม ──
+      const unchecked = [];
+      document.querySelectorAll('#myparts-modal-body input[type="checkbox"]:checked').forEach(function(cb) {
+        const id   = cb.dataset.id;
+        const slot = (document.getElementById('mpmodalslot_'+id)||{}).value||'';
+        if (!slot) unchecked.push(id);
+      });
+      if (unchecked.length > 0) {
+        showToast('กรุณาเลือก AM/PM ให้ครบทุกรายการก่อนกด Confirm (' + unchecked.length + ' รายการยังไม่ได้เลือก)');
+        // highlight แถวที่ยังไม่ได้เลือก
+        unchecked.forEach(function(id) {
+          const row = document.getElementById('mpmodalrow_' + id);
+          if (row) { row.style.background = '#fef2f2'; setTimeout(function(){ row.style.background = ''; }, 2000); }
+        });
+        return;
+      }
+
       if (isDeadlinePassed()) {
         const checked = [...document.querySelectorAll('#myparts-modal-body input[type="checkbox"]:checked')];
         const blocked = checked.filter(function(cb) {
@@ -4902,15 +4943,8 @@
         if (res && res.success) {
           showToast('Confirm สำเร็จ ' + (res.confirmed||0) + ' รายการ');
           closeMyPartsModal();
-          const picKey = (myPartsModal||'').replace(/[^a-zA-Z0-9]/g,'_');
-          document.getElementById('piccard_' + picKey)?.remove();
-          const confirmedIds = new Set(toConfirm.map(function(x){ return x.id; }));
-          myPartsData = myPartsData.filter(function(r){ return !confirmedIds.has(r.id); });
-          if (myPartsData.length === 0) {
-            document.getElementById('myparts-empty').classList.remove('hidden');
-            document.getElementById('myparts-summary-badge').classList.add('hidden');
-          }
-          if (typeof loadAllData === 'function') loadAllData();
+          // reload ข้อมูลทันที ไม่ต้องรอ refresh
+          await loadMyParts();
         } else {
           showToast('ไม่สำเร็จ: ' + ((res&&res.message)||''));
           btn.disabled = false; btn.innerText = '✅ Confirm ของฉัน → ส่งคลัง';
