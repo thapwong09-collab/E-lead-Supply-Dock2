@@ -1154,7 +1154,10 @@
             }
           }
           if (res.picMaster) {
-            allPicMaster = res.picMaster || [];
+            // ไม่ทับถ้ากำลังอยู่ในหน้า PIC Master (ป้องกัน ลบแล้วกลับมา)
+            const picMasterPage = document.getElementById('pic-page-pic-master');
+            const isOnPicMaster = picMasterPage && !picMasterPage.classList.contains('hidden');
+            if (!isOnPicMaster) allPicMaster = res.picMaster || [];
           }
           _partsDashboardDirty = true;
           refreshUI();
@@ -4153,9 +4156,9 @@
       showToast('⏳ กำลังลบ...');
       const res = await callAPI('deletePicMasterAll', { picName });
       if (res && res.success) {
-        allPicMaster = allPicMaster.filter(m => String(m.pic_name||'').toLowerCase() !== picName.toLowerCase());
-        updatePicMaster();
-        showToast(`ลบ PIC "${picName}" แล้ว ✅`);
+        allPicMaster = allPicMaster.filter(function(m){ return String(m.pic_name||'').toLowerCase() !== picName.toLowerCase(); });
+        renderPicMasterCards(_pmCurrentFilter);
+        showToast('ลบ PIC "' + picName + '" แล้ว');
       } else {
         alert('เกิดข้อผิดพลาด: ' + (res?.message || ''));
       }
@@ -4307,12 +4310,12 @@
       showToast('⏳ กำลังลบ...');
       const res = await callAPI('deletePicMasterEntry', { picName: pic.name, supplier: supName });
       if (res && res.success) {
-        allPicMaster = allPicMaster.filter(m =>
-          !(String(m.pic_name||'').toLowerCase() === pic.name.toLowerCase() &&
-            String(m.supplier||'').toLowerCase() === supName.toLowerCase())
-        );
-        updatePicMaster();
-        showToast(`ลบ "${supName}" ออกแล้ว ✅`);
+        allPicMaster = allPicMaster.filter(function(m){
+          return !(String(m.pic_name||'').toLowerCase() === pic.name.toLowerCase() &&
+                   String(m.supplier||'').toLowerCase() === supName.toLowerCase());
+        });
+        renderPicMasterCards(_pmCurrentFilter);
+        showToast('ลบ "' + supName + '" ออกแล้ว');
       } else {
         alert('เกิดข้อผิดพลาด: ' + (res?.message || ''));
       }
