@@ -607,6 +607,28 @@
           </div>
         </div>
 
+        <!-- Monthly Trend Section -->
+        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+          <div class="px-5 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <div class="font-black text-slate-700 text-sm">📈 เปรียบเทียบรายเดือน</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">เข้าตรงเวลา · Fill Rate · Part ครบ · คะแนน Supplier</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <select id="pd-trend-months" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 outline-none font-bold text-xs cursor-pointer">
+                <option value="6">6 เดือน</option>
+                <option value="12" selected>12 เดือน</option>
+                <option value="24">24 เดือน</option>
+              </select>
+              <button type="button" onclick="loadStaffTrend()" class="bg-violet-600 hover:bg-violet-700 text-white px-4 py-1.5 rounded-xl font-bold text-xs cursor-pointer">โหลด</button>
+            </div>
+          </div>
+          <div id="pd-trend-loading" class="hidden p-8 text-center text-slate-400 text-xs font-bold animate-pulse">⏳ กำลังโหลด...</div>
+          <div id="pd-trend-content" class="p-5">
+            <div class="text-center text-slate-300 text-xs font-bold py-6">กด "โหลด" เพื่อดู Trend รายเดือน</div>
+          </div>
+        </div>
+
       </div>
 
     </div><!-- end staff-view -->
@@ -883,6 +905,28 @@
               </thead>
               <tbody id="pr-perf-tbody" class="divide-y divide-slate-50"></tbody>
             </table>
+          </div>
+        </div>
+
+        <!-- Monthly Trend Section -->
+        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+          <div class="px-5 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <div class="font-black text-slate-700 text-sm">📈 เปรียบเทียบรายเดือน</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">เข้าตรงเวลา · Fill Rate · Part ครบ · คะแนน Supplier</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <select id="pr-trend-months" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 outline-none font-bold text-xs cursor-pointer">
+                <option value="6">6 เดือน</option>
+                <option value="12" selected>12 เดือน</option>
+                <option value="24">24 เดือน</option>
+              </select>
+              <button type="button" onclick="loadPrTrend()" class="bg-violet-600 hover:bg-violet-700 text-white px-4 py-1.5 rounded-xl font-bold text-xs cursor-pointer">โหลด</button>
+            </div>
+          </div>
+          <div id="pr-trend-loading" class="hidden p-8 text-center text-slate-400 text-xs font-bold animate-pulse">⏳ กำลังโหลด...</div>
+          <div id="pr-trend-content" class="p-5">
+            <div class="text-center text-slate-300 text-xs font-bold py-6">กด "โหลด" เพื่อดู Trend รายเดือน</div>
           </div>
         </div>
 
@@ -5662,6 +5706,115 @@
     }
     // =====================================================
     // =====================================================
+    // =====================================================
+    // MONTHLY TREND (ใช้ร่วมกัน Staff + PIC)
+    // =====================================================
+    async function loadStaffTrend() {
+      await loadTrendData('pd-trend-months', 'pd-trend-loading', 'pd-trend-content', 'pd');
+    }
+    async function loadPrTrend() {
+      await loadTrendData('pr-trend-months', 'pr-trend-loading', 'pr-trend-content', 'pr');
+    }
+
+    async function loadTrendData(selId, loadingId, contentId, prefix) {
+      const months = (document.getElementById(selId)||{}).value || 12;
+      const loadEl = document.getElementById(loadingId);
+      const contEl = document.getElementById(contentId);
+      if (loadEl) loadEl.classList.remove('hidden');
+      if (contEl) contEl.innerHTML = '';
+      try {
+        const res = await callAPI('getMonthlyTrend', { year: new Date().getFullYear(), months: months });
+        if (loadEl) loadEl.classList.add('hidden');
+        if (!res || !res.success || !res.data || res.data.length === 0) {
+          if (contEl) contEl.innerHTML = '<div class="text-center text-slate-300 text-xs font-bold py-6">ยังไม่มีข้อมูล PartHistory</div>';
+          return;
+        }
+        renderTrend(res.data, contEl, prefix);
+      } catch(err) {
+        if (loadEl) loadEl.classList.add('hidden');
+        if (contEl) contEl.innerHTML = '<div class="text-center text-rose-400 text-xs font-bold py-4">โหลดไม่สำเร็จ: ' + err.message + '</div>';
+      }
+    }
+
+    function renderTrend(data, contEl, prefix) {
+      if (!contEl) return;
+      const labels   = data.map(function(d){ return d.label; });
+      const ontime   = data.map(function(d){ return d.ontime_pct; });
+      const fillRate = data.map(function(d){ return d.fill_rate; });
+      const partRate = data.map(function(d){ return d.part_rate; });
+      const avgScore = data.map(function(d){ return d.avg_score; });
+
+      contEl.innerHTML =
+        '<div style="height:260px;position:relative;margin-bottom:1.5rem;">' +
+          '<canvas id="' + prefix + '-trend-chart" role="img" aria-label="Monthly trend chart">ข้อมูล Trend รายเดือน</canvas>' +
+        '</div>' +
+        '<div class="overflow-x-auto">' +
+          '<table class="w-full text-left text-xs">' +
+            '<thead><tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">' +
+              '<th class="px-4 py-3 sticky left-0 bg-white">เดือน</th>' +
+              '<th class="px-4 py-3 text-center">เข้าทั้งหมด</th>' +
+              '<th class="px-4 py-3 text-center">ตรงเวลา %</th>' +
+              '<th class="px-4 py-3 text-center">Fill Rate %</th>' +
+              '<th class="px-4 py-3 text-center">Part ครบ %</th>' +
+              '<th class="px-4 py-3 text-center">คะแนน Avg</th>' +
+            '</tr></thead>' +
+            '<tbody class="divide-y divide-slate-50">' +
+              data.map(function(d) {
+                const fc = d.fill_rate>=90?'text-emerald-600':d.fill_rate>=70?'text-amber-500':'text-rose-500';
+                const oc = d.ontime_pct>=80?'text-emerald-600':d.ontime_pct>=60?'text-amber-500':'text-rose-500';
+                const pc = d.part_rate>=80?'text-emerald-600':d.part_rate>=60?'text-amber-500':'text-rose-500';
+                const sc = d.avg_score>=80?'text-emerald-600':d.avg_score>=60?'text-amber-500':'text-rose-500';
+                const sw = d.avg_score>=80?'#10b981':d.avg_score>=60?'#f59e0b':'#ef4444';
+                return '<tr class="hover:bg-slate-50">' +
+                  '<td class="px-4 py-2.5 font-black text-slate-700">' + d.label + '</td>' +
+                  '<td class="px-4 py-2.5 text-center text-slate-500">' + d.visits + '</td>' +
+                  '<td class="px-4 py-2.5 text-center font-black ' + oc + '">' + d.ontime_pct + '%</td>' +
+                  '<td class="px-4 py-2.5 text-center font-black ' + fc + '">' + d.fill_rate + '%</td>' +
+                  '<td class="px-4 py-2.5 text-center font-black ' + pc + '">' + d.part_rate + '%</td>' +
+                  '<td class="px-4 py-2.5 text-center"><div style="display:inline-flex;align-items:center;gap:6px;"><div style="width:48px;height:5px;background:#f1f5f9;border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+d.avg_score+'%;background:'+sw+';border-radius:3px;"></div></div><span class="font-black ' + sc + '">' + d.avg_score + '</span></div></td>' +
+                '</tr>';
+              }).join('') +
+            '</tbody></table></div>';
+
+      setTimeout(function() {
+        const canvas = document.getElementById(prefix + '-trend-chart');
+        if (!canvas || typeof Chart === 'undefined') return;
+        if (canvas._chartInstance) canvas._chartInstance.destroy();
+        canvas._chartInstance = new Chart(canvas.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              { label: 'ตรงเวลา %',  data: ontime,   borderColor: '#10b981', tension: 0.3, pointRadius: 4, borderWidth: 2, fill: false },
+              { label: 'Fill Rate %', data: fillRate, borderColor: '#6366f1', tension: 0.3, pointRadius: 4, borderWidth: 2, fill: false },
+              { label: 'Part ครบ %',  data: partRate, borderColor: '#f59e0b', tension: 0.3, pointRadius: 4, borderWidth: 2, borderDash: [5,3], fill: false },
+              { label: 'คะแนน Avg',   data: avgScore, borderColor: '#64748b', tension: 0.3, pointRadius: 4, borderWidth: 2, borderDash: [2,4], fill: false },
+            ]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: function(c){ return c.dataset.label + ': ' + c.raw + '%'; } } }
+            },
+            scales: {
+              y: { min: 0, max: 100, ticks: { font:{size:10}, callback: function(v){ return v+'%'; } }, grid: { color: '#f1f5f9' } },
+              x: { ticks: { font:{size:9}, autoSkip: false, maxRotation: 45 } }
+            }
+          }
+        });
+        const legendHtml = [
+          {c:'#10b981',l:'ตรงเวลา %'},{c:'#6366f1',l:'Fill Rate %'},
+          {c:'#f59e0b',l:'Part ครบ %'},{c:'#64748b',l:'คะแนน Avg'},
+        ].map(function(x){ return '<span style="display:inline-flex;align-items:center;gap:4px;margin-right:12px;font-size:10px;color:#64748b;font-weight:700;"><span style="width:12px;height:3px;background:'+x.c+';border-radius:2px;display:inline-block;"></span>'+x.l+'</span>'; }).join('');
+        const legendDiv = document.createElement('div');
+        legendDiv.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;padding:0 4px;';
+        legendDiv.innerHTML = legendHtml;
+        canvas.parentNode.insertBefore(legendDiv, canvas);
+      }, 50);
+    }
+
     function initPicDashboard() {
       const sel = document.getElementById('picdash-year');
       if (sel && sel.options.length === 0) {
