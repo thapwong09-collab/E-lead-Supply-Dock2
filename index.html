@@ -5040,11 +5040,11 @@
       if (rangeEl) rangeEl.innerText = dates[0] + ' ถึง ' + dates[5];
 
       try {
-        const results = await Promise.all(dates.map(function(date) { return callAPI('getPartsByDate', { date: date }); }));
+        // โหลดทั้งสัปดาห์ครั้งเดียว
+        const weekRes = await callAPI('getPartsByWeek', { startDate: dates[0] });
         document.getElementById('weekly-loading').classList.add('hidden');
 
-        let allRows = [];
-        results.forEach(function(res) { if (res && res.data) allRows = allRows.concat(res.data); });
+        const allRows = (weekRes && weekRes.data) ? weekRes.data : [];
 
         // pending = รอรับของ, confirmed = รับแล้ว
         let pending   = allRows.filter(function(r){ return r.status === 'pending'; });
@@ -5178,11 +5178,11 @@
       }
 
       try {
-        const results = await Promise.all(dates.map(function(date) { return callAPI('getPartsByDate', { date: date }); }));
+        // โหลดทั้งสัปดาห์ครั้งเดียว
+        const weekRes = await callAPI('getPartsByWeek', { startDate: dates[0] });
         document.getElementById('weekly-loading').classList.add('hidden');
 
-        let allRows = [];
-        results.forEach(function(res) { if (res && res.data) allRows = allRows.concat(res.data); });
+        const allRows = (weekRes && weekRes.data) ? weekRes.data : [];
 
         // เฉพาะ pending และ completed (ที่ Confirm แล้ว)
         let filtered = allRows.filter(function(r) {
@@ -5340,22 +5340,18 @@
 
     async function loadMyParts() {
       const week = getWeekRange();
-      const dates = [];
-      for (let i = 0; i < 6; i++) {
-        const d = new Date(week.start);
-        d.setDate(week.start.getDate() + i);
-        dates.push(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'));
-      }
+      const startDate = week.start.getFullYear() + '-' + String(week.start.getMonth()+1).padStart(2,'0') + '-' + String(week.start.getDate()).padStart(2,'0');
+
       document.getElementById('myparts-loading').classList.remove('hidden');
       document.getElementById('myparts-empty').classList.add('hidden');
       document.getElementById('myparts-pic-cards').innerHTML = '';
       document.getElementById('myparts-summary-badge').classList.add('hidden');
       document.getElementById('myparts-confirmed-section').classList.add('hidden');
       try {
-        const results = await Promise.all(dates.map(function(date) { return callAPI('getPartsByDate', { date: date }); }));
+        // โหลดทั้งสัปดาห์ครั้งเดียว (1 API call แทน 6)
+        const res = await callAPI('getPartsByWeek', { startDate: startDate });
         document.getElementById('myparts-loading').classList.add('hidden');
-        let allRows = [];
-        results.forEach(function(res) { if (res && res.data) allRows = allRows.concat(res.data); });
+        const allRows = (res && res.data) ? res.data : [];
 
         // กรองเฉพาะ PIC ที่อยู่ใน PIC_Master (Active)
         const activePics = new Set(
