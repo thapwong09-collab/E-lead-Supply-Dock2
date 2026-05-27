@@ -362,7 +362,7 @@
           <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
             <span class="w-3 h-3 bg-slate-300 rounded-sm inline-block"></span>การเข้ามาส่งของ
           </div>
-          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
 
             <div class="bg-white rounded-2xl border border-slate-100 p-5 flex items-start gap-4">
               <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -397,6 +397,18 @@
               </div>
             </div>
 
+
+            <div class="bg-blue-50 rounded-2xl border border-blue-100 p-5 flex items-start gap-4">
+              <div class="w-10 h-10 bg-blue-200 rounded-xl flex items-center justify-center flex-shrink-0">
+                <span class="text-blue-700 text-lg">🏃</span>
+              </div>
+              <div>
+                <div class="text-[10px] font-black text-blue-600 uppercase tracking-wide">รับเอง / Pick Up</div>
+                <div id="pd-pickup" class="text-3xl font-black text-blue-700 mt-0.5 leading-none">—</div>
+                <div id="pd-pickup-pct" class="text-xs font-black text-blue-500 mt-1">—</div>
+              </div>
+            </div>
+
             <div class="bg-amber-50 rounded-2xl border border-amber-100 p-5 flex items-start gap-4">
               <div class="w-10 h-10 bg-amber-200 rounded-xl flex items-center justify-center flex-shrink-0">
                 <span class="text-amber-700 text-lg">📋</span>
@@ -411,63 +423,151 @@
           </div>
         </div>
 
-        <!-- KPI Row 2 — พาร์ท + Fill Rate (โดดเด่น) -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- KPI Row 2 — Fill Rate + Combo สองด้าน -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-          <!-- Fill Rate card ใหญ่ -->
-          <div class="bg-violet-600 rounded-2xl p-6 flex flex-col justify-between">
-            <div class="text-violet-200 text-[10px] font-black uppercase tracking-widest">Fill Rate รวม</div>
-            <div id="stat-fill-rate" class="text-6xl font-black text-white mt-3 leading-none">—</div>
-            <div class="mt-4 pt-4 border-t border-violet-500 flex items-center justify-between">
+          <!-- ซ้าย: Fill Rate + Part KPI -->
+          <div class="space-y-3">
+            <!-- Fill Rate -->
+            <div class="bg-violet-600 rounded-2xl p-5 flex items-center justify-between gap-4">
               <div>
-                <div class="text-violet-300 text-[9px] font-black uppercase">QTY แผน</div>
-                <div id="pd-qty-plan" class="text-white font-black text-sm">—</div>
+                <div class="text-violet-200 text-[10px] font-black uppercase tracking-widest mb-1">อัตราการรับวัตถุดิบ (Fill Rate)</div>
+                <div id="stat-fill-rate" class="text-5xl font-black text-white leading-none">—</div>
+                <div class="mt-2 flex items-center gap-4">
+                  <div>
+                    <div class="text-violet-300 text-[9px] font-black uppercase">แผน</div>
+                    <div id="pd-qty-plan" class="text-white font-black text-xs">—</div>
+                  </div>
+                  <div class="w-px h-6 bg-violet-500"></div>
+                  <div>
+                    <div class="text-violet-300 text-[9px] font-black uppercase">รับจริง</div>
+                    <div id="pd-qty-recv" class="text-white font-black text-xs">—</div>
+                  </div>
+                </div>
               </div>
-              <div class="text-right">
-                <div class="text-violet-300 text-[9px] font-black uppercase">QTY รับจริง</div>
-                <div id="pd-qty-recv" class="text-white font-black text-sm">—</div>
+              <div class="text-5xl opacity-30">📦</div>
+            </div>
+
+            <!-- 4 Part KPI 2x2 -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-white rounded-2xl border border-slate-100 p-4">
+                <div class="text-[10px] font-black text-slate-400 uppercase tracking-wide mb-2">รายการทั้งหมด</div>
+                <div id="pd-parts-total" class="text-3xl font-black text-slate-800">—</div>
+                <div class="text-[10px] text-slate-400 mt-1">รายการ Part</div>
+              </div>
+              <div class="bg-emerald-50 rounded-2xl border border-emerald-100 p-4">
+                <div class="text-[10px] font-black text-emerald-600 uppercase tracking-wide mb-2">ส่งครบ</div>
+                <div id="pd-parts-completed" class="text-3xl font-black text-emerald-700">—</div>
+                <div id="pd-parts-completed-pct" class="text-xs font-black text-emerald-500 mt-1">—</div>
+              </div>
+              <div class="bg-amber-50 rounded-2xl border border-amber-100 p-4">
+                <div class="text-[10px] font-black text-amber-600 uppercase tracking-wide mb-2">ส่งไม่ครบ</div>
+                <div id="pd-parts-short" class="text-3xl font-black text-amber-600">—</div>
+                <div id="pd-parts-short-pct" class="text-xs font-black text-amber-500 mt-1">—</div>
+              </div>
+              <div class="bg-rose-50 rounded-2xl border border-rose-100 p-4">
+                <div class="text-[10px] font-black text-rose-500 uppercase tracking-wide mb-2">ไม่มีการส่ง</div>
+                <div id="pd-parts-missing" class="text-3xl font-black text-rose-600">—</div>
+                <div id="pd-parts-missing-pct" class="text-xs font-black text-rose-400 mt-1">—</div>
               </div>
             </div>
           </div>
 
-          <!-- 4 Part KPI -->
-          <div class="lg:col-span-2 grid grid-cols-2 gap-3">
-            <div class="bg-white rounded-2xl border border-slate-100 p-5">
-              <div class="flex items-center justify-between mb-3">
-                <div class="text-[10px] font-black text-slate-400 uppercase tracking-wide">รายการทั้งหมด</div>
-                <div class="w-2 h-2 bg-slate-300 rounded-full"></div>
-              </div>
-              <div id="pd-parts-total" class="text-4xl font-black text-slate-800">—</div>
-              <div class="text-[10px] text-slate-400 mt-1">รายการ Part</div>
+          <!-- ขวา: Combo Matrix -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5 flex flex-col">
+            <div class="mb-4">
+              <div class="font-black text-slate-700 text-sm">ผลลัพธ์ด้านการจัดส่ง</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">วิเคราะห์จาก 2 มิติ: ปริมาณ × ความตรงต่อเวลา</div>
             </div>
 
-            <div class="bg-emerald-50 rounded-2xl border border-emerald-100 p-5">
-              <div class="flex items-center justify-between mb-3">
-                <div class="text-[10px] font-black text-emerald-600 uppercase tracking-wide">ครบ QTY</div>
-                <div class="w-2 h-2 bg-emerald-400 rounded-full"></div>
+            <!-- 2x2+2 Matrix -->
+            <div class="flex-1 grid grid-cols-3 gap-2">
+              <!-- A: ครบ + ตรงเวลา (ดีที่สุด) -->
+              <div class="bg-emerald-600 rounded-xl p-4 flex flex-col justify-between">
+                <div class="flex items-center gap-1.5">
+                  <div class="w-1.5 h-1.5 bg-white rounded-full opacity-70"></div>
+                  <div class="text-emerald-100 text-[9px] font-black uppercase">ครบ · ตรงเวลา</div>
+                </div>
+                <div>
+                  <div id="pd-combo-aa" class="text-4xl font-black text-white leading-none">—</div>
+                  <div id="pd-combo-aa-pct" class="text-emerald-200 text-xs font-black mt-1">—</div>
+                </div>
+                <div class="text-[9px] text-emerald-200 opacity-80">เหมาะสมที่สุด ✓</div>
               </div>
-              <div id="pd-parts-completed" class="text-4xl font-black text-emerald-700">—</div>
-              <div id="pd-parts-completed-pct" class="text-xs font-black text-emerald-500 mt-1">—</div>
+
+              <!-- B: ครบ + ไม่ตรงเวลา -->
+              <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 flex flex-col justify-between">
+                <div class="flex items-center gap-1.5">
+                  <div class="w-1.5 h-1.5 bg-amber-400 rounded-full"></div>
+                  <div class="text-amber-600 text-[9px] font-black uppercase">ครบ · ล่าช้า</div>
+                </div>
+                <div>
+                  <div id="pd-combo-ab" class="text-4xl font-black text-amber-700 leading-none">—</div>
+                  <div id="pd-combo-ab-pct" class="text-amber-500 text-xs font-black mt-1">—</div>
+                </div>
+                <div class="text-[9px] text-amber-400">ปริมาณผ่าน แต่เวลาไม่ผ่าน</div>
+              </div>
+
+              <!-- C: ไม่ครบ + ตรงเวลา -->
+              <div class="bg-orange-50 border border-orange-100 rounded-xl p-4 flex flex-col justify-between">
+                <div class="flex items-center gap-1.5">
+                  <div class="w-1.5 h-1.5 bg-orange-400 rounded-full"></div>
+                  <div class="text-orange-600 text-[9px] font-black uppercase">ไม่ครบ · ตรงเวลา</div>
+                </div>
+                <div>
+                  <div id="pd-combo-ba" class="text-4xl font-black text-orange-600 leading-none">—</div>
+                  <div id="pd-combo-ba-pct" class="text-orange-400 text-xs font-black mt-1">—</div>
+                </div>
+                <div class="text-[9px] text-orange-400">เวลาผ่าน แต่ปริมาณไม่ผ่าน</div>
+              </div>
+
+              <!-- D: ไม่ครบ + ไม่ตรงเวลา (แย่ที่สุด) -->
+              <div class="bg-rose-600 rounded-xl p-4 flex flex-col justify-between">
+                <div class="flex items-center gap-1.5">
+                  <div class="w-1.5 h-1.5 bg-white rounded-full opacity-70"></div>
+                  <div class="text-rose-100 text-[9px] font-black uppercase">ไม่ครบ · ล่าช้า</div>
+                </div>
+                <div>
+                  <div id="pd-combo-bb" class="text-4xl font-black text-white leading-none">—</div>
+                  <div id="pd-combo-bb-pct" class="text-rose-200 text-xs font-black mt-1">—</div>
+                </div>
+                <div class="text-[9px] text-rose-200 opacity-80">ต้องแก้ไขเร่งด่วน ✗</div>
+              </div>
+
+              <!-- E: รับเอง + ครบ -->
+              <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex flex-col justify-between">
+                <div class="flex items-center gap-1.5">
+                  <div class="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
+                  <div class="text-blue-600 text-[9px] font-black uppercase">รับเอง · ครบ</div>
+                </div>
+                <div>
+                  <div id="pd-combo-pu-comp" class="text-4xl font-black text-blue-700 leading-none">—</div>
+                  <div id="pd-combo-pu-comp-pct" class="text-blue-500 text-xs font-black mt-1">—</div>
+                </div>
+                <div class="text-[9px] text-blue-400">Pick Up ครบตามแผน</div>
+              </div>
+
+              <!-- F: รับเอง + ไม่ครบ -->
+              <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex flex-col justify-between">
+                <div class="flex items-center gap-1.5">
+                  <div class="w-1.5 h-1.5 bg-indigo-400 rounded-full"></div>
+                  <div class="text-indigo-600 text-[9px] font-black uppercase">รับเอง · ไม่ครบ</div>
+                </div>
+                <div>
+                  <div id="pd-combo-pu-short" class="text-4xl font-black text-indigo-600 leading-none">—</div>
+                  <div id="pd-combo-pu-short-pct" class="text-indigo-400 text-xs font-black mt-1">—</div>
+                </div>
+                <div class="text-[9px] text-indigo-400">Pick Up ไม่ครบตามแผน</div>
+              </div>
             </div>
 
-            <div class="bg-amber-50 rounded-2xl border border-amber-100 p-5">
-              <div class="flex items-center justify-between mb-3">
-                <div class="text-[10px] font-black text-amber-600 uppercase tracking-wide">QTY ไม่ครบ</div>
-                <div class="w-2 h-2 bg-amber-400 rounded-full"></div>
-              </div>
-              <div id="pd-parts-short" class="text-4xl font-black text-amber-600">—</div>
-              <div id="pd-parts-short-pct" class="text-xs font-black text-amber-500 mt-1">—</div>
-            </div>
-
-            <div class="bg-rose-50 rounded-2xl border border-rose-100 p-5">
-              <div class="flex items-center justify-between mb-3">
-                <div class="text-[10px] font-black text-rose-500 uppercase tracking-wide">ไม่ได้รับ</div>
-                <div class="w-2 h-2 bg-rose-400 rounded-full"></div>
-              </div>
-              <div id="pd-parts-missing" class="text-4xl font-black text-rose-600">—</div>
-              <div id="pd-parts-missing-pct" class="text-xs font-black text-rose-400 mt-1">—</div>
+            <!-- Legend แกน -->
+            <div class="mt-3 flex items-center justify-between text-[9px] font-black text-slate-400">
+              <div>← ปริมาณ (QTY)</div>
+              <div>เวลา (Timing) →</div>
             </div>
           </div>
+
         </div>
 
         <!-- Bar Chart -->
@@ -485,15 +585,17 @@
         <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
           <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
             <div>
-              <div class="font-black text-slate-700 text-sm">คะแนน Supplier</div>
-              <div class="text-[10px] text-slate-400 mt-0.5">ตรงเวลา 40% + Part ครบ 60%</div>
+              <div class="font-black text-slate-700 text-sm">คะแนน Supplier — Top 10</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">ตรงเวลา 40% + Part ครบ 60% · เรียงจากคะแนนสูงสุด</div>
             </div>
+            <button type="button" id="pd-perf-toggle" onclick="togglePerfTable()" class="text-[10px] font-black text-violet-600 hover:text-violet-800 bg-violet-50 border border-violet-200 px-3 py-1.5 rounded-xl cursor-pointer">ดูทั้งหมด</button>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
               <thead>
                 <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                  <th class="px-5 py-3">Supplier</th>
+                  <th class="px-5 py-3 w-8">#</th>
+                  <th class="px-4 py-3">Supplier</th>
                   <th class="px-4 py-3 text-center">ครั้ง</th>
                   <th class="px-4 py-3 text-center">ตรงเวลา</th>
                   <th class="px-4 py-3 text-center">Part ครบ</th>
@@ -524,6 +626,7 @@
           <button type="button" onclick="showPicTab('upload503')" id="pic-tab-upload503" class="tab-active px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all shadow-md cursor-pointer">📤 Upload 503</button>
           <button type="button" onclick="showPicTab('myparts')" id="pic-tab-myparts" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📅 Weekly Plan</button>
           <button type="button" onclick="showPicTab('pic-dashboard')" id="pic-tab-pic-dashboard" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📊 Dashboard</button>
+          <button type="button" onclick="showPicTab('parts-receiving')" id="pic-tab-parts-receiving" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📦 Parts Receiving</button>
           <button type="button" onclick="showPicTab('responsibility')" id="pic-tab-responsibility" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📋 แผนรายวัน PIC</button>
           <button type="button" onclick="showPicTab('pic-master')" id="pic-tab-pic-master" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">👤 ความรับผิดชอบ PIC</button>
         </div>
@@ -615,6 +718,175 @@
         </div>
 
       </div><!-- end pic-page-upload503 -->
+
+      <!-- ================= PIC Tab: Parts Receiving Dashboard ================= -->
+      <div id="pic-page-parts-receiving" class="hidden max-w-6xl mx-auto p-4 space-y-5 fade-in">
+
+        <!-- Header -->
+        <div class="flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <div class="font-black text-slate-800 text-xl tracking-tight">Parts Receiving</div>
+            <div class="text-xs text-slate-400 mt-0.5">ภาพรวมการรับวัตถุดิบ — ข้อมูลเดียวกับ Staff Dashboard</div>
+          </div>
+          <div class="flex items-end gap-3 flex-wrap">
+            <div>
+              <div class="text-[9px] font-black text-slate-400 uppercase mb-1">เดือน</div>
+              <select id="pr-month" onchange="updatePartsReceiving()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[150px]"></select>
+            </div>
+            <div>
+              <div class="text-[9px] font-black text-slate-400 uppercase mb-1">Supplier</div>
+              <select id="pr-supplier" onchange="updatePartsReceiving()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[180px]"></select>
+            </div>
+            <button type="button" onclick="updatePartsReceiving()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer">🔄 รีเฟรช</button>
+          </div>
+        </div>
+
+        <!-- Section 1: การเข้ามาส่งของ -->
+        <div>
+          <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+            <span class="w-3 h-3 bg-slate-300 rounded-sm inline-block"></span>การเข้ามาส่งของ
+          </div>
+          <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+            <div class="bg-white rounded-2xl border border-slate-100 p-5 flex items-start gap-4">
+              <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center flex-shrink-0"><span class="text-lg">🚚</span></div>
+              <div>
+                <div class="text-[10px] font-black text-slate-400 uppercase tracking-wide">เข้าทั้งหมด</div>
+                <div id="pr-visits" class="text-3xl font-black text-slate-800 mt-0.5 leading-none">—</div>
+                <div class="text-[10px] text-slate-400 mt-1">ครั้ง</div>
+              </div>
+            </div>
+            <div class="bg-emerald-50 rounded-2xl border border-emerald-100 p-5 flex items-start gap-4">
+              <div class="w-10 h-10 bg-emerald-200 rounded-xl flex items-center justify-center flex-shrink-0"><span class="text-lg">✅</span></div>
+              <div>
+                <div class="text-[10px] font-black text-emerald-600 uppercase tracking-wide">ตรงเวลา</div>
+                <div id="pr-ontime" class="text-3xl font-black text-emerald-700 mt-0.5 leading-none">—</div>
+                <div id="pr-ontime-pct" class="text-xs font-black text-emerald-500 mt-1">—</div>
+              </div>
+            </div>
+            <div class="bg-rose-50 rounded-2xl border border-rose-100 p-5 flex items-start gap-4">
+              <div class="w-10 h-10 bg-rose-200 rounded-xl flex items-center justify-center flex-shrink-0"><span class="text-lg">⚠️</span></div>
+              <div>
+                <div class="text-[10px] font-black text-rose-500 uppercase tracking-wide">ล่าช้า</div>
+                <div id="pr-late" class="text-3xl font-black text-rose-600 mt-0.5 leading-none">—</div>
+                <div id="pr-late-pct" class="text-xs font-black text-rose-400 mt-1">—</div>
+              </div>
+            </div>
+
+            <div class="bg-blue-50 rounded-2xl border border-blue-100 p-5 flex items-start gap-4">
+              <div class="w-10 h-10 bg-blue-200 rounded-xl flex items-center justify-center flex-shrink-0"><span class="text-blue-700 text-lg">🏃</span></div>
+              <div>
+                <div class="text-[10px] font-black text-blue-600 uppercase tracking-wide">รับเอง / Pick Up</div>
+                <div id="pr-pickup" class="text-3xl font-black text-blue-700 mt-0.5 leading-none">—</div>
+                <div id="pr-pickup-pct" class="text-xs font-black text-blue-500 mt-1">—</div>
+              </div>
+            </div>
+
+            <div class="bg-amber-50 rounded-2xl border border-amber-100 p-5 flex items-start gap-4">
+              <div class="w-10 h-10 bg-amber-200 rounded-xl flex items-center justify-center flex-shrink-0"><span class="text-lg">📋</span></div>
+              <div>
+                <div class="text-[10px] font-black text-amber-600 uppercase tracking-wide">นอกแผน</div>
+                <div id="pr-unplanned" class="text-3xl font-black text-amber-700 mt-0.5 leading-none">—</div>
+                <div id="pr-unplanned-pct" class="text-xs font-black text-amber-500 mt-1">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Fill Rate + Combo -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- Fill Rate -->
+          <div class="space-y-3">
+            <div class="bg-violet-600 rounded-2xl p-5 flex items-center justify-between gap-4">
+              <div>
+                <div class="text-violet-200 text-[10px] font-black uppercase tracking-widest mb-1">อัตราการรับวัตถุดิบ (Fill Rate)</div>
+                <div id="pr-fill-rate" class="text-5xl font-black text-white leading-none">—</div>
+                <div class="mt-2 flex items-center gap-4">
+                  <div><div class="text-violet-300 text-[9px] font-black uppercase">แผน</div><div id="pr-qty-plan" class="text-white font-black text-xs">—</div></div>
+                  <div class="w-px h-6 bg-violet-500"></div>
+                  <div><div class="text-violet-300 text-[9px] font-black uppercase">รับจริง</div><div id="pr-qty-recv" class="text-white font-black text-xs">—</div></div>
+                </div>
+              </div>
+              <div class="text-5xl opacity-30">📦</div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-white rounded-2xl border border-slate-100 p-4"><div class="text-[10px] font-black text-slate-400 uppercase mb-2">รายการทั้งหมด</div><div id="pr-parts-total" class="text-3xl font-black text-slate-800">—</div></div>
+              <div class="bg-emerald-50 rounded-2xl border border-emerald-100 p-4"><div class="text-[10px] font-black text-emerald-600 uppercase mb-2">ส่งครบ</div><div id="pr-parts-completed" class="text-3xl font-black text-emerald-700">—</div><div id="pr-parts-completed-pct" class="text-xs font-black text-emerald-500 mt-1">—</div></div>
+              <div class="bg-amber-50 rounded-2xl border border-amber-100 p-4"><div class="text-[10px] font-black text-amber-600 uppercase mb-2">ส่งไม่ครบ</div><div id="pr-parts-short" class="text-3xl font-black text-amber-600">—</div><div id="pr-parts-short-pct" class="text-xs font-black text-amber-500 mt-1">—</div></div>
+              <div class="bg-rose-50 rounded-2xl border border-rose-100 p-4"><div class="text-[10px] font-black text-rose-500 uppercase mb-2">ไม่มีการส่ง</div><div id="pr-parts-missing" class="text-3xl font-black text-rose-600">—</div><div id="pr-parts-missing-pct" class="text-xs font-black text-rose-400 mt-1">—</div></div>
+            </div>
+          </div>
+
+          <!-- Combo Matrix -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5 flex flex-col">
+            <div class="mb-4">
+              <div class="font-black text-slate-700 text-sm">ผลลัพธ์ด้านการจัดส่ง</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">วิเคราะห์จาก 2 มิติ: ปริมาณ × ความตรงต่อเวลา</div>
+            </div>
+            <div class="flex-1 grid grid-cols-3 gap-2">
+              <div class="bg-emerald-600 rounded-xl p-4 flex flex-col justify-between">
+                <div class="text-emerald-100 text-[9px] font-black uppercase">ครบ · ตรงเวลา</div>
+                <div><div id="pr-combo-aa" class="text-4xl font-black text-white leading-none">—</div><div id="pr-combo-aa-pct" class="text-emerald-200 text-xs font-black mt-1">—</div></div>
+                <div class="text-[9px] text-emerald-200 opacity-80">เหมาะสมที่สุด ✓</div>
+              </div>
+              <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 flex flex-col justify-between">
+                <div class="text-amber-600 text-[9px] font-black uppercase">ครบ · ล่าช้า</div>
+                <div><div id="pr-combo-ab" class="text-4xl font-black text-amber-700 leading-none">—</div><div id="pr-combo-ab-pct" class="text-amber-500 text-xs font-black mt-1">—</div></div>
+                <div class="text-[9px] text-amber-400">ปริมาณผ่าน แต่เวลาไม่ผ่าน</div>
+              </div>
+              <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex flex-col justify-between">
+                <div class="text-blue-600 text-[9px] font-black uppercase">รับเอง · ครบ</div>
+                <div><div id="pr-combo-pu-comp" class="text-4xl font-black text-blue-700 leading-none">—</div><div id="pr-combo-pu-comp-pct" class="text-blue-500 text-xs font-black mt-1">—</div></div>
+                <div class="text-[9px] text-blue-400">Pick Up ครบตามแผน</div>
+              </div>
+              <div class="bg-orange-50 border border-orange-100 rounded-xl p-4 flex flex-col justify-between">
+                <div class="text-orange-600 text-[9px] font-black uppercase">ไม่ครบ · ตรงเวลา</div>
+                <div><div id="pr-combo-ba" class="text-4xl font-black text-orange-600 leading-none">—</div><div id="pr-combo-ba-pct" class="text-orange-400 text-xs font-black mt-1">—</div></div>
+                <div class="text-[9px] text-orange-400">เวลาผ่าน แต่ปริมาณไม่ผ่าน</div>
+              </div>
+              <div class="bg-rose-600 rounded-xl p-4 flex flex-col justify-between">
+                <div class="text-rose-100 text-[9px] font-black uppercase">ไม่ครบ · ล่าช้า</div>
+                <div><div id="pr-combo-bb" class="text-4xl font-black text-white leading-none">—</div><div id="pr-combo-bb-pct" class="text-rose-200 text-xs font-black mt-1">—</div></div>
+                <div class="text-[9px] text-rose-200 opacity-80">ต้องแก้ไขเร่งด่วน ✗</div>
+              </div>
+              <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex flex-col justify-between">
+                <div class="text-indigo-600 text-[9px] font-black uppercase">รับเอง · ไม่ครบ</div>
+                <div><div id="pr-combo-pu-short" class="text-4xl font-black text-indigo-600 leading-none">—</div><div id="pr-combo-pu-short-pct" class="text-indigo-400 text-xs font-black mt-1">—</div></div>
+                <div class="text-[9px] text-indigo-400">Pick Up ไม่ครบตามแผน</div>
+              </div>
+            </div>
+            <div class="mt-3 flex items-center justify-between text-[9px] font-black text-slate-400">
+              <div>← ปริมาณ (QTY)</div><div>เวลา (Timing) →</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Performance Table -->
+        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+          <div class="px-5 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+            <div>
+              <div class="font-black text-slate-700 text-sm">คะแนน Supplier — Top 10</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">ตรงเวลา 40% + Part ครบ 60% · เรียงจากคะแนนสูงสุด</div>
+            </div>
+            <button type="button" id="pr-perf-toggle" onclick="togglePrPerfTable()" class="text-[10px] font-black text-violet-600 hover:text-violet-800 bg-violet-50 border border-violet-200 px-3 py-1.5 rounded-xl cursor-pointer">ดูทั้งหมด</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead>
+                <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                  <th class="px-5 py-3 w-8">#</th>
+                  <th class="px-4 py-3">Supplier</th>
+                  <th class="px-4 py-3 text-center">ครั้ง</th>
+                  <th class="px-4 py-3 text-center">ตรงเวลา</th>
+                  <th class="px-4 py-3 text-center">Part ครบ</th>
+                  <th class="px-4 py-3 text-center">คะแนน</th>
+                </tr>
+              </thead>
+              <tbody id="pr-perf-tbody" class="divide-y divide-slate-50"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- end pic-page-parts-receiving -->
 
       <!-- ================= PIC Tab: Dashboard ================= -->
       <div id="pic-page-pic-dashboard" class="hidden max-w-6xl mx-auto p-4 space-y-5 fade-in">
@@ -3529,12 +3801,15 @@
       const ontime   = checkinData.filter(function(r){ return String(r.plan_status||'').includes('ตรงเวลา'); }).length;
       const late     = checkinData.filter(function(r){ return String(r.plan_status||'').includes('ล่าช้า'); }).length;
       const unplann  = checkinData.filter(function(r){ return String(r.plan_status||'').includes('นอกแผน'); }).length;
+      const pickup   = partsData.filter(function(p){ return String(p.time_slot||'').toLowerCase()==='pick up'; }).length;
       set('pd-ontime',      ontime);
       set('pd-ontime-pct',  done > 0 ? Math.round(ontime/done*100)+'%' : '—');
       set('pd-late',        late);
       set('pd-late-pct',    done > 0 ? Math.round(late/done*100)+'%' : '—');
       set('pd-unplanned',   unplann);
       set('pd-unplanned-pct', visits > 0 ? Math.round(unplann/visits*100)+'%' : '—');
+      set('pd-pickup',      pickup);
+      set('pd-pickup-pct',  partsData.length > 0 ? Math.round(pickup/partsData.length*100)+'%' : '—');
       const tot  = partsData.length || 1;
       const comp = partsData.filter(function(p){ return p.status==='completed'; }).length;
       const sht  = partsData.filter(function(p){ return p.status==='short'; }).length;
@@ -3551,6 +3826,26 @@
       set('stat-fill-rate',         qtyP > 0 ? (qtyR/qtyP*100).toFixed(1)+'%' : '—');
       set('pd-qty-plan',            qtyP > 0 ? qtyP.toLocaleString() : '—');
       set('pd-qty-recv',            qtyR > 0 ? qtyR.toLocaleString() : '—');
+
+      // Combo: จับคู่ Part กับ Checkin ว่าตรงเวลาไหม
+      const ontimeVendors = new Set(checkinData.filter(function(r){ return String(r.plan_status||'').includes('ตรงเวลา'); }).map(function(r){ return String(r.company_name||'').toLowerCase(); }));
+      const comboAA = partsData.filter(function(p){ return p.status==='completed' && ontimeVendors.has(String(p.vendor||'').toLowerCase()); }).length;
+      const comboAB = partsData.filter(function(p){ return p.status==='completed' && !ontimeVendors.has(String(p.vendor||'').toLowerCase()); }).length;
+      const comboBA = partsData.filter(function(p){ return (p.status==='short'||p.status==='missing') && ontimeVendors.has(String(p.vendor||'').toLowerCase()); }).length;
+      const comboBB = partsData.filter(function(p){ return (p.status==='short'||p.status==='missing') && !ontimeVendors.has(String(p.vendor||'').toLowerCase()); }).length;
+      const comboTot = (comboAA+comboAB+comboBA+comboBB) || 1;
+      set('pd-combo-aa', comboAA); set('pd-combo-aa-pct', Math.round(comboAA/comboTot*100)+'% ของทั้งหมด');
+      set('pd-combo-ab', comboAB); set('pd-combo-ab-pct', Math.round(comboAB/comboTot*100)+'% ของทั้งหมด');
+      set('pd-combo-ba', comboBA); set('pd-combo-ba-pct', Math.round(comboBA/comboTot*100)+'% ของทั้งหมด');
+      set('pd-combo-bb', comboBB); set('pd-combo-bb-pct', Math.round(comboBB/comboTot*100)+'% ของทั้งหมด');
+
+      const puParts  = partsData.filter(function(p){ return String(p.time_slot||'').toLowerCase()==='pick up'; });
+      const puComp   = puParts.filter(function(p){ return p.status==='completed'; }).length;
+      const puShort  = puParts.filter(function(p){ return p.status==='short'||p.status==='missing'; }).length;
+      const puTot    = (puComp+puShort)||1;
+      set('pd-combo-pu-comp',     puComp); set('pd-combo-pu-comp-pct',  Math.round(puComp/puTot*100)+'% ของ Pick Up');
+      set('pd-combo-pu-short',    puShort); set('pd-combo-pu-short-pct', Math.round(puShort/puTot*100)+'% ของ Pick Up');
+
       const now = new Date().toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'});
       set('pd-last-update', 'อัพเดตล่าสุด ' + now);
     }
@@ -3596,15 +3891,44 @@
       });
     }
 
-    function updatePdPerfTable(checkinData, partsData) {
+    let _perfAllRows = [];
+    let _perfShowAll = false;
+
+    function togglePerfTable() {
+      _perfShowAll = !_perfShowAll;
+      const btn = document.getElementById('pd-perf-toggle');
+      if (btn) btn.innerText = _perfShowAll ? 'ดู Top 10' : 'ดูทั้งหมด';
+      renderPerfRows();
+    }
+
+    function renderPerfRows() {
       const tbody = document.getElementById('pd-perf-tbody');
       if (!tbody) return;
+      const rows = _perfShowAll ? _perfAllRows : _perfAllRows.slice(0, 10);
+      tbody.innerHTML = rows.map(function(r, idx) {
+        const sc = r.score>=80?'#10b981':r.score>=60?'#f59e0b':'#ef4444';
+        const oc = r.ontimePct>=80?'text-emerald-600':r.ontimePct>=60?'text-amber-500':'text-rose-500';
+        const qc = r.qtyPct>=80?'text-emerald-600':r.qtyPct>=60?'text-amber-500':'text-rose-500';
+        const rank = idx+1;
+        const rankBg = rank===1?'bg-amber-100 text-amber-700':rank===2?'bg-slate-100 text-slate-500':rank===3?'bg-orange-100 text-orange-600':'text-slate-300';
+        return '<tr class="hover:bg-slate-50 transition-colors">' +
+          '<td class="px-5 py-3"><span class="text-[10px] font-black ' + rankBg + (rank<=3?' px-2 py-0.5 rounded-lg':'') + '">' + rank + '</span></td>' +
+          '<td class="px-4 py-3 font-bold text-slate-700 max-w-[200px] truncate">' + r.v + '</td>' +
+          '<td class="px-4 py-3 text-center text-slate-500">' + r.visits + '</td>' +
+          '<td class="px-4 py-3 text-center font-black ' + oc + '">' + r.ontimePct + '%</td>' +
+          '<td class="px-4 py-3 text-center font-black ' + qc + '">' + r.qtyPct + '%</td>' +
+          '<td class="px-4 py-3 text-center"><div style="display:inline-flex;align-items:center;gap:8px;"><div style="width:60px;height:6px;background:#f1f5f9;border-radius:3px;overflow:hidden;"><div style="height:100%;width:' + r.score + '%;background:' + sc + ';border-radius:3px;"></div></div><span style="font-weight:900;color:' + sc + ';font-size:12px;">' + r.score + '</span></div></td>' +
+        '</tr>';
+      }).join('') || '<tr><td colspan="6" class="text-center py-8 text-slate-300 text-xs font-bold">ยังไม่มีข้อมูล</td></tr>';
+    }
+
+    function updatePdPerfTable(checkinData, partsData) {
       const vendors = [...new Set([
         ...checkinData.map(function(r){ return r.company_name||''; }),
         ...partsData.map(function(p){ return p.vendor||''; })
       ].filter(Boolean))].sort();
 
-      const rows = vendors.map(function(v) {
+      _perfAllRows = vendors.map(function(v) {
         const vl = v.toLowerCase();
         const ci = checkinData.filter(function(r){ return String(r.company_name||'').toLowerCase().includes(vl) || vl.includes(String(r.company_name||'').toLowerCase().substring(0,8)); });
         const pp = partsData.filter(function(p){ return String(p.vendor||'').toLowerCase().includes(vl) || vl.includes(String(p.vendor||'').toLowerCase().substring(0,8)); });
@@ -3617,24 +3941,19 @@
         return { v, visits, ontimePct, qtyPct, score };
       }).sort(function(a,b){ return b.score-a.score; });
 
-      tbody.innerHTML = rows.map(function(r) {
-        const scoreColor = r.score>=80 ? '#10b981' : r.score>=60 ? '#f59e0b' : '#ef4444';
-        const ontimeColor = r.ontimePct>=80 ? 'text-emerald-600' : r.ontimePct>=60 ? 'text-amber-500' : 'text-rose-500';
-        const qtyColor    = r.qtyPct>=80    ? 'text-emerald-600' : r.qtyPct>=60    ? 'text-amber-500' : 'text-rose-500';
-        return '<tr class="hover:bg-slate-50 transition-colors">' +
-          '<td class="px-5 py-3 font-bold text-slate-700 max-w-[200px] truncate">' + r.v + '</td>' +
-          '<td class="px-4 py-3 text-center text-slate-500">' + r.visits + '</td>' +
-          '<td class="px-4 py-3 text-center font-black ' + ontimeColor + '">' + r.ontimePct + '%</td>' +
-          '<td class="px-4 py-3 text-center font-black ' + qtyColor + '">' + r.qtyPct + '%</td>' +
-          '<td class="px-4 py-3 text-center"><div style="display:inline-flex;align-items:center;gap:8px;"><div style="width:60px;height:6px;background:#f1f5f9;border-radius:3px;overflow:hidden;"><div style="height:100%;width:' + r.score + '%;background:' + scoreColor + ';border-radius:3px;"></div></div><span style="font-weight:900;color:' + scoreColor + ';font-size:12px;">' + r.score + '</span></div></td>' +
-        '</tr>';
-      }).join('') || '<tr><td colspan="5" class="text-center py-8 text-slate-300 text-xs font-bold">ยังไม่มีข้อมูล</td></tr>';
+      _perfShowAll = false;
+      const btn = document.getElementById('pd-perf-toggle');
+      if (btn) {
+        btn.innerText = 'ดูทั้งหมด';
+        btn.style.display = _perfAllRows.length <= 10 ? 'none' : '';
+      }
+      renderPerfRows();
     }
 
     // ==========================================
     // ==========================================
     function showPicTab(tab) {
-      ['upload503','myparts','pic-dashboard','responsibility','pic-master'].forEach(t => {
+      ['upload503','myparts','pic-dashboard','parts-receiving','responsibility','pic-master'].forEach(t => {
         const p = document.getElementById('pic-page-' + t);
         const b = document.getElementById('pic-tab-' + t);
         if (p) p.classList.toggle('hidden', t !== tab);
@@ -3644,6 +3963,7 @@
       });
       if (tab === 'myparts') initMyParts();
       if (tab === 'pic-dashboard') initPicDashboard();
+      if (tab === 'parts-receiving') initPartsReceiving();
       if (tab === 'responsibility') { initPicResponsibility(); updatePicResponsibility(); }
       if (tab === 'pic-master') updatePicMaster();
     }
@@ -5207,8 +5527,140 @@
     }
     // =====================================================
     // =====================================================
+    let _prPerfAllRows = [];
+    let _prPerfShowAll = false;
+
+    function togglePrPerfTable() {
+      _prPerfShowAll = !_prPerfShowAll;
+      const btn = document.getElementById('pr-perf-toggle');
+      if (btn) btn.innerText = _prPerfShowAll ? 'ดู Top 10' : 'ดูทั้งหมด';
+      renderPrPerfRows();
+    }
+
+    function renderPrPerfRows() {
+      const tbody = document.getElementById('pr-perf-tbody');
+      if (!tbody) return;
+      const rows = _prPerfShowAll ? _prPerfAllRows : _prPerfAllRows.slice(0,10);
+      tbody.innerHTML = rows.map(function(r, idx) {
+        const sc = r.score>=80?'#10b981':r.score>=60?'#f59e0b':'#ef4444';
+        const oc = r.ontimePct>=80?'text-emerald-600':r.ontimePct>=60?'text-amber-500':'text-rose-500';
+        const qc = r.qtyPct>=80?'text-emerald-600':r.qtyPct>=60?'text-amber-500':'text-rose-500';
+        const rank = idx+1;
+        const rankBg = rank===1?'bg-amber-100 text-amber-700':rank===2?'bg-slate-100 text-slate-500':rank===3?'bg-orange-100 text-orange-600':'text-slate-300';
+        return '<tr class="hover:bg-slate-50">' +
+          '<td class="px-5 py-3"><span class="text-[10px] font-black ' + rankBg + (rank<=3?' px-2 py-0.5 rounded-lg':'') + '">' + rank + '</span></td>' +
+          '<td class="px-4 py-3 font-bold text-slate-700 max-w-[200px] truncate text-xs">' + r.v + '</td>' +
+          '<td class="px-4 py-3 text-center text-slate-500 text-xs">' + r.vis + '</td>' +
+          '<td class="px-4 py-3 text-center font-black ' + oc + ' text-xs">' + r.ontimePct + '%</td>' +
+          '<td class="px-4 py-3 text-center font-black ' + qc + ' text-xs">' + r.qtyPct + '%</td>' +
+          '<td class="px-4 py-3 text-center"><div style="display:inline-flex;align-items:center;gap:8px;"><div style="width:60px;height:6px;background:#f1f5f9;border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+r.score+'%;background:'+sc+';border-radius:3px;"></div></div><span style="font-weight:900;color:'+sc+';font-size:12px;">'+r.score+'</span></div></td>' +
+        '</tr>';
+      }).join('') || '<tr><td colspan="6" class="text-center py-8 text-slate-300 text-xs font-bold">ยังไม่มีข้อมูล</td></tr>';
+    }
     // =====================================================
-    // PIC DASHBOARD
+    function initPartsReceiving() {
+      const mSel = document.getElementById('pr-month');
+      if (mSel && mSel.options.length === 0) {
+        mSel.add(new Option('ทุกเดือน','ALL'));
+        const now = new Date();
+        for (let i = 0; i < 24; i++) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          mSel.add(new Option(d.toLocaleDateString('th-TH',{month:'long',year:'numeric'}), d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')));
+        }
+      }
+      const sSel = document.getElementById('pr-supplier');
+      if (sSel && sSel.options.length <= 1) {
+        sSel.innerHTML = '<option value="ALL">ทั้งหมด</option>';
+        const vendors = [...new Set([...allData.map(r=>r.company_name),...allPartData.map(p=>p.vendor)].filter(Boolean))].sort();
+        vendors.forEach(function(v){ sSel.add(new Option(v,v)); });
+      }
+      updatePartsReceiving();
+    }
+
+    function updatePartsReceiving() {
+      const mVal = (document.getElementById('pr-month')||{}).value || 'ALL';
+      const sVal = (document.getElementById('pr-supplier')||{}).value || 'ALL';
+      const set  = function(id,v){ const e=document.getElementById(id); if(e) e.innerText=v; };
+
+      const fci = allData.filter(function(r) {
+        if (r.status==='cancelled') return false;
+        if (mVal!=='ALL') { const p=mVal.split('-'),d=String(r.date||'').split('-'); if(d[0]!==p[0]||d[1]!==p[1]) return false; }
+        if (sVal!=='ALL' && !String(r.company_name||'').toLowerCase().includes(sVal.toLowerCase())) return false;
+        return true;
+      });
+      const visits = new Set(fci.map(function(r){ return r.date+'_'+r.queue_number; })).size;
+      const done   = fci.filter(function(r){ return r.status==='completed'||r.status==='exited'; }).length;
+      const ontime = fci.filter(function(r){ return String(r.plan_status||'').includes('ตรงเวลา'); }).length;
+      const late   = fci.filter(function(r){ return String(r.plan_status||'').includes('ล่าช้า'); }).length;
+      const unpl   = fci.filter(function(r){ return String(r.plan_status||'').includes('นอกแผน'); }).length;
+
+      set('pr-visits', visits);
+      set('pr-ontime', ontime); set('pr-ontime-pct', done>0?Math.round(ontime/done*100)+'%':'—');
+      set('pr-late',   late);   set('pr-late-pct',   done>0?Math.round(late/done*100)+'%':'—');
+      set('pr-unplanned', unpl); set('pr-unplanned-pct', visits>0?Math.round(unpl/visits*100)+'%':'—');
+
+      const fp = allPartData.filter(function(p) {
+        if (mVal!=='ALL') { const pt=mVal.split('-'),d=String(p.date||'').split('-'); if(d[0]!==pt[0]||d[1]!==pt[1]) return false; }
+        if (sVal!=='ALL' && !String(p.vendor||'').toLowerCase().includes(sVal.toLowerCase())) return false;
+        return ['pending','completed','short','missing'].includes(p.status||'');
+      });
+      const tot  = fp.length || 1;
+      const comp = fp.filter(function(p){ return p.status==='completed'; }).length;
+      const sht  = fp.filter(function(p){ return p.status==='short'; }).length;
+      const mis  = fp.filter(function(p){ return p.status==='missing'; }).length;
+      const qtyP = fp.reduce(function(s,p){ return s+(parseFloat(p.qty_plan)||0); },0);
+      const qtyR = fp.reduce(function(s,p){ return s+(parseFloat(p.qty_received)||0); },0);
+
+      const pickup = fp.filter(function(p){ return String(p.time_slot||'').toLowerCase()==='pick up'; }).length;
+      set('pr-parts-total', fp.length||'—');
+      set('pr-parts-completed', comp); set('pr-parts-completed-pct', fp.length>0?Math.round(comp/tot*100)+'%':'—');
+      set('pr-parts-short', sht);      set('pr-parts-short-pct', fp.length>0?Math.round(sht/tot*100)+'%':'—');
+      set('pr-parts-missing', mis);    set('pr-parts-missing-pct', fp.length>0?Math.round(mis/tot*100)+'%':'—');
+      set('pr-fill-rate', qtyP>0?(qtyR/qtyP*100).toFixed(1)+'%':'—');
+      set('pr-qty-plan', qtyP>0?qtyP.toLocaleString():'—');
+      set('pr-qty-recv', qtyR>0?qtyR.toLocaleString():'—');
+      set('pr-pickup', pickup);
+      set('pr-pickup-pct', fp.length>0?Math.round(pickup/fp.length*100)+'%':'—');
+
+      const puP    = fp.filter(function(p){ return String(p.time_slot||'').toLowerCase()==='pick up'; });
+      const puComp = puP.filter(function(p){ return p.status==='completed'; }).length;
+      const puShrt = puP.filter(function(p){ return p.status==='short'||p.status==='missing'; }).length;
+      const puT    = (puComp+puShrt)||1;
+      set('pr-combo-pu-comp',  puComp); set('pr-combo-pu-comp-pct',  Math.round(puComp/puT*100)+'% ของ Pick Up');
+      set('pr-combo-pu-short', puShrt); set('pr-combo-pu-short-pct', Math.round(puShrt/puT*100)+'% ของ Pick Up');
+
+      const ontimeV = new Set(fci.filter(function(r){ return String(r.plan_status||'').includes('ตรงเวลา'); }).map(function(r){ return String(r.company_name||'').toLowerCase(); }));
+      const cAA = fp.filter(function(p){ return p.status==='completed' && ontimeV.has(String(p.vendor||'').toLowerCase()); }).length;
+      const cAB = fp.filter(function(p){ return p.status==='completed' && !ontimeV.has(String(p.vendor||'').toLowerCase()); }).length;
+      const cBA = fp.filter(function(p){ return (p.status==='short'||p.status==='missing') && ontimeV.has(String(p.vendor||'').toLowerCase()); }).length;
+      const cBB = fp.filter(function(p){ return (p.status==='short'||p.status==='missing') && !ontimeV.has(String(p.vendor||'').toLowerCase()); }).length;
+      const cT  = (cAA+cAB+cBA+cBB)||1;
+      set('pr-combo-aa',cAA); set('pr-combo-aa-pct',Math.round(cAA/cT*100)+'% ของทั้งหมด');
+      set('pr-combo-ab',cAB); set('pr-combo-ab-pct',Math.round(cAB/cT*100)+'% ของทั้งหมด');
+      set('pr-combo-ba',cBA); set('pr-combo-ba-pct',Math.round(cBA/cT*100)+'% ของทั้งหมด');
+      set('pr-combo-bb',cBB); set('pr-combo-bb-pct',Math.round(cBB/cT*100)+'% ของทั้งหมด');
+
+      // Performance Table
+      const vendors = [...new Set([...fci.map(r=>r.company_name||''),...fp.map(p=>p.vendor||'')].filter(Boolean))].sort();
+      _prPerfAllRows = vendors.map(function(v) {
+        const vl = v.toLowerCase();
+        const ci = fci.filter(function(r){ return String(r.company_name||'').toLowerCase().includes(vl)||vl.includes(String(r.company_name||'').toLowerCase().substring(0,8)); });
+        const pp = fp.filter(function(p){ return String(p.vendor||'').toLowerCase().includes(vl)||vl.includes(String(p.vendor||'').toLowerCase().substring(0,8)); });
+        const vis   = new Set(ci.map(function(r){ return r.date+'_'+r.queue_number; })).size;
+        const ot    = ci.filter(function(r){ return String(r.plan_status||'').includes('ตรงเวลา'); }).length;
+        const otPct = vis>0?Math.round(ot/vis*100):0;
+        const cp    = pp.filter(function(p){ return p.status==='completed'; }).length;
+        const qPct  = pp.length>0?Math.round(cp/pp.length*100):0;
+        const score = Math.round(otPct*0.4+qPct*0.6);
+        return {v,vis,ontimePct:otPct,qtyPct:qPct,score};
+      }).sort(function(a,b){ return b.score-a.score; });
+
+      _prPerfShowAll = false;
+      const prBtn = document.getElementById('pr-perf-toggle');
+      if (prBtn) { prBtn.innerText = 'ดูทั้งหมด'; prBtn.style.display = _prPerfAllRows.length <= 10 ? 'none' : ''; }
+      renderPrPerfRows();
+    }
+    // =====================================================
     // =====================================================
     function initPicDashboard() {
       const sel = document.getElementById('picdash-year');
