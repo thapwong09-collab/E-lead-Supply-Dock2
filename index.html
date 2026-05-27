@@ -3906,9 +3906,9 @@
         const sup = String(r.supplier || '').trim();
         if (!pic) return;
         if (!map[pic]) map[pic] = { name: pic, suppliers: [], status: r.status || 'active' };
-        // อัพเดท status ถ้ามีการเปลี่ยน
         if (r.status) map[pic].status = r.status;
-        if (sup && !map[pic].suppliers.includes(sup)) map[pic].suppliers.push(sup);
+        // ข้าม placeholder
+        if (sup && sup !== '__NEW__' && !map[pic].suppliers.includes(sup)) map[pic].suppliers.push(sup);
       });
       return { pics: Object.values(map) };
     }
@@ -4120,14 +4120,25 @@
     async function savePicCard() {
       const name = document.getElementById('pm-new-pic-name')?.value.trim();
       if (!name) return alert('กรุณากรอกชื่อ PIC');
-      // เช็คซ้ำใน allPicMaster
-      const exists = allPicMaster.some(m => String(m.pic_name||'').toLowerCase() === name.toLowerCase());
+      const exists = allPicMaster.some(function(m){ return String(m.pic_name||'').toLowerCase() === name.toLowerCase(); });
       if (exists) return alert('มี PIC ชื่อนี้อยู่แล้ว');
-      // เพิ่ม placeholder ใน local state (supplier ว่าง = card เปล่า)
-      allPicMaster.push({ pic_name: name, supplier: '', created_at: new Date().toISOString() });
+
       closePmModal();
-      updatePicMaster();
-      showToast(`เพิ่ม PIC "${name}" แล้ว ✅`);
+      showToast('⏳ กำลังบันทึก...');
+
+      try {
+        // บันทึกลง Sheet ด้วย placeholder supplier = '__NEW__'
+        const res = await callAPI('savePicMasterEntry', { picName: name, supplier: '__NEW__' });
+        if (res && res.success) {
+          allPicMaster.push({ pic_name: name, supplier: '', status: 'active', created_at: new Date().toISOString() });
+          renderPicMasterCards(_pmCurrentFilter);
+          showToast('เพิ่ม PIC "' + name + '" แล้ว ✅');
+        } else {
+          showToast('บันทึกไม่สำเร็จ: ' + (res?.message||''));
+        }
+      } catch(e) {
+        showToast('Error: ' + e.message);
+      }
     }
 
     async function deletePicCard(pi) {
