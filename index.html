@@ -1719,10 +1719,10 @@
       });
     }
 
-    function showRoleSelection() { hideAll(); stopGuardScanner(); document.getElementById('role-selection').classList.remove('hidden'); }
-    function showSupplierView() { hideAll(); document.getElementById('supplier-view').classList.remove('hidden'); }
+    window.showRoleSelection = function() { hideAll(); stopGuardScanner(); document.getElementById('role-selection').classList.remove('hidden'); }
+    window.showSupplierView = function() { hideAll(); document.getElementById('supplier-view').classList.remove('hidden'); }
 
-    function showLogin(target) {
+    window.showLogin = function(target) {
       loginTarget = target || 'staff';
       hideAll();
       const icons = { staff: '🏢', pic: '📋' };
@@ -1736,15 +1736,15 @@
       if (pwdInput) { pwdInput.value = ''; pwdInput.focus(); }
     }
 
-    function enterGuardView() {
+    window.enterGuardView = function() {
       isGuardLoggedIn = true;
       hideAll();
       const gView = document.getElementById('guard-view');
       if (gView) { gView.classList.remove('hidden'); gView.classList.add('flex'); setTimeout(() => initGuardScanner(), 800); }
     }
 
-    function staffLogout() { isStaffLoggedIn = false; showRoleSelection(); }
-    function picLogout()   { isPICLoggedIn = false; showRoleSelection(); }
+    window.staffLogout = function() { isStaffLoggedIn = false; showRoleSelection(); }
+    window.picLogout   = function()   { isPICLoggedIn = false; showRoleSelection(); }
     function guardLogout() { isGuardLoggedIn = false; showRoleSelection(); }
 
     function processLogin() {
