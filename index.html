@@ -336,220 +336,117 @@
 
 
       <!-- Tab: Parts Dashboard -->
-      <div id="page-parts" class="max-w-7xl mx-auto p-4 hidden space-y-5 text-left fade-in">
+      <div id="page-parts" class="hidden fade-in" style="max-width:1100px;margin:0 auto;padding:1.5rem 1rem;">
 
-        <!-- Filters -->
-        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-wrap gap-3 items-end">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px;">
           <div>
-            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">เดือน</label>
-            <select id="parts-month" onchange="updatePartsDashboard()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[160px]"></select>
+            <h2 style="font-size:18px;font-weight:500;margin:0;color:var(--color-text-primary);">Parts Dashboard</h2>
+            <p style="font-size:13px;color:var(--color-text-secondary);margin:4px 0 0;">ภาพรวมการรับวัตถุดิบ</p>
           </div>
-          <div>
-            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Supplier</label>
-            <select id="parts-supplier" onchange="updatePartsDashboard()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[200px]"></select>
-          </div>
-          <button type="button" onclick="updatePartsDashboard()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer transition-colors">🔄 รีเฟรช</button>
-          <div id="pd-last-update" class="ml-auto text-[10px] text-slate-300 font-bold self-end pb-0.5"></div>
-        </div>
-
-        <!-- KPI Cards Row 1: การเข้ามา -->
-        <div>
-          <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">📅 การเข้ามาส่งของ</div>
-          <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-            <div class="bg-slate-800 text-white p-4 rounded-2xl shadow-sm text-center">
-              <div class="text-[9px] font-black opacity-60 uppercase tracking-widest mb-1">เข้าทั้งหมด</div>
-              <div id="pd-visits" class="text-3xl font-black">0</div>
-              <div class="text-[9px] opacity-50 mt-0.5">ครั้ง</div>
-            </div>
-            <div class="bg-emerald-600 text-white p-4 rounded-2xl shadow-sm text-center">
-              <div class="text-[9px] font-black opacity-70 uppercase tracking-widest mb-1">ตรงเวลา</div>
-              <div id="pd-ontime" class="text-3xl font-black">0</div>
-              <div id="pd-ontime-pct" class="text-sm font-black opacity-80 mt-0.5">0%</div>
-            </div>
-            <div class="bg-rose-500 text-white p-4 rounded-2xl shadow-sm text-center">
-              <div class="text-[9px] font-black opacity-70 uppercase tracking-widest mb-1">ล่าช้า</div>
-              <div id="pd-late" class="text-3xl font-black">0</div>
-              <div id="pd-late-pct" class="text-sm font-black opacity-80 mt-0.5">0%</div>
-            </div>
-            <div class="bg-amber-400 text-white p-4 rounded-2xl shadow-sm text-center">
-              <div class="text-[9px] font-black opacity-70 uppercase tracking-widest mb-1">มาก่อนเวลา</div>
-              <div id="pd-early" class="text-3xl font-black">0</div>
-              <div id="pd-early-pct" class="text-sm font-black opacity-80 mt-0.5">0%</div>
-            </div>
-            <div class="bg-slate-200 text-slate-600 p-4 rounded-2xl shadow-sm text-center">
-              <div class="text-[9px] font-black opacity-70 uppercase tracking-widest mb-1">นอกแผน</div>
-              <div id="pd-unplanned" class="text-3xl font-black">0</div>
-              <div id="pd-unplanned-pct" class="text-sm font-black opacity-60 mt-0.5">0%</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- KPI Cards Row 2: การส่งพาร์ท -->
-        <div>
-          <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">📦 การส่งพาร์ท</div>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div class="bg-white p-4 rounded-2xl shadow-sm border text-center">
-              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">รายการทั้งหมด</div>
-              <div id="pd-parts-total" class="text-3xl font-black text-slate-700">0</div>
-              <div class="text-[9px] text-slate-400 mt-0.5">รายการ</div>
-            </div>
-            <div class="bg-emerald-50 p-4 rounded-2xl shadow-sm border border-emerald-100 text-center">
-              <div class="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-1">QTY ครบ ✅</div>
-              <div id="pd-parts-completed" class="text-3xl font-black text-emerald-600">0</div>
-              <div id="pd-parts-completed-pct" class="text-sm font-black text-emerald-400 mt-0.5">0%</div>
-            </div>
-            <div class="bg-amber-50 p-4 rounded-2xl shadow-sm border border-amber-100 text-center">
-              <div class="text-[9px] font-black text-amber-500 uppercase tracking-widest mb-1">QTY ไม่ครบ ⚠️</div>
-              <div id="pd-parts-short" class="text-3xl font-black text-amber-500">0</div>
-              <div id="pd-parts-short-pct" class="text-sm font-black text-amber-400 mt-0.5">0%</div>
-            </div>
-            <div class="bg-rose-50 p-4 rounded-2xl shadow-sm border border-rose-100 text-center">
-              <div class="text-[9px] font-black text-rose-500 uppercase tracking-widest mb-1">ไม่ได้รับ ❌</div>
-              <div id="pd-parts-missing" class="text-3xl font-black text-rose-500">0</div>
-              <div id="pd-parts-missing-pct" class="text-sm font-black text-rose-400 mt-0.5">0%</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Combo KPI: QTY x เวลา -->
-        <div>
-          <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">🎯 ผลลัพธ์รวม (QTY × เวลา)</div>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div class="bg-emerald-600 text-white p-4 rounded-2xl shadow-sm text-center">
-              <div class="text-[9px] font-black opacity-70 uppercase tracking-widest mb-1 leading-tight">ครบ QTY<br>+ ตรงเวลา ✅</div>
-              <div id="pd-combo-aa" class="text-3xl font-black">0</div>
-              <div id="pd-combo-aa-pct" class="text-sm font-black opacity-80 mt-0.5">0%</div>
-            </div>
-            <div class="bg-amber-500 text-white p-4 rounded-2xl shadow-sm text-center">
-              <div class="text-[9px] font-black opacity-70 uppercase tracking-widest mb-1 leading-tight">ครบ QTY<br>+ ไม่ตรงเวลา ⚠️</div>
-              <div id="pd-combo-ab" class="text-3xl font-black">0</div>
-              <div id="pd-combo-ab-pct" class="text-sm font-black opacity-80 mt-0.5">0%</div>
-            </div>
-            <div class="bg-orange-500 text-white p-4 rounded-2xl shadow-sm text-center">
-              <div class="text-[9px] font-black opacity-70 uppercase tracking-widest mb-1 leading-tight">ไม่ครบ QTY<br>+ ตรงเวลา ⚠️</div>
-              <div id="pd-combo-ba" class="text-3xl font-black">0</div>
-              <div id="pd-combo-ba-pct" class="text-sm font-black opacity-80 mt-0.5">0%</div>
-            </div>
-            <div class="bg-rose-600 text-white p-4 rounded-2xl shadow-sm text-center">
-              <div class="text-[9px] font-black opacity-70 uppercase tracking-widest mb-1 leading-tight">ไม่ครบ QTY<br>+ ไม่ตรงเวลา ❌</div>
-              <div id="pd-combo-bb" class="text-3xl font-black">0</div>
-              <div id="pd-combo-bb-pct" class="text-sm font-black opacity-80 mt-0.5">0%</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Local vs Import Summary -->
-        <div>
-          <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">🌐 Local vs Import</div>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div class="bg-blue-50 p-4 rounded-2xl shadow-sm border border-blue-100 text-center">
-              <div class="text-[9px] font-black text-blue-500 uppercase mb-1">🏠 Local ทั้งหมด</div>
-              <div id="pd-local-total" class="text-3xl font-black text-blue-600">0</div>
-              <div id="pd-local-pct" class="text-sm font-black text-blue-400 mt-0.5">0%</div>
-            </div>
-            <div class="bg-emerald-50 p-4 rounded-2xl shadow-sm border border-emerald-100 text-center">
-              <div class="text-[9px] font-black text-emerald-500 uppercase mb-1">🏠 Local ครบ QTY</div>
-              <div id="pd-local-comp" class="text-3xl font-black text-emerald-600">0</div>
-              <div id="pd-local-comp-pct" class="text-sm font-black text-emerald-400 mt-0.5">0%</div>
-            </div>
-            <div class="bg-orange-50 p-4 rounded-2xl shadow-sm border border-orange-100 text-center">
-              <div class="text-[9px] font-black text-orange-500 uppercase mb-1">✈️ Import ทั้งหมด</div>
-              <div id="pd-import-total" class="text-3xl font-black text-orange-600">0</div>
-              <div id="pd-import-pct" class="text-sm font-black text-orange-400 mt-0.5">0%</div>
-            </div>
-            <div class="bg-emerald-50 p-4 rounded-2xl shadow-sm border border-emerald-100 text-center">
-              <div class="text-[9px] font-black text-emerald-500 uppercase mb-1">✈️ Import ครบ QTY</div>
-              <div id="pd-import-comp" class="text-3xl font-black text-emerald-600">0</div>
-              <div id="pd-import-comp-pct" class="text-sm font-black text-emerald-400 mt-0.5">0%</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Charts Row -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-
-          <!-- Donut: ตรงเวลา -->
-          <div class="bg-white p-5 rounded-2xl shadow-sm border">
-            <div class="text-xs font-black text-slate-600 mb-1">⏰ การเข้าตามเวลา</div>
-            <div class="text-[9px] text-slate-400 mb-3">อิงจาก plan_status</div>
-            <div class="h-44 relative"><canvas id="pd-time-chart"></canvas></div>
-          </div>
-
-          <!-- Donut: QTY -->
-          <div class="bg-white p-5 rounded-2xl shadow-sm border">
-            <div class="text-xs font-black text-slate-600 mb-1">📦 การส่ง QTY</div>
-            <div class="text-[9px] text-slate-400 mb-3">อิงจาก PartDetail status</div>
-            <div class="h-44 relative"><canvas id="pd-qty-chart"></canvas></div>
-          </div>
-
-          <!-- QTY Summary -->
-          <div class="bg-white p-5 rounded-2xl shadow-sm border flex flex-col justify-between">
-            <div class="text-xs font-black text-slate-600 mb-3">📊 สรุป QTY รวม</div>
-            <div class="space-y-3">
-              <div>
-                <div class="flex justify-between text-xs font-bold mb-1">
-                  <span class="text-slate-500">QTY ตามแผน</span>
-                  <span id="pd-sum-plan" class="text-slate-700 font-black">0</span>
-                </div>
-                <div class="bg-slate-100 rounded-full h-2"><div id="pd-bar-plan" class="bg-slate-400 h-2 rounded-full" style="width:100%"></div></div>
-              </div>
-              <div>
-                <div class="flex justify-between text-xs font-bold mb-1">
-                  <span class="text-slate-500">QTY ที่รับจริง</span>
-                  <span id="pd-sum-received" class="text-emerald-600 font-black">0</span>
-                </div>
-                <div class="bg-slate-100 rounded-full h-2"><div id="pd-bar-received" class="bg-emerald-500 h-2 rounded-full transition-all" style="width:0%"></div></div>
-              </div>
-              <div class="pt-2 border-t">
-                <div class="flex justify-between text-xs font-bold">
-                  <span class="text-slate-500">% ที่รับได้</span>
-                  <span id="pd-sum-pct" class="text-indigo-600 font-black text-base">0%</span>
-                </div>
-              </div>
-            </div>
-            <div class="mt-4 bg-indigo-50 rounded-xl p-3 text-center border border-indigo-100">
-              <div class="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Overall Fill Rate</div>
-              <div id="pd-fill-rate" class="text-3xl font-black text-indigo-600 mt-1">0%</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Bar Chart: Top Suppliers -->
-        <div class="bg-white p-5 rounded-2xl shadow-sm border">
-          <div class="text-xs font-black text-slate-600 mb-4">📈 เปรียบเทียบ % ตรงเวลา vs % QTY ครบ รายซัพ</div>
-          <div class="h-56"><canvas id="pd-bar-chart"></canvas></div>
-        </div>
-
-        <!-- Supplier Performance Table -->
-        <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
-          <div class="p-5 border-b bg-slate-50/50 flex items-center justify-between">
+          <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
             <div>
-              <div class="font-black text-slate-700">🏆 ตารางสรุปผลงานซัพพลายเออร์</div>
-              <div class="text-[9px] text-slate-400 mt-0.5">เรียงตาม Overall Score</div>
+              <p style="font-size:11px;color:var(--color-text-secondary);margin:0 0 4px;">เดือน</p>
+              <select id="parts-month" onchange="updatePartsDashboard()" style="font-size:13px;padding:6px 10px;"></select>
             </div>
-            <span id="pd-table-count" class="text-[9px] font-bold bg-white text-slate-400 px-3 py-1 rounded-full border">0 ซัพ</span>
+            <div>
+              <p style="font-size:11px;color:var(--color-text-secondary);margin:0 0 4px;">Supplier</p>
+              <select id="parts-supplier" onchange="updatePartsDashboard()" style="font-size:13px;padding:6px 10px;min-width:160px;"></select>
+            </div>
+            <button onclick="updatePartsDashboard()" style="padding:6px 14px;font-size:13px;display:flex;align-items:center;gap:6px;"><i class="ti ti-refresh" aria-hidden="true"></i> รีเฟรช</button>
           </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left">
-              <thead class="sticky top-0 bg-slate-100 z-10">
-                <tr class="text-slate-400 text-[9px] font-black uppercase tracking-widest">
-                  <th class="px-5 py-3">#</th>
-                  <th class="px-5 py-3">Supplier</th>
-                  <th class="px-5 py-3 text-center">เข้า<br>(ครั้ง)</th>
-                  <th class="px-5 py-3 text-center text-emerald-600">ตรงเวลา<br>ครั้ง / %</th>
-                  <th class="px-5 py-3 text-center text-rose-500">ล่าช้า<br>ครั้ง / %</th>
-                  <th class="px-5 py-3 text-center">พาร์ท<br>(รายการ)</th>
-                  <th class="px-5 py-3 text-center text-emerald-600">QTY ครบ<br>%</th>
-                  <th class="px-5 py-3 text-center text-amber-500">QTY ไม่ครบ<br>%</th>
-                  <th class="px-5 py-3 text-center">Overall<br>Score</th>
+        </div>
+
+        <div style="border-top:0.5px solid var(--color-border-tertiary);margin-bottom:1.5rem;"></div>
+
+        <!-- Section 1: การเข้ามาส่งของ -->
+        <p style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.08em;margin:0 0 10px;">การเข้ามาส่งของ</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:1.5rem;">
+          <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;">
+            <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 6px;">เข้าทั้งหมด</p>
+            <p id="pd-visits" style="font-size:28px;font-weight:500;margin:0;color:var(--color-text-primary);">—</p>
+            <p style="font-size:11px;color:var(--color-text-secondary);margin:4px 0 0;">ครั้ง</p>
+          </div>
+          <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;">
+            <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 6px;">ตรงเวลา</p>
+            <p id="pd-ontime" style="font-size:28px;font-weight:500;margin:0;color:var(--color-text-success);">—</p>
+            <p id="pd-ontime-pct" style="font-size:11px;color:var(--color-text-success);margin:4px 0 0;">—</p>
+          </div>
+          <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;">
+            <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 6px;">ล่าช้า</p>
+            <p id="pd-late" style="font-size:28px;font-weight:500;margin:0;color:var(--color-text-danger);">—</p>
+            <p id="pd-late-pct" style="font-size:11px;color:var(--color-text-danger);margin:4px 0 0;">—</p>
+          </div>
+          <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;">
+            <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 6px;">นอกแผน</p>
+            <p id="pd-unplanned" style="font-size:28px;font-weight:500;margin:0;color:var(--color-text-warning);">—</p>
+            <p id="pd-unplanned-pct" style="font-size:11px;color:var(--color-text-warning);margin:4px 0 0;">—</p>
+          </div>
+        </div>
+
+        <div style="border-top:0.5px solid var(--color-border-tertiary);margin-bottom:1.5rem;"></div>
+
+        <!-- Section 2: การส่งพาร์ท -->
+        <p style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.08em;margin:0 0 10px;">การส่งพาร์ท</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:1.5rem;">
+          <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;">
+            <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 6px;">รายการทั้งหมด</p>
+            <p id="pd-parts-total" style="font-size:28px;font-weight:500;margin:0;color:var(--color-text-primary);">—</p>
+          </div>
+          <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;">
+            <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 6px;">ครบ QTY</p>
+            <p id="pd-parts-completed" style="font-size:28px;font-weight:500;margin:0;color:var(--color-text-success);">—</p>
+            <p id="pd-parts-completed-pct" style="font-size:11px;color:var(--color-text-success);margin:4px 0 0;">—</p>
+          </div>
+          <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;">
+            <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 6px;">QTY ไม่ครบ</p>
+            <p id="pd-parts-short" style="font-size:28px;font-weight:500;margin:0;color:var(--color-text-warning);">—</p>
+            <p id="pd-parts-short-pct" style="font-size:11px;color:var(--color-text-warning);margin:4px 0 0;">—</p>
+          </div>
+          <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;">
+            <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 6px;">ไม่ได้รับ</p>
+            <p id="pd-parts-missing" style="font-size:28px;font-weight:500;margin:0;color:var(--color-text-danger);">—</p>
+            <p id="pd-parts-missing-pct" style="font-size:11px;color:var(--color-text-danger);margin:4px 0 0;">—</p>
+          </div>
+          <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;">
+            <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 6px;">Fill Rate</p>
+            <p id="stat-fill-rate" style="font-size:28px;font-weight:500;margin:0;color:var(--color-text-info);">—</p>
+          </div>
+        </div>
+
+        <div style="border-top:0.5px solid var(--color-border-tertiary);margin-bottom:1.5rem;"></div>
+
+        <!-- Section 3: Bar Chart -->
+        <p style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.08em;margin:0 0 10px;">ประสิทธิภาพแยกตาม Supplier</p>
+        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:1.5rem;">
+          <div style="height:220px;position:relative;"><canvas id="pd-bar-chart"></canvas></div>
+        </div>
+
+        <!-- Section 4: Performance Table -->
+        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:1.5rem;">
+          <div style="padding:1rem 1.25rem;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;justify-content:space-between;">
+            <p style="font-size:14px;font-weight:500;margin:0;color:var(--color-text-primary);">คะแนน Supplier</p>
+            <p style="font-size:11px;color:var(--color-text-secondary);margin:0;">ตรงเวลา 40% + Part ครบ 60%</p>
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+              <thead>
+                <tr style="border-bottom:0.5px solid var(--color-border-tertiary);">
+                  <th style="text-align:left;padding:10px 16px;font-weight:500;font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">Supplier</th>
+                  <th style="text-align:center;padding:10px 16px;font-weight:500;font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">ครั้ง</th>
+                  <th style="text-align:center;padding:10px 16px;font-weight:500;font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">ตรงเวลา</th>
+                  <th style="text-align:center;padding:10px 16px;font-weight:500;font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">Part ครบ</th>
+                  <th style="text-align:center;padding:10px 16px;font-weight:500;font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">คะแนน</th>
                 </tr>
               </thead>
-              <tbody id="pd-perf-table" class="divide-y divide-slate-50 text-sm"></tbody>
+              <tbody id="pd-perf-tbody" style=""></tbody>
             </table>
           </div>
         </div>
 
+        <div id="pd-last-update" style="font-size:11px;color:var(--color-text-secondary);text-align:right;padding-bottom:1rem;"></div>
+
       </div>
+
     </div><!-- end staff-view -->
 
     <!-- ================= ส่วน PIC / จัดซื้อ ================= -->
@@ -3571,33 +3468,35 @@
 
     function updateKPIUI(checkinData, partsData, visits) {
       const set = function(id, v){ const e=document.getElementById(id); if(e) e.innerText=v; };
-
-      set('stat-visits', visits);
-      const completed = checkinData.filter(function(r){ return r.status==='completed'||r.status==='exited'; }).length;
-      const ontime    = checkinData.filter(function(r){ return String(r.plan_status||'').includes('ตรงเวลา'); }).length;
-      const late      = checkinData.filter(function(r){ return String(r.plan_status||'').includes('ล่าช้า'); }).length;
-      set('stat-completed', completed);
-      set('stat-ontime', ontime);
-      set('stat-late', late);
-      set('stat-ontime-pct', completed > 0 ? Math.round(ontime/completed*100)+'%' : '-');
-
-      const totalParts = partsData.length || 1;
-      const compParts  = partsData.filter(function(p){ return p.status==='completed'; }).length;
-      const shortParts = partsData.filter(function(p){ return p.status==='short'; }).length;
-      const missParts  = partsData.filter(function(p){ return p.status==='missing'; }).length;
-      const qtyPlan    = partsData.reduce(function(s,p){ return s+(parseFloat(p.qty_plan)||0); },0);
-      const qtyRecv    = partsData.reduce(function(s,p){ return s+(parseFloat(p.qty_received)||0); },0);
-      set('stat-parts-total', partsData.length);
-      set('stat-parts-completed', compParts);
-      set('stat-parts-short', shortParts);
-      set('stat-parts-missing', missParts);
-      set('stat-fill-rate', qtyPlan > 0 ? (qtyRecv/qtyPlan*100).toFixed(1)+'%' : '-');
-
-      const localParts  = partsData.filter(function(p){ return (p.origin||'local')==='local'; }).length;
-      const importParts = partsData.filter(function(p){ return p.origin==='import'; }).length;
-      set('stat-local', localParts);
-      set('stat-import', importParts);
+      set('pd-visits', visits);
+      const done     = checkinData.filter(function(r){ return r.status==='completed'||r.status==='exited'; }).length;
+      const ontime   = checkinData.filter(function(r){ return String(r.plan_status||'').includes('ตรงเวลา'); }).length;
+      const late     = checkinData.filter(function(r){ return String(r.plan_status||'').includes('ล่าช้า'); }).length;
+      const unplann  = checkinData.filter(function(r){ return String(r.plan_status||'').includes('นอกแผน'); }).length;
+      set('pd-ontime',      ontime);
+      set('pd-ontime-pct',  done > 0 ? Math.round(ontime/done*100)+'%' : '—');
+      set('pd-late',        late);
+      set('pd-late-pct',    done > 0 ? Math.round(late/done*100)+'%' : '—');
+      set('pd-unplanned',   unplann);
+      set('pd-unplanned-pct', visits > 0 ? Math.round(unplann/visits*100)+'%' : '—');
+      const tot  = partsData.length || 1;
+      const comp = partsData.filter(function(p){ return p.status==='completed'; }).length;
+      const sht  = partsData.filter(function(p){ return p.status==='short'; }).length;
+      const mis  = partsData.filter(function(p){ return p.status==='missing'; }).length;
+      const qtyP = partsData.reduce(function(s,p){ return s+(parseFloat(p.qty_plan)||0); },0);
+      const qtyR = partsData.reduce(function(s,p){ return s+(parseFloat(p.qty_received)||0); },0);
+      set('pd-parts-total',         partsData.length);
+      set('pd-parts-completed',     comp);
+      set('pd-parts-completed-pct', Math.round(comp/tot*100)+'%');
+      set('pd-parts-short',         sht);
+      set('pd-parts-short-pct',     Math.round(sht/tot*100)+'%');
+      set('pd-parts-missing',       mis);
+      set('pd-parts-missing-pct',   Math.round(mis/tot*100)+'%');
+      set('stat-fill-rate',         qtyP > 0 ? (qtyR/qtyP*100).toFixed(1)+'%' : '—');
+      const now = new Date().toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'});
+      set('pd-last-update', 'อัพเดตล่าสุด ' + now);
     }
+
 
     function updatePdBarChart(checkinData, partsData) {
       const vendors = [...new Set([
