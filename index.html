@@ -628,6 +628,9 @@
               <div class="text-xs font-black text-slate-400 uppercase mb-2">แยกตาม PIC</div>
               <div id="preview-pic-breakdown" class="flex flex-wrap gap-2"></div>
             </div>
+            <!-- Warning แถวที่ถูกตัด -->
+            <div id="preview-skipped-warn" class="hidden bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 text-xs font-bold text-amber-600"></div>
+
             <!-- Confirm button -->
             <div class="flex items-center justify-between pt-2 border-t border-slate-100">
               <div class="text-xs text-slate-400">กดยืนยันเพื่อส่งข้อมูลเข้าระบบ PIC จะเห็นในหน้า Weekly Plan</div>
@@ -4622,10 +4625,34 @@
       const pos     = new Set(data.map(function(r){ return r.po_no; }));
       const vendors = new Set(data.map(function(r){ return r.vendor; }));
 
-      document.getElementById('preview-total-rows').innerText   = data.length;
+      // เช็คกับ PIC_Master
+      const vendorToPic = {};
+      allPicMaster.forEach(function(m) {
+        const sup = String(m.supplier||'').trim().toLowerCase();
+        const pic = String(m.pic_name||'').trim();
+        if (sup && sup !== '__new__' && pic) { if (!vendorToPic[sup]) vendorToPic[sup] = pic; }
+      });
+      const hasPicMaster = Object.keys(vendorToPic).length > 0;
+      const matched = hasPicMaster
+        ? data.filter(function(r){ return !!vendorToPic[String(r.vendor||'').trim().toLowerCase()]; }).length
+        : data.length;
+      const skipped = data.length - matched;
+
+      document.getElementById('preview-total-rows').innerText   = matched + (skipped > 0 ? ' / ' + data.length : '');
       document.getElementById('preview-total-po').innerText     = pos.size;
       document.getElementById('preview-total-pic').innerText    = pics.length;
       document.getElementById('preview-total-vendor').innerText = vendors.size;
+
+      // warning ถ้ามีแถวที่ถูกตัด
+      const warnEl = document.getElementById('preview-skipped-warn');
+      if (warnEl) {
+        if (skipped > 0 && hasPicMaster) {
+          warnEl.innerText = '⚠️ ' + skipped + ' แถวไม่ตรงกับ Supplier ใน PIC_Master จะถูกตัดออก';
+          warnEl.classList.remove('hidden');
+        } else {
+          warnEl.classList.add('hidden');
+        }
+      }
 
       const breakdown = document.getElementById('preview-pic-breakdown');
       breakdown.innerHTML = pics.map(function(pic) {
@@ -4636,7 +4663,7 @@
       document.getElementById('upload503-preview').classList.remove('hidden');
     }
 
-    let _isSaving503 = false; // lock ป้องกัน save ซ้อน
+    let _isSaving503 = false;
 
     async function confirm503Upload() {
       if (_isSaving503) { showToast('กำลังบันทึกอยู่ กรุณารอสักครู่'); return; }
@@ -4647,7 +4674,43 @@
       document.getElementById('upload503-preview').classList.add('hidden');
       document.getElementById('upload503-saving').classList.remove('hidden');
 
-      const rows = upload503Data.map(function(r) {
+      // ── กรองเฉพาะแถวที่ Supplier ตรงกับ PIC_Master ──
+      // สร้าง map: vendor_lower → pic_name
+      const vendorToPic = {};
+      allPicMaster.forEach(function(m) {
+        const sup = String(m.supplier||'').trim().toLowerCase();
+        const pic = String(m.pic_name||'').trim();
+        if (sup && sup !== '__new__' && pic) {
+          if (!vendorToPic[sup]) vendorToPic[sup] = pic;
+        }
+      });
+
+      const hasPicMaster = Object.keys(vendorToPic).length > 0;
+
+      // กรองและ assign PIC จาก master
+      let filteredData = upload503Data;
+      if (hasPicMaster) {
+        filteredData = upload503Data.filter(function(r) {
+          const vendor = String(r.vendor||'').trim().toLowerCase();
+          return !!vendorToPic[vendor];
+        }).map(function(r) {
+          const vendor = String(r.vendor||'').trim().toLowerCase();
+          // override pic_name ด้วยข้อมูลจาก master (ถ้าตรงกัน)
+          return Object.assign({}, r, { pic_name: vendorToPic[vendor] || r.pic_name });
+        });
+      }
+
+      const skipped = upload503Data.length - filteredData.length;
+      if (filteredData.length === 0) {
+        document.getElementById('upload503-saving').classList.add('hidden');
+        document.getElementById('upload503-preview').classList.remove('hidden');
+        if (btn) { btn.disabled = false; btn.innerText = '✅ ยืนยันส่งข้อมูล'; }
+        showToast('ไม่มีแถวที่ตรงกับ Supplier ใน PIC_Master กรุณาตั้งค่าหน้า "ความรับผิดชอบ PIC" ก่อน');
+        _isSaving503 = false;
+        return;
+      }
+
+      const rows = filteredData.map(function(r) {
         return {
           date:      r.arrival_date || '',
           vendor:    r.vendor       || '',
@@ -4674,7 +4737,10 @@
         document.getElementById('upload503-saving').classList.add('hidden');
         document.getElementById('upload503-done').classList.remove('hidden');
         const doneText = document.getElementById('upload503-done-text');
-        if (doneText) doneText.innerText = 'บันทึกสำเร็จ ' + totalSaved + ' รายการใหม่' + (totalUpdated > 0 ? ', อัพเดต ' + totalUpdated + ' รายการ' : '');
+        let msg = 'บันทึกสำเร็จ ' + totalSaved + ' รายการ';
+        if (totalUpdated > 0) msg += ', อัพเดต ' + totalUpdated + ' รายการ';
+        if (skipped > 0) msg += ' (ตัดออก ' + skipped + ' แถวที่ไม่มีใน PIC_Master)';
+        if (doneText) doneText.innerText = msg;
         const dz = document.getElementById('upload503-dropzone');
         if (dz) dz.classList.add('hidden');
         const fnEl = document.getElementById('upload503-filename');
