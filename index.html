@@ -1134,6 +1134,7 @@
       try { return JSON.stringify(obj); } catch(e) { return ''; }
     }
     function fetchAll() {
+      if (typeof _isSaving503 !== 'undefined' && _isSaving503) return; // หยุดระหว่าง save
       callAPI('readAllData').then(res => {
         if (res && res.success) {
           _fetchFailCount = 0;
@@ -4635,9 +4636,14 @@
       document.getElementById('upload503-preview').classList.remove('hidden');
     }
 
+    let _isSaving503 = false; // lock ป้องกัน save ซ้อน
+
     async function confirm503Upload() {
+      if (_isSaving503) { showToast('กำลังบันทึกอยู่ กรุณารอสักครู่'); return; }
+      _isSaving503 = true;
+
       const btn = document.getElementById('upload503-confirm-btn');
-      btn.disabled = true; btn.innerText = 'กำลังบันทึก...';
+      if (btn) { btn.disabled = true; btn.innerText = 'กำลังบันทึก...'; }
       document.getElementById('upload503-preview').classList.add('hidden');
       document.getElementById('upload503-saving').classList.remove('hidden');
 
@@ -4676,8 +4682,10 @@
       } catch(err) {
         document.getElementById('upload503-saving').classList.add('hidden');
         document.getElementById('upload503-preview').classList.remove('hidden');
-        btn.disabled = false; btn.innerText = '✅ ยืนยันส่งข้อมูล';
+        if (btn) { btn.disabled = false; btn.innerText = '✅ ยืนยันส่งข้อมูล'; }
         showToast('บันทึกไม่สำเร็จ: ' + err.message);
+      } finally {
+        _isSaving503 = false;
       }
     }
 
