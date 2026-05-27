@@ -201,6 +201,7 @@
           <button type="button" onclick="showStaffTab('weekly')" id="tab-weekly" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📅 Weekly Plan</button>
           <button type="button" onclick="showStaffTab('daily')" id="tab-daily" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">สรุปวันนี้</button>
           <button type="button" onclick="showStaffTab('parts')" id="tab-parts" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📦 Parts Dashboard</button>
+          <button type="button" onclick="showStaffTab('trend')" id="tab-trend" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📈 เปรียบเทียบ</button>
         </div>
       </div>
 
@@ -246,14 +247,45 @@
       </div>
       
       <!-- Tab: Daily -->
-      <div id="page-daily" class="max-w-6xl mx-auto p-4 hidden space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-          <div class="bg-white p-6 rounded-3xl shadow-sm border border-white"><div class="text-xs font-bold text-slate-400 uppercase mb-1">ทั้งหมดวันนี้</div><div id="stat-today-total" class="text-4xl font-black text-slate-800">0</div></div>
-          <div class="bg-white p-6 rounded-3xl shadow-sm border border-white"><div class="text-xs font-bold text-emerald-500 uppercase mb-1">เสร็จสิ้นแล้ว</div><div id="stat-today-done" class="text-4xl font-black text-emerald-500">0</div></div>
-          <div class="bg-white p-6 rounded-3xl shadow-sm border border-white"><div class="text-xs font-bold text-orange-400 uppercase mb-1">รอดำเนินการ</div><div id="stat-today-wait" class="text-4xl font-black text-orange-400">0</div></div>
+      <div id="page-daily" class="max-w-6xl mx-auto p-4 hidden space-y-5">
+
+        <!-- KPI Cards: ตามแผน vs มาจริง -->
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          <div class="bg-slate-800 text-white rounded-2xl p-5 text-center">
+            <div class="text-[10px] font-black text-slate-400 uppercase mb-2">ตามแผนวันนี้</div>
+            <div id="stat-today-planned" class="text-4xl font-black">—</div>
+            <div class="text-[10px] text-slate-500 mt-1">คัน</div>
+          </div>
+          <div class="bg-white rounded-2xl border border-slate-100 p-5 text-center">
+            <div class="text-[10px] font-black text-slate-400 uppercase mb-2">มาจริงวันนี้</div>
+            <div id="stat-today-total" class="text-4xl font-black text-slate-800">0</div>
+            <div class="text-[10px] text-slate-400 mt-1">คัน</div>
+          </div>
+          <div class="bg-emerald-50 rounded-2xl border border-emerald-100 p-5 text-center">
+            <div class="text-[10px] font-black text-emerald-500 uppercase mb-2">เสร็จสิ้น</div>
+            <div id="stat-today-done" class="text-4xl font-black text-emerald-600">0</div>
+            <div class="text-[10px] text-emerald-400 mt-1">คัน</div>
+          </div>
+          <div class="bg-amber-50 rounded-2xl border border-amber-100 p-5 text-center">
+            <div class="text-[10px] font-black text-amber-500 uppercase mb-2">รอดำเนินการ</div>
+            <div id="stat-today-wait" class="text-4xl font-black text-amber-600">0</div>
+            <div class="text-[10px] text-amber-400 mt-1">คัน</div>
+          </div>
+          <div class="bg-violet-50 rounded-2xl border border-violet-100 p-5 text-center">
+            <div class="text-[10px] font-black text-violet-500 uppercase mb-2">มาตรงแผน</div>
+            <div id="stat-today-match" class="text-4xl font-black text-violet-600">—</div>
+            <div class="text-[10px] text-violet-400 mt-1">%</div>
+          </div>
         </div>
-        <div class="bg-white p-8 rounded-[2rem] shadow-sm text-left border border-white/50"><h3 class="font-bold mb-8 text-slate-800">สรุปย้อนหลัง 7 วัน</h3><div class="h-72"><canvas id="dailyChart"></canvas></div></div>
-        <div id="daily-history-list" class="space-y-6 text-left"></div>
+
+        <!-- Chart 7 วัน -->
+        <div class="bg-white rounded-2xl border border-slate-100 p-5">
+          <div class="font-black text-slate-700 text-sm mb-4">สรุปย้อนหลัง 7 วัน</div>
+          <div class="h-64"><canvas id="dailyChart"></canvas></div>
+        </div>
+
+        <!-- ประวัติ 7 วัน -->
+        <div id="daily-history-list" class="space-y-4 text-left"></div>
       </div>
 
       <!-- Tab: Weekly Plan Staff -->
@@ -334,6 +366,28 @@
 
       </div><!-- end page-weekly -->
 
+
+      <!-- Tab: เปรียบเทียบรายเดือน -->
+      <div id="page-trend" class="hidden max-w-6xl mx-auto p-4 space-y-5 fade-in">
+        <div class="flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <div class="font-black text-slate-800 text-xl tracking-tight">📈 เปรียบเทียบรายเดือน</div>
+            <div class="text-xs text-slate-400 mt-0.5">เข้าตรงเวลา · Fill Rate · Part ครบ · คะแนน Supplier</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <select id="pd-trend-months" class="border-2 border-slate-100 rounded-xl px-3 py-2 bg-slate-50 outline-none font-bold text-sm cursor-pointer">
+              <option value="6">6 เดือน</option>
+              <option value="12" selected>12 เดือน</option>
+              <option value="24">24 เดือน</option>
+            </select>
+            <button type="button" onclick="loadStaffTrend()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-sm cursor-pointer">โหลด</button>
+          </div>
+        </div>
+        <div id="pd-trend-loading" class="hidden bg-white rounded-2xl p-8 text-center shadow-sm border text-slate-400 text-xs font-bold animate-pulse">⏳ กำลังโหลด...</div>
+        <div id="pd-trend-content" class="bg-white rounded-2xl border border-slate-100 p-5">
+          <div class="text-center text-slate-300 text-xs font-bold py-6">กด "โหลด" เพื่อดู Trend รายเดือน</div>
+        </div>
+      </div>
 
       <!-- Tab: Parts Dashboard -->
       <div id="page-parts" class="hidden fade-in max-w-6xl mx-auto p-4 space-y-5">
@@ -607,28 +661,6 @@
           </div>
         </div>
 
-        <!-- Monthly Trend Section -->
-        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-          <div class="px-5 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between flex-wrap gap-3">
-            <div>
-              <div class="font-black text-slate-700 text-sm">📈 เปรียบเทียบรายเดือน</div>
-              <div class="text-[10px] text-slate-400 mt-0.5">เข้าตรงเวลา · Fill Rate · Part ครบ · คะแนน Supplier</div>
-            </div>
-            <div class="flex items-center gap-2">
-              <select id="pd-trend-months" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 outline-none font-bold text-xs cursor-pointer">
-                <option value="6">6 เดือน</option>
-                <option value="12" selected>12 เดือน</option>
-                <option value="24">24 เดือน</option>
-              </select>
-              <button type="button" onclick="loadStaffTrend()" class="bg-violet-600 hover:bg-violet-700 text-white px-4 py-1.5 rounded-xl font-bold text-xs cursor-pointer">โหลด</button>
-            </div>
-          </div>
-          <div id="pd-trend-loading" class="hidden p-8 text-center text-slate-400 text-xs font-bold animate-pulse">⏳ กำลังโหลด...</div>
-          <div id="pd-trend-content" class="p-5">
-            <div class="text-center text-slate-300 text-xs font-bold py-6">กด "โหลด" เพื่อดู Trend รายเดือน</div>
-          </div>
-        </div>
-
       </div>
 
     </div><!-- end staff-view -->
@@ -647,9 +679,9 @@
         <div class="max-w-6xl mx-auto px-4 flex gap-2 pb-3 overflow-x-auto hide-scrollbar">
           <button type="button" onclick="showPicTab('upload503')" id="pic-tab-upload503" class="tab-active px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all shadow-md cursor-pointer">📤 Upload 503</button>
           <button type="button" onclick="showPicTab('myparts')" id="pic-tab-myparts" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📅 Weekly Plan</button>
-          <button type="button" onclick="showPicTab('pic-dashboard')" id="pic-tab-pic-dashboard" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📊 Dashboard</button>
+          <button type="button" onclick="showPicTab('pic-dashboard')" id="pic-tab-pic-dashboard" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📊 Dashboard PIC</button>
           <button type="button" onclick="showPicTab('parts-receiving')" id="pic-tab-parts-receiving" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📦 Parts Receiving</button>
-          <button type="button" onclick="showPicTab('responsibility')" id="pic-tab-responsibility" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📋 แผนรายวัน PIC</button>
+          <button type="button" onclick="showPicTab('pic-trend')" id="pic-tab-pic-trend" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📈 เปรียบเทียบ</button>
           <button type="button" onclick="showPicTab('pic-master')" id="pic-tab-pic-master" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">👤 ความรับผิดชอบ PIC</button>
         </div>
       </div>
@@ -932,19 +964,46 @@
 
       </div><!-- end pic-page-parts-receiving -->
 
+      <!-- ================= PIC Tab: Trend ================= -->
+      <div id="pic-page-pic-trend" class="hidden max-w-6xl mx-auto p-4 space-y-5 fade-in">
+        <div class="flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <div class="font-black text-slate-800 text-xl tracking-tight">📈 เปรียบเทียบรายเดือน</div>
+            <div class="text-xs text-slate-400 mt-0.5">เข้าตรงเวลา · Fill Rate · Part ครบ · คะแนน Supplier</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <select id="pr-trend-months" class="border-2 border-slate-100 rounded-xl px-3 py-2 bg-slate-50 outline-none font-bold text-sm cursor-pointer">
+              <option value="6">6 เดือน</option>
+              <option value="12" selected>12 เดือน</option>
+              <option value="24">24 เดือน</option>
+            </select>
+            <button type="button" onclick="loadPrTrend()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-sm cursor-pointer">โหลด</button>
+          </div>
+        </div>
+        <div id="pr-trend-loading" class="hidden bg-white rounded-2xl p-8 text-center shadow-sm border text-slate-400 text-xs font-bold animate-pulse">⏳ กำลังโหลด...</div>
+        <div id="pr-trend-content" class="bg-white rounded-2xl border border-slate-100 p-5">
+          <div class="text-center text-slate-300 text-xs font-bold py-6">กด "โหลด" เพื่อดู Trend รายเดือน</div>
+        </div>
+      </div><!-- end pic-page-pic-trend -->
+
       <!-- ================= PIC Tab: Dashboard ================= -->
+      <!-- ================= PIC Tab: Dashboard KPI PIC ================= -->
       <div id="pic-page-pic-dashboard" class="hidden max-w-6xl mx-auto p-4 space-y-5 fade-in">
 
-        <!-- Filter -->
-        <div class="bg-white rounded-2xl p-4 shadow-sm border flex flex-wrap gap-3 items-end justify-between">
-          <div class="flex flex-wrap gap-3 items-end">
+        <!-- Header + Filter -->
+        <div class="flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <div class="font-black text-slate-800 text-xl tracking-tight">📊 Dashboard KPI — ประเมิน PIC</div>
+            <div class="text-xs text-slate-400 mt-0.5">วัดผลการทำงานของ PIC แต่ละคน</div>
+          </div>
+          <div class="flex items-end gap-3 flex-wrap">
             <div>
-              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ปี</label>
-              <select id="picdash-year" onchange="loadPicDashboard()" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 outline-none focus:border-violet-500 font-bold text-xs cursor-pointer"></select>
+              <div class="text-[9px] font-black text-slate-400 uppercase mb-1">ปี</div>
+              <select id="picdash-year" onchange="loadPicDashboard()" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 outline-none font-bold text-sm cursor-pointer"></select>
             </div>
             <div>
-              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เดือน</label>
-              <select id="picdash-month" onchange="loadPicDashboard()" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 outline-none focus:border-violet-500 font-bold text-xs cursor-pointer">
+              <div class="text-[9px] font-black text-slate-400 uppercase mb-1">เดือน</div>
+              <select id="picdash-month" onchange="loadPicDashboard()" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 outline-none font-bold text-sm cursor-pointer">
                 <option value="">ทั้งปี</option>
                 <option value="1">ม.ค.</option><option value="2">ก.พ.</option><option value="3">มี.ค.</option>
                 <option value="4">เม.ย.</option><option value="5">พ.ค.</option><option value="6">มิ.ย.</option>
@@ -952,64 +1011,62 @@
                 <option value="10">ต.ค.</option><option value="11">พ.ย.</option><option value="12">ธ.ค.</option>
               </select>
             </div>
+            <button type="button" onclick="loadPicDashboard()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer">โหลด</button>
           </div>
         </div>
 
-        <!-- Loading -->
+        <!-- Loading / Empty -->
         <div id="picdash-loading" class="hidden bg-white rounded-2xl p-8 text-center shadow-sm border">
           <div class="text-2xl animate-pulse mb-2">⏳</div>
           <div class="text-slate-400 font-bold text-sm">กำลังโหลด...</div>
         </div>
-
-        <!-- Empty -->
         <div id="picdash-empty" class="hidden bg-white rounded-2xl p-10 text-center shadow-sm border">
           <div class="text-4xl mb-3">📭</div>
           <div class="font-black text-slate-500">ยังไม่มีข้อมูล PartHistory</div>
           <div class="text-xs text-slate-400 mt-1">ข้อมูลจะปรากฏหลัง Staff รับของและ Confirm แล้ว</div>
         </div>
 
-        <!-- KPI -->
         <div id="picdash-content" class="hidden space-y-5">
 
-          <!-- KPI Cards -->
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-violet-600 text-white p-4 rounded-2xl text-center shadow-sm">
-              <div class="text-[9px] font-black opacity-60 uppercase mb-1">PO ทั้งหมด</div>
-              <div id="picdash-total-po" class="text-3xl font-black">0</div>
+          <!-- KPI Overview -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="bg-violet-600 text-white rounded-2xl p-5 text-center">
+              <div class="text-[10px] font-black text-violet-200 uppercase mb-2">PO ทั้งหมด</div>
+              <div id="picdash-total-po" class="text-4xl font-black">—</div>
             </div>
-            <div class="bg-white p-4 rounded-2xl text-center shadow-sm border">
-              <div class="text-[9px] font-black text-slate-400 uppercase mb-1">รายการ Part</div>
-              <div id="picdash-total-parts" class="text-3xl font-black text-slate-700">0</div>
+            <div class="bg-white rounded-2xl border border-slate-100 p-5 text-center">
+              <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Part ทั้งหมด</div>
+              <div id="picdash-total-parts" class="text-4xl font-black text-slate-700">—</div>
             </div>
-            <div class="bg-emerald-50 p-4 rounded-2xl text-center shadow-sm border border-emerald-100">
-              <div class="text-[9px] font-black text-emerald-500 uppercase mb-1">Fill Rate</div>
-              <div id="picdash-fill-rate" class="text-3xl font-black text-emerald-600">-</div>
+            <div class="bg-emerald-50 rounded-2xl border border-emerald-100 p-5 text-center">
+              <div class="text-[10px] font-black text-emerald-500 uppercase mb-2">Fill Rate รวม</div>
+              <div id="picdash-fill-rate" class="text-4xl font-black text-emerald-600">—</div>
             </div>
-            <div class="bg-white p-4 rounded-2xl text-center shadow-sm border">
-              <div class="text-[9px] font-black text-slate-400 uppercase mb-1">Confirm Rate</div>
-              <div id="picdash-confirm-rate" class="text-2xl font-black text-violet-600">-</div>
-              <div class="text-[9px] text-slate-400 mt-0.5">completed/total</div>
+            <div class="bg-blue-50 rounded-2xl border border-blue-100 p-5 text-center">
+              <div class="text-[10px] font-black text-blue-500 uppercase mb-2">Confirm Rate</div>
+              <div id="picdash-confirm-rate" class="text-4xl font-black text-blue-600">—</div>
+              <div class="text-[9px] text-blue-400 mt-1">completed / total</div>
             </div>
           </div>
 
-          <!-- PIC Performance Table -->
-          <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
-            <div class="px-5 py-4 border-b bg-slate-50">
+          <!-- PIC KPI Table -->
+          <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 bg-slate-50">
               <div class="font-black text-slate-700 text-sm">👤 KPI แยกตาม PIC</div>
-              <div class="text-[10px] text-slate-400 mt-0.5">จาก PartHistory — ข้อมูลที่รับจริงแล้ว</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">วัดจาก Fill Rate / Confirm Rate / Supplier ที่มีปัญหา</div>
             </div>
             <div class="overflow-x-auto">
               <table class="w-full text-left text-xs">
-                <thead class="bg-slate-50">
+                <thead class="bg-slate-50 border-b border-slate-100">
                   <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                    <th class="px-4 py-3">PIC</th>
+                    <th class="px-5 py-3">PIC</th>
                     <th class="px-4 py-3 text-center">PO</th>
                     <th class="px-4 py-3 text-center">Part</th>
                     <th class="px-4 py-3 text-center">QTY แผน</th>
                     <th class="px-4 py-3 text-center">QTY รับจริง</th>
                     <th class="px-4 py-3 text-center">Fill Rate</th>
                     <th class="px-4 py-3 text-center">Completed</th>
-                    <th class="px-4 py-3 text-center">Short/Miss</th>
+                    <th class="px-4 py-3 text-center">Short / Miss</th>
                   </tr>
                 </thead>
                 <tbody id="picdash-pic-table" class="divide-y divide-slate-50"></tbody>
@@ -1017,17 +1074,18 @@
             </div>
           </div>
 
-          <!-- Supplier ที่มีปัญหาบ่อย -->
-          <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
-            <div class="px-5 py-4 border-b bg-rose-50">
-              <div class="font-black text-rose-700 text-sm">⚠️ Supplier ที่ Fill Rate ต่ำ (ต่ำกว่า 80%)</div>
+          <!-- Supplier ที่ Fill Rate ต่ำ -->
+          <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+            <div class="px-5 py-4 border-b border-rose-100 bg-rose-50">
+              <div class="font-black text-rose-700 text-sm">⚠️ Supplier ที่ Fill Rate ต่ำกว่า 80%</div>
+              <div class="text-[10px] text-rose-400 mt-0.5">PIC ที่รับผิดชอบควรติดตามเร่งด่วน</div>
             </div>
             <div class="overflow-x-auto">
               <table class="w-full text-left text-xs">
-                <thead class="bg-slate-50">
+                <thead class="bg-slate-50 border-b border-slate-100">
                   <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                    <th class="px-4 py-3">Supplier</th>
-                    <th class="px-4 py-3">PIC</th>
+                    <th class="px-5 py-3">Supplier</th>
+                    <th class="px-4 py-3">PIC ผู้รับผิดชอบ</th>
                     <th class="px-4 py-3 text-center">Part</th>
                     <th class="px-4 py-3 text-center">Fill Rate</th>
                   </tr>
@@ -1037,8 +1095,9 @@
             </div>
           </div>
 
-        </div><!-- end picdash-content -->
+        </div>
       </div><!-- end pic-page-pic-dashboard -->
+
 
       <!-- ================= PIC Tab: My Parts ================= -->
       <div id="pic-page-myparts" class="hidden max-w-6xl mx-auto p-4 space-y-4 fade-in">
@@ -2943,25 +3002,68 @@
     // ==========================================
     // SUPPLIER CHECKIN
     // ==========================================
+    // ── GPS Config ──────────────────────────────────────
+    const FACTORY_LAT = 13.527557056318521;
+    const FACTORY_LNG = 100.6409315777357;
+    const MAX_RADIUS_KM = 5;
+
+    function calcDistanceKm(lat1, lng1, lat2, lng2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const a = Math.sin(dLat/2)*Math.sin(dLat/2) +
+                Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
+                Math.sin(dLng/2)*Math.sin(dLng/2);
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
     function supplierCheckin() {
-      const nameInput = document.getElementById('supplier-name');
+      const nameInput    = document.getElementById('supplier-name');
       const licenseInput = document.getElementById('supplier-license');
       if (!nameInput || !licenseInput) return;
-      const name = nameInput.value.trim();
+      const name    = nameInput.value.trim();
       const license = licenseInput.value.trim();
-      if (!name) return alert('กรุณากรอกชื่อบริษัท');
+      if (!name)    return alert('กรุณากรอกชื่อบริษัท');
       if (!license) return alert('กรุณากรอกทะเบียนรถ');
+
       const btn = document.getElementById('checkin-btn');
-      if (btn) { btn.disabled = true; btn.innerText = 'กำลังประมวลผล...'; }
-      callAPI('createRecord', { companyName: name, licensePlate: license }).then(res => {
-        if (res.success) {
-          currentSupplierRecord = res.record;
-          safeSetLocal('my_active_queue', JSON.stringify(res.record));
-          fetchAll();
-          showSupplierStatus(res.record);
-        } else { alert('Error: ' + res.message); }
+      if (btn) { btn.disabled = true; btn.innerText = '📍 กำลังตรวจสอบตำแหน่ง...'; }
+
+      // ตรวจสอบ GPS ก่อนเช็คอิน
+      if (!navigator.geolocation) {
         if (btn) { btn.disabled = false; btn.innerText = 'รับหมายเลขคิว'; }
-      });
+        return alert('เบราว์เซอร์นี้ไม่รองรับ GPS กรุณาใช้เบราว์เซอร์อื่น');
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        function(pos) {
+          const dist = calcDistanceKm(pos.coords.latitude, pos.coords.longitude, FACTORY_LAT, FACTORY_LNG);
+          if (dist > MAX_RADIUS_KM) {
+            if (btn) { btn.disabled = false; btn.innerText = 'รับหมายเลขคิว'; }
+            alert('❌ ไม่สามารถเช็คอินได้\n\nคุณอยู่ห่างจากโรงงาน ' + dist.toFixed(2) + ' กม.\n(อนุญาตสูงสุด ' + MAX_RADIUS_KM + ' กม.)');
+            return;
+          }
+          // อยู่ในรัศมี → เช็คอินได้
+          if (btn) btn.innerText = 'กำลังประมวลผล...';
+          callAPI('createRecord', { companyName: name, licensePlate: license }).then(function(res) {
+            if (res.success) {
+              currentSupplierRecord = res.record;
+              safeSetLocal('my_active_queue', JSON.stringify(res.record));
+              fetchAll();
+              showSupplierStatus(res.record);
+            } else { alert('Error: ' + res.message); }
+            if (btn) { btn.disabled = false; btn.innerText = 'รับหมายเลขคิว'; }
+          });
+        },
+        function(err) {
+          if (btn) { btn.disabled = false; btn.innerText = 'รับหมายเลขคิว'; }
+          const msg = err.code === 1
+            ? 'กรุณาอนุญาต GPS ในเบราว์เซอร์ก่อนเช็คอิน'
+            : 'ไม่สามารถดึงตำแหน่ง GPS ได้ กรุณาลองใหม่';
+          alert('⚠️ ' + msg);
+        },
+        { timeout: 10000, maximumAge: 60000, enableHighAccuracy: true }
+      );
     }
 
     function showSupplierStatus(record) {
@@ -3364,13 +3466,25 @@
       }).join('') : '<div class="text-center py-10 text-[9px] text-slate-300 font-bold tracking-widest uppercase">ไม่มีประวัติ</div>';
       }
 
-      const stTotal = document.getElementById('stat-today-total');
-      const stDone  = document.getElementById('stat-today-done');
-      const stWait  = document.getElementById('stat-today-wait');
+      const stTotal   = document.getElementById('stat-today-total');
+      const stDone    = document.getElementById('stat-today-done');
+      const stWait    = document.getElementById('stat-today-wait');
+      const stPlanned = document.getElementById('stat-today-planned');
+      const stMatch   = document.getElementById('stat-today-match');
       const _setIfChanged = (el, val) => { if (el && el.innerText !== String(val)) el.innerText = val; };
-      _setIfChanged(stTotal, myData.filter(r => r.status !== 'cancelled').length);
-      _setIfChanged(stDone,  compList.length);
-      _setIfChanged(stWait,  waitList.length + loadList.length);
+
+      const todayActual  = myData.filter(r => r.status !== 'cancelled').length;
+      const todayPlanned = allPartData.filter(function(p){
+        return p.date === getThaiDate() && (p.status === 'pending' || p.status === 'completed' || p.status === 'short' || p.status === 'missing');
+      });
+      const plannedCount  = new Set(todayPlanned.map(function(p){ return p.vendor||''; }).filter(Boolean)).size;
+      const matchPct      = plannedCount > 0 ? Math.round(todayActual/plannedCount*100) : '—';
+
+      _setIfChanged(stTotal,   todayActual);
+      _setIfChanged(stDone,    compList.length);
+      _setIfChanged(stWait,    waitList.length + loadList.length);
+      _setIfChanged(stPlanned, plannedCount || '—');
+      _setIfChanged(stMatch,   matchPct);
     }
 
     // Complete flow — เปิด Parts Modal สำหรับ loading → completed
@@ -3483,7 +3597,7 @@
       if (tab === _lastStaffTab) return;
       _lastStaffTab = tab;
 
-      ['queue','weekly','daily','parts'].forEach(t => {
+      ['queue','weekly','daily','parts','trend'].forEach(t => {
         const p = document.getElementById('page-' + t);
         const b = document.getElementById('tab-' + t);
         if (p) p.classList.toggle('hidden', t !== tab);
@@ -3498,6 +3612,7 @@
           updatePartsDashboard();
         }, 100);
       }
+      if (tab === 'trend') { loadStaffTrend(); }
     }
 
     function populateMonthSelector(elementId) {
@@ -3615,7 +3730,88 @@
     function updateDailyHistoryList() {
       const container = document.getElementById('daily-history-list');
       if (!container) return;
-      let html = '<h3 class="font-bold text-slate-800 mt-10 mb-6">รายละเอียดประวัติ (7 วันล่าสุด)</h3>';
+      let html = '';
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+        const bkk = new Date(utc + (3600000 * 7));
+        const y = bkk.getFullYear(); const m = String(bkk.getMonth()+1).padStart(2,'0'); const day = String(bkk.getDate()).padStart(2,'0');
+        const dateStr = y+'-'+m+'-'+day;
+        const label = bkk.toLocaleDateString('th-TH', { day:'numeric', month:'long', year:'numeric' });
+        const dayRecords = allData.filter(function(r){ return r.date === dateStr && (r.status === 'completed' || r.status === 'exited' || r.status === 'cancelled'); }).sort(function(a,b){ return parseInt(a.queue_number)-parseInt(b.queue_number); });
+        if (dayRecords.length > 0) {
+          const completed = dayRecords.filter(function(r){ return r.status==='completed'||r.status==='exited'; }).length;
+          const cancelled = dayRecords.filter(function(r){ return r.status==='cancelled'; }).length;
+          const cancelBadge = cancelled > 0 ? '<span class="bg-rose-50 text-rose-500 px-3 py-1 rounded-full border border-rose-100 text-[10px] font-bold">ยกเลิก '+cancelled+'</span>' : '';
+          let rows = '';
+          dayRecords.forEach(function(r) {
+            const isDone = r.status==='completed'||r.status==='exited';
+            let duration = '—';
+            if (isDone && r.checkin_time && r.completed_time) {
+              const diff = new Date(r.completed_time) - new Date(r.checkin_time);
+              if (diff > 0) { const mins = Math.floor(diff/60000); duration = mins>=60 ? Math.floor(mins/60)+'ชม. '+(mins%60)+'น.' : mins+' น.'; }
+            }
+            const ps = String(r.plan_status||'');
+            let timeBadge = '';
+            if (!isDone) timeBadge = '<span class="bg-rose-50 text-rose-500 font-black text-[9px] px-2 py-0.5 rounded-full">ยกเลิก</span>';
+            else if (ps.includes('ตรงเวลา')) timeBadge = '<span class="bg-emerald-50 text-emerald-600 font-black text-[9px] px-2 py-0.5 rounded-full">ตรงเวลา</span>';
+            else if (ps.includes('ล่าช้า')) timeBadge = '<span class="bg-rose-50 text-rose-500 font-black text-[9px] px-2 py-0.5 rounded-full">ล่าช้า</span>';
+            else if (ps.includes('มาก่อน')) timeBadge = '<span class="bg-blue-50 text-blue-500 font-black text-[9px] px-2 py-0.5 rounded-full">มาก่อน</span>';
+            else if (ps.includes('นอกแผน')) timeBadge = '<span class="bg-amber-50 text-amber-500 font-black text-[9px] px-2 py-0.5 rounded-full">นอกแผน</span>';
+            else timeBadge = '<span class="bg-emerald-50 text-emerald-600 font-black text-[9px] px-2 py-0.5 rounded-full">เสร็จสิ้น</span>';
+            const relParts = allPartData.filter(function(p){ return p.date===dateStr && String(p.vendor||'').toLowerCase()===String(r.company_name||'').toLowerCase(); });
+            let partBadge = '—';
+            if (relParts.length > 0) {
+              const allComp = relParts.every(function(p){ return p.status==='completed'; });
+              const anyShort = relParts.some(function(p){ return p.status==='short'||p.status==='missing'; });
+              if (allComp) partBadge = '<span class="bg-emerald-50 text-emerald-600 font-black text-[9px] px-2 py-0.5 rounded-full">ครบ</span>';
+              else if (anyShort) partBadge = '<span class="bg-rose-50 text-rose-500 font-black text-[9px] px-2 py-0.5 rounded-full">ไม่ครบ</span>';
+              else partBadge = '<span class="bg-amber-50 text-amber-500 font-black text-[9px] px-2 py-0.5 rounded-full">รอตรวจ</span>';
+            }
+            rows += '<tr class="hover:bg-slate-50">' +
+              '<td class="px-4 py-2.5 text-center font-black text-slate-300">#'+r.queue_number+'</td>' +
+              '<td class="px-4 py-2.5 font-bold text-slate-700 max-w-[150px] truncate">'+(r.company_name||'—')+'</td>' +
+              '<td class="px-4 py-2.5 text-center text-slate-600 font-bold">'+formatThaiTime(r.checkin_time)+'</td>' +
+              '<td class="px-4 py-2.5 text-center text-slate-500">'+(isDone&&r.loading_time?formatThaiTime(r.loading_time):'—')+'</td>' +
+              '<td class="px-4 py-2.5 text-center text-slate-500">'+(isDone?formatThaiTime(r.completed_time):'—')+'</td>' +
+              '<td class="px-4 py-2.5 text-center text-slate-400">'+duration+'</td>' +
+              '<td class="px-4 py-2.5 text-center text-slate-500">'+(r.factory||'—')+'</td>' +
+              '<td class="px-4 py-2.5 text-center">'+timeBadge+'</td>' +
+              '<td class="px-4 py-2.5 text-center">'+partBadge+'</td>' +
+            '</tr>';
+          });
+          html += '<div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">' +
+            '<div class="px-5 py-4 border-b border-slate-100 bg-slate-50 flex flex-wrap justify-between items-center gap-2">' +
+              '<div class="font-black text-slate-700 text-sm">'+label+'</div>' +
+              '<div class="flex gap-2">' +
+                '<span class="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full border border-emerald-100 text-[10px] font-bold">เสร็จ '+completed+'</span>' +
+                cancelBadge +
+                '<span class="bg-slate-50 text-slate-400 px-3 py-1 rounded-full border border-slate-100 text-[10px] font-bold">รวม '+dayRecords.length+' คัน</span>' +
+              '</div>' +
+            '</div>' +
+            '<div class="overflow-x-auto">' +
+              '<table class="w-full text-xs">' +
+                '<thead class="bg-slate-50 border-b border-slate-100">' +
+                  '<tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">' +
+                    '<th class="px-4 py-2.5 text-center">คิว</th>' +
+                    '<th class="px-4 py-2.5">Supplier</th>' +
+                    '<th class="px-4 py-2.5 text-center">เวลาเข้า</th>' +
+                    '<th class="px-4 py-2.5 text-center">โหลดของ</th>' +
+                    '<th class="px-4 py-2.5 text-center">เวลาออก</th>' +
+                    '<th class="px-4 py-2.5 text-center">ระยะเวลา</th>' +
+                    '<th class="px-4 py-2.5 text-center">โรงงาน</th>' +
+                    '<th class="px-4 py-2.5 text-center">สถานะเวลา</th>' +
+                    '<th class="px-4 py-2.5 text-center">ครบ/ไม่ครบ</th>' +
+                  '</tr>' +
+                '</thead>' +
+                '<tbody class="divide-y divide-slate-50">'+rows+'</tbody>' +
+              '</table>' +
+            '</div>' +
+          '</div>';
+        }
+      }
+      container.innerHTML = html || '<div class="text-center py-10 text-slate-300 text-xs font-bold">ไม่มีประวัติ 7 วันล่าสุด</div>';
+    }
       for (let i = 0; i < 7; i++) {
         const d = new Date(); d.setDate(d.getDate() - i);
         const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
@@ -3687,12 +3883,6 @@
                     }).join('')}
                   </tbody>
                 </table>
-              </div>
-            </div>`;
-        }
-      }
-      container.innerHTML = html;
-    }
 
     function updateMonthlySummary() {
       const selValue = document.getElementById('month-selector').value;
@@ -3997,7 +4187,7 @@
     // ==========================================
     // ==========================================
     function showPicTab(tab) {
-      ['upload503','myparts','pic-dashboard','parts-receiving','responsibility','pic-master'].forEach(t => {
+      ['upload503','myparts','pic-dashboard','parts-receiving','pic-trend','pic-master'].forEach(t => {
         const p = document.getElementById('pic-page-' + t);
         const b = document.getElementById('pic-tab-' + t);
         if (p) p.classList.toggle('hidden', t !== tab);
@@ -4008,9 +4198,10 @@
       if (tab === 'myparts') initMyParts();
       if (tab === 'pic-dashboard') initPicDashboard();
       if (tab === 'parts-receiving') initPartsReceiving();
-      if (tab === 'responsibility') { initPicResponsibility(); updatePicResponsibility(); }
+      if (tab === 'pic-trend') loadPrTrend();
       if (tab === 'pic-master') updatePicMaster();
     }
+
 
     // ==========================================
     // PIC RESPONSIBILITY
