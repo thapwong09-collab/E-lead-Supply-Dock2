@@ -336,114 +336,174 @@
 
 
       <!-- Tab: Parts Dashboard -->
-      <div id="page-parts" class="hidden fade-in" style="max-width:1100px;margin:0 auto;padding:1.5rem 1rem;">
+      <div id="page-parts" class="hidden fade-in max-w-6xl mx-auto p-4 space-y-5">
 
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px;">
+        <!-- Header row -->
+        <div class="flex items-start justify-between flex-wrap gap-4">
           <div>
-            <h2 style="font-size:18px;font-weight:500;margin:0;color:var(--color-text-primary);">Parts Dashboard</h2>
-            <p style="font-size:13px;color:var(--color-text-secondary);margin:4px 0 0;">ภาพรวมการรับวัตถุดิบ</p>
+            <div class="font-black text-slate-800 text-xl tracking-tight">Parts Dashboard</div>
+            <div id="pd-last-update" class="text-[11px] text-slate-400 mt-1">—</div>
           </div>
-          <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+          <div class="flex items-end gap-3 flex-wrap">
             <div>
-              <p style="font-size:11px;color:var(--color-text-secondary);margin:0 0 4px;">เดือน</p>
-              <select id="parts-month" onchange="updatePartsDashboard()" style="font-size:13px;padding:6px 10px;"></select>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">เดือน</div>
+              <select id="parts-month" onchange="updatePartsDashboard()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[150px]"></select>
             </div>
             <div>
-              <p style="font-size:11px;color:var(--color-text-secondary);margin:0 0 4px;">Supplier</p>
-              <select id="parts-supplier" onchange="updatePartsDashboard()" style="font-size:13px;padding:6px 10px;min-width:160px;"></select>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Supplier</div>
+              <select id="parts-supplier" onchange="updatePartsDashboard()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[180px]"></select>
             </div>
-            <button onclick="updatePartsDashboard()" style="padding:6px 14px;font-size:13px;display:flex;align-items:center;gap:6px;"><i class="ti ti-refresh" aria-hidden="true"></i> รีเฟรช</button>
+            <button type="button" onclick="updatePartsDashboard()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer">🔄 รีเฟรช</button>
           </div>
         </div>
 
-        <div style="border-top:0.5px solid var(--color-border-tertiary);margin-bottom:1.5rem;"></div>
+        <!-- KPI Row 1 — การเข้ามา -->
+        <div>
+          <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+            <span class="w-3 h-3 bg-slate-300 rounded-sm inline-block"></span>การเข้ามาส่งของ
+          </div>
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
 
-        <!-- Section 1: การเข้ามาส่งของ -->
-        <p style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.08em;margin:0 0 10px;">การเข้ามาส่งของ</p>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:1.5rem;">
-          <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;">
-            <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 6px;">เข้าทั้งหมด</p>
-            <p id="pd-visits" style="font-size:28px;font-weight:500;margin:0;color:var(--color-text-primary);">—</p>
-            <p style="font-size:11px;color:var(--color-text-secondary);margin:4px 0 0;">ครั้ง</p>
-          </div>
-          <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;">
-            <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 6px;">ตรงเวลา</p>
-            <p id="pd-ontime" style="font-size:28px;font-weight:500;margin:0;color:var(--color-text-success);">—</p>
-            <p id="pd-ontime-pct" style="font-size:11px;color:var(--color-text-success);margin:4px 0 0;">—</p>
-          </div>
-          <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;">
-            <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 6px;">ล่าช้า</p>
-            <p id="pd-late" style="font-size:28px;font-weight:500;margin:0;color:var(--color-text-danger);">—</p>
-            <p id="pd-late-pct" style="font-size:11px;color:var(--color-text-danger);margin:4px 0 0;">—</p>
-          </div>
-          <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;">
-            <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 6px;">นอกแผน</p>
-            <p id="pd-unplanned" style="font-size:28px;font-weight:500;margin:0;color:var(--color-text-warning);">—</p>
-            <p id="pd-unplanned-pct" style="font-size:11px;color:var(--color-text-warning);margin:4px 0 0;">—</p>
+            <div class="bg-white rounded-2xl border border-slate-100 p-5 flex items-start gap-4">
+              <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <span class="text-slate-500 text-lg">🚚</span>
+              </div>
+              <div>
+                <div class="text-[10px] font-black text-slate-400 uppercase tracking-wide">เข้าทั้งหมด</div>
+                <div id="pd-visits" class="text-3xl font-black text-slate-800 mt-0.5 leading-none">—</div>
+                <div class="text-[10px] text-slate-400 mt-1">ครั้ง</div>
+              </div>
+            </div>
+
+            <div class="bg-emerald-50 rounded-2xl border border-emerald-100 p-5 flex items-start gap-4">
+              <div class="w-10 h-10 bg-emerald-200 rounded-xl flex items-center justify-center flex-shrink-0">
+                <span class="text-emerald-700 text-lg">✅</span>
+              </div>
+              <div>
+                <div class="text-[10px] font-black text-emerald-600 uppercase tracking-wide">ตรงเวลา</div>
+                <div id="pd-ontime" class="text-3xl font-black text-emerald-700 mt-0.5 leading-none">—</div>
+                <div id="pd-ontime-pct" class="text-xs font-black text-emerald-500 mt-1">—</div>
+              </div>
+            </div>
+
+            <div class="bg-rose-50 rounded-2xl border border-rose-100 p-5 flex items-start gap-4">
+              <div class="w-10 h-10 bg-rose-200 rounded-xl flex items-center justify-center flex-shrink-0">
+                <span class="text-rose-700 text-lg">⚠️</span>
+              </div>
+              <div>
+                <div class="text-[10px] font-black text-rose-500 uppercase tracking-wide">ล่าช้า</div>
+                <div id="pd-late" class="text-3xl font-black text-rose-600 mt-0.5 leading-none">—</div>
+                <div id="pd-late-pct" class="text-xs font-black text-rose-400 mt-1">—</div>
+              </div>
+            </div>
+
+            <div class="bg-amber-50 rounded-2xl border border-amber-100 p-5 flex items-start gap-4">
+              <div class="w-10 h-10 bg-amber-200 rounded-xl flex items-center justify-center flex-shrink-0">
+                <span class="text-amber-700 text-lg">📋</span>
+              </div>
+              <div>
+                <div class="text-[10px] font-black text-amber-600 uppercase tracking-wide">นอกแผน</div>
+                <div id="pd-unplanned" class="text-3xl font-black text-amber-700 mt-0.5 leading-none">—</div>
+                <div id="pd-unplanned-pct" class="text-xs font-black text-amber-500 mt-1">—</div>
+              </div>
+            </div>
+
           </div>
         </div>
 
-        <div style="border-top:0.5px solid var(--color-border-tertiary);margin-bottom:1.5rem;"></div>
+        <!-- KPI Row 2 — พาร์ท + Fill Rate (โดดเด่น) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-        <!-- Section 2: การส่งพาร์ท -->
-        <p style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.08em;margin:0 0 10px;">การส่งพาร์ท</p>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:1.5rem;">
-          <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;">
-            <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 6px;">รายการทั้งหมด</p>
-            <p id="pd-parts-total" style="font-size:28px;font-weight:500;margin:0;color:var(--color-text-primary);">—</p>
+          <!-- Fill Rate card ใหญ่ -->
+          <div class="bg-violet-600 rounded-2xl p-6 flex flex-col justify-between">
+            <div class="text-violet-200 text-[10px] font-black uppercase tracking-widest">Fill Rate รวม</div>
+            <div id="stat-fill-rate" class="text-6xl font-black text-white mt-3 leading-none">—</div>
+            <div class="mt-4 pt-4 border-t border-violet-500 flex items-center justify-between">
+              <div>
+                <div class="text-violet-300 text-[9px] font-black uppercase">QTY แผน</div>
+                <div id="pd-qty-plan" class="text-white font-black text-sm">—</div>
+              </div>
+              <div class="text-right">
+                <div class="text-violet-300 text-[9px] font-black uppercase">QTY รับจริง</div>
+                <div id="pd-qty-recv" class="text-white font-black text-sm">—</div>
+              </div>
+            </div>
           </div>
-          <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;">
-            <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 6px;">ครบ QTY</p>
-            <p id="pd-parts-completed" style="font-size:28px;font-weight:500;margin:0;color:var(--color-text-success);">—</p>
-            <p id="pd-parts-completed-pct" style="font-size:11px;color:var(--color-text-success);margin:4px 0 0;">—</p>
-          </div>
-          <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;">
-            <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 6px;">QTY ไม่ครบ</p>
-            <p id="pd-parts-short" style="font-size:28px;font-weight:500;margin:0;color:var(--color-text-warning);">—</p>
-            <p id="pd-parts-short-pct" style="font-size:11px;color:var(--color-text-warning);margin:4px 0 0;">—</p>
-          </div>
-          <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;">
-            <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 6px;">ไม่ได้รับ</p>
-            <p id="pd-parts-missing" style="font-size:28px;font-weight:500;margin:0;color:var(--color-text-danger);">—</p>
-            <p id="pd-parts-missing-pct" style="font-size:11px;color:var(--color-text-danger);margin:4px 0 0;">—</p>
-          </div>
-          <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;">
-            <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 6px;">Fill Rate</p>
-            <p id="stat-fill-rate" style="font-size:28px;font-weight:500;margin:0;color:var(--color-text-info);">—</p>
+
+          <!-- 4 Part KPI -->
+          <div class="lg:col-span-2 grid grid-cols-2 gap-3">
+            <div class="bg-white rounded-2xl border border-slate-100 p-5">
+              <div class="flex items-center justify-between mb-3">
+                <div class="text-[10px] font-black text-slate-400 uppercase tracking-wide">รายการทั้งหมด</div>
+                <div class="w-2 h-2 bg-slate-300 rounded-full"></div>
+              </div>
+              <div id="pd-parts-total" class="text-4xl font-black text-slate-800">—</div>
+              <div class="text-[10px] text-slate-400 mt-1">รายการ Part</div>
+            </div>
+
+            <div class="bg-emerald-50 rounded-2xl border border-emerald-100 p-5">
+              <div class="flex items-center justify-between mb-3">
+                <div class="text-[10px] font-black text-emerald-600 uppercase tracking-wide">ครบ QTY</div>
+                <div class="w-2 h-2 bg-emerald-400 rounded-full"></div>
+              </div>
+              <div id="pd-parts-completed" class="text-4xl font-black text-emerald-700">—</div>
+              <div id="pd-parts-completed-pct" class="text-xs font-black text-emerald-500 mt-1">—</div>
+            </div>
+
+            <div class="bg-amber-50 rounded-2xl border border-amber-100 p-5">
+              <div class="flex items-center justify-between mb-3">
+                <div class="text-[10px] font-black text-amber-600 uppercase tracking-wide">QTY ไม่ครบ</div>
+                <div class="w-2 h-2 bg-amber-400 rounded-full"></div>
+              </div>
+              <div id="pd-parts-short" class="text-4xl font-black text-amber-600">—</div>
+              <div id="pd-parts-short-pct" class="text-xs font-black text-amber-500 mt-1">—</div>
+            </div>
+
+            <div class="bg-rose-50 rounded-2xl border border-rose-100 p-5">
+              <div class="flex items-center justify-between mb-3">
+                <div class="text-[10px] font-black text-rose-500 uppercase tracking-wide">ไม่ได้รับ</div>
+                <div class="w-2 h-2 bg-rose-400 rounded-full"></div>
+              </div>
+              <div id="pd-parts-missing" class="text-4xl font-black text-rose-600">—</div>
+              <div id="pd-parts-missing-pct" class="text-xs font-black text-rose-400 mt-1">—</div>
+            </div>
           </div>
         </div>
 
-        <div style="border-top:0.5px solid var(--color-border-tertiary);margin-bottom:1.5rem;"></div>
-
-        <!-- Section 3: Bar Chart -->
-        <p style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.08em;margin:0 0 10px;">ประสิทธิภาพแยกตาม Supplier</p>
-        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:1.5rem;">
-          <div style="height:220px;position:relative;"><canvas id="pd-bar-chart"></canvas></div>
+        <!-- Bar Chart -->
+        <div class="bg-white rounded-2xl border border-slate-100 p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <div class="font-black text-slate-700 text-sm">ประสิทธิภาพแยกตาม Supplier</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">ตรงเวลา % vs Part ครบ %</div>
+            </div>
+          </div>
+          <div style="height:200px;position:relative;"><canvas id="pd-bar-chart" role="img" aria-label="Bar chart showing supplier on-time and part completion percentages">ข้อมูลประสิทธิภาพ Supplier</canvas></div>
         </div>
 
-        <!-- Section 4: Performance Table -->
-        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:1.5rem;">
-          <div style="padding:1rem 1.25rem;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;justify-content:space-between;">
-            <p style="font-size:14px;font-weight:500;margin:0;color:var(--color-text-primary);">คะแนน Supplier</p>
-            <p style="font-size:11px;color:var(--color-text-secondary);margin:0;">ตรงเวลา 40% + Part ครบ 60%</p>
+        <!-- Performance Table -->
+        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+          <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+            <div>
+              <div class="font-black text-slate-700 text-sm">คะแนน Supplier</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">ตรงเวลา 40% + Part ครบ 60%</div>
+            </div>
           </div>
-          <div style="overflow-x:auto;">
-            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
               <thead>
-                <tr style="border-bottom:0.5px solid var(--color-border-tertiary);">
-                  <th style="text-align:left;padding:10px 16px;font-weight:500;font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">Supplier</th>
-                  <th style="text-align:center;padding:10px 16px;font-weight:500;font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">ครั้ง</th>
-                  <th style="text-align:center;padding:10px 16px;font-weight:500;font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">ตรงเวลา</th>
-                  <th style="text-align:center;padding:10px 16px;font-weight:500;font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">Part ครบ</th>
-                  <th style="text-align:center;padding:10px 16px;font-weight:500;font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">คะแนน</th>
+                <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                  <th class="px-5 py-3">Supplier</th>
+                  <th class="px-4 py-3 text-center">ครั้ง</th>
+                  <th class="px-4 py-3 text-center">ตรงเวลา</th>
+                  <th class="px-4 py-3 text-center">Part ครบ</th>
+                  <th class="px-4 py-3 text-center">คะแนน</th>
                 </tr>
               </thead>
-              <tbody id="pd-perf-tbody" style=""></tbody>
+              <tbody id="pd-perf-tbody" class="divide-y divide-slate-50"></tbody>
             </table>
           </div>
         </div>
-
-        <div id="pd-last-update" style="font-size:11px;color:var(--color-text-secondary);text-align:right;padding-bottom:1rem;"></div>
 
       </div>
 
@@ -3117,14 +3177,10 @@
       if (tab === 'daily') { updateDailyChart(); updateDailyHistoryList(); }
       if (tab === 'weekly') { initWeeklyPlan(); }
       if (tab === 'parts') {
-        // โหลดเฉพาะเมื่อมีการเปลี่ยนแปลงข้อมูล
-        if (_partsDashboardDirty) {
-          _partsDashboardDirty = false;
-          setTimeout(function() {
-            populatePartsDashboardFilters();
-            updatePartsDashboard();
-          }, 100);
-        }
+        setTimeout(function() {
+          populatePartsDashboardFilters();
+          updatePartsDashboard();
+        }, 100);
       }
     }
 
@@ -3485,14 +3541,16 @@
       const mis  = partsData.filter(function(p){ return p.status==='missing'; }).length;
       const qtyP = partsData.reduce(function(s,p){ return s+(parseFloat(p.qty_plan)||0); },0);
       const qtyR = partsData.reduce(function(s,p){ return s+(parseFloat(p.qty_received)||0); },0);
-      set('pd-parts-total',         partsData.length);
+      set('pd-parts-total',         partsData.length || '—');
       set('pd-parts-completed',     comp);
-      set('pd-parts-completed-pct', Math.round(comp/tot*100)+'%');
+      set('pd-parts-completed-pct', partsData.length > 0 ? Math.round(comp/tot*100)+'%' : '—');
       set('pd-parts-short',         sht);
-      set('pd-parts-short-pct',     Math.round(sht/tot*100)+'%');
+      set('pd-parts-short-pct',     partsData.length > 0 ? Math.round(sht/tot*100)+'%' : '—');
       set('pd-parts-missing',       mis);
-      set('pd-parts-missing-pct',   Math.round(mis/tot*100)+'%');
+      set('pd-parts-missing-pct',   partsData.length > 0 ? Math.round(mis/tot*100)+'%' : '—');
       set('stat-fill-rate',         qtyP > 0 ? (qtyR/qtyP*100).toFixed(1)+'%' : '—');
+      set('pd-qty-plan',            qtyP > 0 ? qtyP.toLocaleString() : '—');
+      set('pd-qty-recv',            qtyR > 0 ? qtyR.toLocaleString() : '—');
       const now = new Date().toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'});
       set('pd-last-update', 'อัพเดตล่าสุด ' + now);
     }
@@ -3560,15 +3618,17 @@
       }).sort(function(a,b){ return b.score-a.score; });
 
       tbody.innerHTML = rows.map(function(r) {
-        const scoreColor = r.score>=80?'text-emerald-600':r.score>=60?'text-amber-500':'text-rose-500';
-        return '<tr class="hover:bg-slate-50 text-xs">' +
-          '<td class="px-4 py-2 font-bold text-slate-700 max-w-[200px] truncate">' + r.v + '</td>' +
-          '<td class="px-4 py-2 text-center text-slate-600">' + r.visits + '</td>' +
-          '<td class="px-4 py-2 text-center font-bold ' + (r.ontimePct>=80?'text-emerald-600':r.ontimePct>=60?'text-amber-500':'text-rose-500') + '">' + r.ontimePct + '%</td>' +
-          '<td class="px-4 py-2 text-center font-bold ' + (r.qtyPct>=80?'text-emerald-600':r.qtyPct>=60?'text-amber-500':'text-rose-500') + '">' + r.qtyPct + '%</td>' +
-          '<td class="px-4 py-2 text-center font-black ' + scoreColor + '">' + r.score + '</td>' +
+        const scoreColor = r.score>=80 ? '#10b981' : r.score>=60 ? '#f59e0b' : '#ef4444';
+        const ontimeColor = r.ontimePct>=80 ? 'text-emerald-600' : r.ontimePct>=60 ? 'text-amber-500' : 'text-rose-500';
+        const qtyColor    = r.qtyPct>=80    ? 'text-emerald-600' : r.qtyPct>=60    ? 'text-amber-500' : 'text-rose-500';
+        return '<tr class="hover:bg-slate-50 transition-colors">' +
+          '<td class="px-5 py-3 font-bold text-slate-700 max-w-[200px] truncate">' + r.v + '</td>' +
+          '<td class="px-4 py-3 text-center text-slate-500">' + r.visits + '</td>' +
+          '<td class="px-4 py-3 text-center font-black ' + ontimeColor + '">' + r.ontimePct + '%</td>' +
+          '<td class="px-4 py-3 text-center font-black ' + qtyColor + '">' + r.qtyPct + '%</td>' +
+          '<td class="px-4 py-3 text-center"><div style="display:inline-flex;align-items:center;gap:8px;"><div style="width:60px;height:6px;background:#f1f5f9;border-radius:3px;overflow:hidden;"><div style="height:100%;width:' + r.score + '%;background:' + scoreColor + ';border-radius:3px;"></div></div><span style="font-weight:900;color:' + scoreColor + ';font-size:12px;">' + r.score + '</span></div></td>' +
         '</tr>';
-      }).join('') || '<tr><td colspan="5" class="text-center py-6 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
+      }).join('') || '<tr><td colspan="5" class="text-center py-8 text-slate-300 text-xs font-bold">ยังไม่มีข้อมูล</td></tr>';
     }
 
     // ==========================================
