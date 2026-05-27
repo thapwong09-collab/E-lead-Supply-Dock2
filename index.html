@@ -802,21 +802,25 @@
       </div><!-- end pic-page-responsibility -->
 
       <!-- ================= PIC Tab: PIC Master ================= -->
-      <div id="pic-page-pic-master" class="hidden max-w-6xl mx-auto p-4 fade-in">
+      <div id="pic-page-pic-master" class="hidden max-w-6xl mx-auto p-4 fade-in space-y-5">
 
-        <!-- Header + ปุ่มเพิ่ม PIC -->
-        <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+        <!-- Header -->
+        <div class="flex items-center justify-between flex-wrap gap-3">
           <div>
             <div class="font-black text-slate-700 text-lg">👤 ความรับผิดชอบ PIC</div>
-            <div class="text-xs text-slate-400 mt-0.5">จัดการว่า PIC แต่ละคนดูแล Supplier ไหนบ้าง</div>
+            <div class="text-xs text-slate-400 mt-0.5">จัดการ PIC และ Supplier ที่รับผิดชอบ</div>
           </div>
           <div class="flex gap-2 flex-wrap">
-
-            <button type="button" onclick="addPicCard()"
-              class="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md cursor-pointer transition-colors">
-              + เพิ่ม PIC
-            </button>
+            <button type="button" onclick="addPicCard()" class="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md cursor-pointer">+ เพิ่ม PIC</button>
+            <button type="button" onclick="openAddSupplierMasterModal()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 px-5 py-2.5 rounded-xl font-bold text-sm cursor-pointer">🏭 จัดการ Supplier</button>
           </div>
+        </div>
+
+        <!-- Filter Active/Inactive -->
+        <div class="flex gap-2">
+          <button type="button" id="pm-filter-active" onclick="filterPicCards('active')" class="tab-active px-5 py-2 rounded-xl text-xs font-bold cursor-pointer">Active</button>
+          <button type="button" id="pm-filter-inactive" onclick="filterPicCards('inactive')" class="bg-slate-100 text-slate-500 px-5 py-2 rounded-xl text-xs font-bold cursor-pointer">Inactive</button>
+          <button type="button" id="pm-filter-all" onclick="filterPicCards('all')" class="bg-slate-100 text-slate-500 px-5 py-2 rounded-xl text-xs font-bold cursor-pointer">ทั้งหมด</button>
         </div>
 
         <!-- PIC Cards Grid -->
@@ -826,7 +830,6 @@
         <div id="pm-empty" class="hidden py-20 text-center">
           <div class="text-5xl mb-4">👤</div>
           <div class="font-bold text-slate-300 text-sm">ยังไม่มีข้อมูล PIC</div>
-          <div class="text-slate-300 text-xs mt-1">กดปุ่ม "+ เพิ่ม PIC" เพื่อเริ่มต้น</div>
         </div>
 
       </div><!-- end pic-page-pic-master -->
@@ -838,10 +841,29 @@
           <input type="text" id="pm-new-pic-name" placeholder="ชื่อ PIC" maxlength="60"
             class="w-full border-2 border-slate-100 rounded-xl px-4 py-3 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm mb-4">
           <div class="flex gap-3">
-            <button type="button" onclick="closePmModal()"
-              class="flex-1 bg-slate-100 text-slate-500 py-3 rounded-xl font-bold text-sm cursor-pointer">ยกเลิก</button>
-            <button type="button" onclick="savePicCard()"
-              class="flex-1 bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">บันทึก</button>
+            <button type="button" onclick="closePmModal()" class="flex-1 bg-slate-100 text-slate-500 py-3 rounded-xl font-bold text-sm cursor-pointer">ยกเลิก</button>
+            <button type="button" onclick="savePicCard()" class="flex-1 bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">บันทึก</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal จัดการ Supplier Master -->
+      <div id="pm-supplier-master-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+          <div class="px-6 py-4 border-b flex items-center justify-between">
+            <div>
+              <div class="font-black text-slate-700">🏭 รายชื่อ Supplier Master</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">จาก Sheet: QR for Supplier1</div>
+            </div>
+            <button type="button" onclick="closeSupplierMasterModal()" class="text-slate-400 hover:text-slate-600 font-black text-xl cursor-pointer">✕</button>
+          </div>
+          <div class="px-6 py-4 border-b flex gap-2">
+            <input type="text" id="pm-new-supplier-name" placeholder="เพิ่ม Supplier ใหม่..." maxlength="100"
+              class="flex-1 border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm">
+            <button type="button" onclick="saveNewSupplierMaster()" class="bg-violet-600 hover:bg-violet-700 text-white px-4 rounded-xl font-black text-lg cursor-pointer">+</button>
+          </div>
+          <div class="flex-1 overflow-y-auto px-6 py-4">
+            <div id="pm-supplier-master-list" class="space-y-1"></div>
           </div>
         </div>
       </div>
@@ -849,39 +871,28 @@
       <!-- Modal เพิ่ม Supplier ให้ PIC -->
       <div id="pm-add-sup-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
         <div class="bg-white rounded-2xl w-full max-w-md mx-4 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-          <!-- Header -->
           <div class="px-6 py-4 border-b">
             <div class="font-black text-slate-700">+ เพิ่ม Supplier</div>
             <div id="pm-add-sup-pic-label" class="text-xs text-violet-600 font-bold mt-0.5"></div>
           </div>
-          <!-- Body -->
           <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-            <!-- Search + Add -->
             <div class="flex gap-2">
-              <input type="text" id="pm-new-sup-name" placeholder="พิมพ์ชื่อ Supplier แล้วกด Enter หรือ +"
+              <input type="text" id="pm-new-sup-name" placeholder="ค้นหา Supplier..."
                 maxlength="100" oninput="filterPmSuggestions()"
-                onkeydown="if(event.key==='Enter'){event.preventDefault();addPmSupToSelected()}"
                 class="flex-1 border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm">
-              <button type="button" onclick="addPmSupToSelected()"
-                class="bg-violet-600 hover:bg-violet-700 text-white px-4 rounded-xl font-black text-lg cursor-pointer">+</button>
             </div>
-            <!-- Selected list -->
             <div id="pm-selected-list" class="hidden">
               <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">เลือกแล้ว</div>
               <div id="pm-selected-chips" class="flex flex-wrap gap-1.5 min-h-[32px]"></div>
             </div>
-            <!-- Suggestions -->
             <div>
               <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">เลือกจากรายการ</div>
               <div id="pm-sup-suggestions" class="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto"></div>
             </div>
           </div>
-          <!-- Footer -->
           <div class="px-6 py-4 border-t flex gap-3">
-            <button type="button" onclick="closePmSupModal()"
-              class="flex-1 bg-slate-100 text-slate-500 py-3 rounded-xl font-bold text-sm cursor-pointer">ยกเลิก</button>
-            <button type="button" onclick="savePicSup()" id="pm-save-sup-btn"
-              class="flex-1 bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">
+            <button type="button" onclick="closePmSupModal()" class="flex-1 bg-slate-100 text-slate-500 py-3 rounded-xl font-bold text-sm cursor-pointer">ยกเลิก</button>
+            <button type="button" onclick="savePicSup()" id="pm-save-sup-btn" class="flex-1 bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">
               เพิ่ม (<span id="pm-selected-count">0</span>)
             </button>
           </div>
@@ -1141,6 +1152,7 @@
           if (res.picMaster) {
             allPicMaster = res.picMaster || [];
           }
+          _partsDashboardDirty = true;
           refreshUI();
         } else {
           _fetchFailCount++;
@@ -3074,18 +3086,32 @@
     // ==========================================
     // STAFF TABS
     // ==========================================
+    let _lastStaffTab = '';
+    let _partsDashboardDirty = true; // flag ว่าต้อง recalculate ไหม
+
     function showStaffTab(tab) {
+      // ถ้ากด tab เดิมซ้ำ ข้ามไป
+      if (tab === _lastStaffTab) return;
+      _lastStaffTab = tab;
+
       ['queue','weekly','daily','parts'].forEach(t => {
         const p = document.getElementById('page-' + t);
         const b = document.getElementById('tab-' + t);
         if (p) p.classList.toggle('hidden', t !== tab);
         if (b) b.className = t === tab ? 'tab-active px-6 py-2.5 rounded-xl text-xs font-bold shadow-md cursor-pointer' : 'bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold cursor-pointer';
       });
+
       if (tab === 'daily') { updateDailyChart(); updateDailyHistoryList(); }
       if (tab === 'weekly') { initWeeklyPlan(); }
       if (tab === 'parts') {
-        // ใช้ setTimeout เพื่อไม่ให้ block UI
-        setTimeout(function() { populatePartsDashboardFilters(); updatePartsDashboard(); }, 50);
+        // โหลดเฉพาะเมื่อมีการเปลี่ยนแปลงข้อมูล
+        if (_partsDashboardDirty) {
+          _partsDashboardDirty = false;
+          setTimeout(function() {
+            populatePartsDashboardFilters();
+            updatePartsDashboard();
+          }, 100);
+        }
       }
     }
 
@@ -3875,11 +3901,13 @@
     // แปลง allPicMaster (flat rows จาก Sheet) → { pics: [{name, suppliers:[]}] }
     function buildPicStructure(rows) {
       const map = {};
-      (rows || []).forEach(r => {
+      (rows || []).forEach(function(r) {
         const pic = String(r.pic_name || '').trim();
         const sup = String(r.supplier || '').trim();
         if (!pic) return;
-        if (!map[pic]) map[pic] = { name: pic, suppliers: [] };
+        if (!map[pic]) map[pic] = { name: pic, suppliers: [], status: r.status || 'active' };
+        // อัพเดท status ถ้ามีการเปลี่ยน
+        if (r.status) map[pic].status = r.status;
         if (sup && !map[pic].suppliers.includes(sup)) map[pic].suppliers.push(sup);
       });
       return { pics: Object.values(map) };
@@ -3924,51 +3952,157 @@
     // ลบ localStorage เก่าถ้ายังมีค้างอยู่
     try { localStorage.removeItem('pic_master_data'); } catch(e) {}
 
-    function updatePicMaster() {
-      const data = buildPicStructure(allPicMaster);
-      const grid = document.getElementById('pm-cards-grid');
+    let _supplierMasterList = []; // รายชื่อจาก QR for Supplier1
+    let _pmCurrentFilter = 'active';
+
+    async function updatePicMaster() {
+      // โหลด Supplier Master ถ้ายังไม่มี
+      if (_supplierMasterList.length === 0) {
+        try {
+          const res = await callAPI('getSupplierMaster');
+          if (res && res.success) _supplierMasterList = res.suppliers || [];
+        } catch(e) {}
+      }
+      renderPicMasterCards(_pmCurrentFilter);
+    }
+
+    function filterPicCards(filter) {
+      _pmCurrentFilter = filter;
+      ['active','inactive','all'].forEach(function(f) {
+        const btn = document.getElementById('pm-filter-' + f);
+        if (btn) btn.className = f === filter ? 'tab-active px-5 py-2 rounded-xl text-xs font-bold cursor-pointer' : 'bg-slate-100 text-slate-500 px-5 py-2 rounded-xl text-xs font-bold cursor-pointer';
+      });
+      renderPicMasterCards(filter);
+    }
+
+    function renderPicMasterCards(filter) {
+      const data  = buildPicStructure(allPicMaster);
+      const grid  = document.getElementById('pm-cards-grid');
       const empty = document.getElementById('pm-empty');
       if (!grid) return;
 
-      if (data.pics.length === 0) {
+      // กรองตาม status
+      let pics = data.pics;
+      if (filter === 'active')   pics = pics.filter(function(p){ return p.status !== 'inactive'; });
+      if (filter === 'inactive') pics = pics.filter(function(p){ return p.status === 'inactive'; });
+
+      if (pics.length === 0) {
         grid.innerHTML = '';
         if (empty) empty.classList.remove('hidden');
         return;
       }
       if (empty) empty.classList.add('hidden');
 
-      grid.innerHTML = data.pics.map((pic, pi) => {
-        const sups = pic.suppliers || [];
-        return `
-        <div class="bg-white rounded-2xl shadow-sm border overflow-hidden fade-in" id="pm-card-${pi}">
-          <!-- Card Header -->
-          <div class="bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-3 flex items-center justify-between">
-            <div class="font-black text-white">👤 ${pic.name}</div>
-            <div class="flex gap-2">
-              <button type="button" onclick="openAddSupModal(${pi})"
-                class="bg-white/20 hover:bg-white/30 text-white text-[10px] font-black px-2.5 py-1 rounded-lg cursor-pointer">+ Supplier</button>
+      grid.innerHTML = pics.map(function(pic, pi) {
+        const sups      = pic.suppliers || [];
+        const isActive  = pic.status !== 'inactive';
+        const statusBadge = isActive
+          ? '<span class="bg-emerald-100 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-full">Active</span>'
+          : '<span class="bg-slate-100 text-slate-400 text-[9px] font-black px-2 py-0.5 rounded-full">Inactive</span>';
+        const headerClass = isActive ? 'bg-gradient-to-r from-violet-600 to-indigo-600' : 'bg-gradient-to-r from-slate-400 to-slate-500';
+
+        return `<div class="bg-white rounded-2xl shadow-sm border overflow-hidden fade-in opacity-${isActive?'100':'60'}" id="pm-card-${pi}">
+          <div class="${headerClass} px-4 py-3 flex items-center justify-between">
+            <div>
+              <div class="font-black text-white text-sm">👤 ${pic.name}</div>
+              <div class="mt-0.5">${statusBadge}</div>
+            </div>
+            <div class="flex gap-1.5 flex-wrap justify-end">
+              ${isActive ? `<button type="button" onclick="openAddSupModal(${pi})" class="bg-white/20 hover:bg-white/30 text-white text-[9px] font-black px-2 py-1 rounded-lg cursor-pointer">+ Supplier</button>` : ''}
+              <button type="button" onclick="togglePicStatus(${pi})"
+                class="bg-white/20 hover:bg-white/30 text-white text-[9px] font-black px-2 py-1 rounded-lg cursor-pointer">
+                ${isActive ? '🔒 Inactive' : '✅ Active'}
+              </button>
               <button type="button" onclick="deletePicCard(${pi})"
-                class="bg-white/10 hover:bg-rose-500 text-white text-[10px] font-black px-2 py-1 rounded-lg cursor-pointer" title="ลบ PIC นี้">✕</button>
+                class="bg-white/10 hover:bg-rose-500 text-white text-[9px] font-black px-2 py-1 rounded-lg cursor-pointer">✕</button>
             </div>
           </div>
-          <!-- Supplier List -->
           <div class="divide-y divide-slate-50 ${sups.length > 8 ? 'max-h-72 overflow-y-auto' : ''}">
             ${sups.length === 0
-              ? '<div class="px-4 py-5 text-center text-slate-300 text-xs font-bold">ยังไม่มี Supplier<br>กด "+ Supplier" เพื่อเพิ่ม</div>'
-              : sups.map((s, si) => `
-                  <div class="flex items-center justify-between px-4 py-2.5 hover:bg-violet-50 transition-colors group">
-                    <span class="font-bold text-slate-700 text-sm">${s}</span>
-                    <button type="button" onclick="deleteSupFromPic(${pi},${si})"
-                      class="opacity-0 group-hover:opacity-100 text-slate-200 hover:text-rose-500 transition-all cursor-pointer ml-2 text-base leading-none flex-shrink-0">✕</button>
-                  </div>`).join('')
+              ? '<div class="px-4 py-5 text-center text-slate-300 text-xs font-bold">ยังไม่มี Supplier</div>'
+              : sups.map(function(s, si){ return `
+                <div class="flex items-center justify-between px-4 py-2.5 hover:bg-violet-50 group">
+                  <span class="font-bold text-slate-700 text-xs">${s}</span>
+                  ${isActive ? `<button type="button" onclick="deleteSupFromPic(${pi},${si})" class="opacity-0 group-hover:opacity-100 text-slate-200 hover:text-rose-500 cursor-pointer ml-2 flex-shrink-0">✕</button>` : ''}
+                </div>`; }).join('')
             }
           </div>
-          <!-- Card Footer -->
           <div class="px-4 py-2 bg-slate-50 border-t">
             <span class="text-[9px] font-bold text-slate-400">${sups.length} Supplier</span>
           </div>
         </div>`;
       }).join('');
+    }
+
+    async function togglePicStatus(pi) {
+      const data = buildPicStructure(allPicMaster);
+      const pics = data.pics;
+      if (!pics[pi]) return;
+      const pic       = pics[pi];
+      const newStatus = pic.status === 'inactive' ? 'active' : 'inactive';
+      const confirmMsg = newStatus === 'inactive'
+        ? `เปลี่ยน "${pic.name}" เป็น Inactive?\nPIC นี้จะไม่สามารถ Confirm Weekly Plan ได้`
+        : `เปลี่ยน "${pic.name}" กลับเป็น Active?`;
+      if (!confirm(confirmMsg)) return;
+      try {
+        const res = await callAPI('updatePicStatus', { picName: pic.name, status: newStatus });
+        if (res && res.success) {
+          // update local data
+          allPicMaster.forEach(function(m) {
+            if (String(m.pic_name||'').toLowerCase() === pic.name.toLowerCase()) m.status = newStatus;
+          });
+          renderPicMasterCards(_pmCurrentFilter);
+          showToast((newStatus === 'inactive' ? '🔒 ' : '✅ ') + pic.name + ' เปลี่ยนเป็น ' + newStatus);
+        } else { showToast('ไม่สำเร็จ: ' + (res&&res.message||'')); }
+      } catch(e) { showToast('Error: ' + e.message); }
+    }
+
+    // Supplier Master Modal
+    async function openAddSupplierMasterModal() {
+      if (_supplierMasterList.length === 0) {
+        try {
+          const res = await callAPI('getSupplierMaster');
+          if (res && res.success) _supplierMasterList = res.suppliers || [];
+        } catch(e) {}
+      }
+      renderSupplierMasterList();
+      const modal = document.getElementById('pm-supplier-master-modal');
+      if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+    }
+
+    function closeSupplierMasterModal() {
+      const modal = document.getElementById('pm-supplier-master-modal');
+      if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    }
+
+    function renderSupplierMasterList() {
+      const list = document.getElementById('pm-supplier-master-list');
+      if (!list) return;
+      if (_supplierMasterList.length === 0) {
+        list.innerHTML = '<div class="text-center text-slate-300 text-xs py-4">ยังไม่มีรายชื่อ</div>';
+        return;
+      }
+      list.innerHTML = _supplierMasterList.map(function(s, i) {
+        return `<div class="flex items-center justify-between py-2 px-3 rounded-xl hover:bg-slate-50 group">
+          <span class="text-sm font-bold text-slate-700">${s}</span>
+          <span class="text-[9px] text-slate-300 font-bold">#${i+1}</span>
+        </div>`;
+      }).join('');
+    }
+
+    async function saveNewSupplierMaster() {
+      const input = document.getElementById('pm-new-supplier-name');
+      const name  = (input||{}).value?.trim() || '';
+      if (!name) { showToast('กรุณากรอกชื่อ Supplier'); return; }
+      try {
+        const res = await callAPI('addSupplierToMaster', { name: name });
+        if (res && res.success) {
+          _supplierMasterList.push(name);
+          if (input) input.value = '';
+          renderSupplierMasterList();
+          showToast('เพิ่ม Supplier แล้ว: ' + name);
+        } else { showToast('ไม่สำเร็จ: ' + (res&&res.message||'')); }
+      } catch(e) { showToast('Error: ' + e.message); }
     }
 
     function addPicCard() {
@@ -4025,20 +4159,20 @@
       const inp = document.getElementById('pm-new-sup-name');
       if (inp) inp.value = '';
 
-      // รายการ Supplier ที่ยังไม่มีใน card นี้
-      const existing = new Set((pic?.suppliers || []).map(s => s.toLowerCase()));
-      const fromCheckin = [...new Set(allData.map(r => r.company_name).filter(Boolean))];
-      const fromParts   = [...new Set(allPartData.map(p => p.vendor).filter(Boolean))];
-      _pmAllSuggestions = [...new Set([...fromCheckin, ...fromParts])]
-        .filter(s => !existing.has(s.toLowerCase()))
-        .sort();
+      // ใช้ Supplier Master เป็นหลัก + เพิ่มจาก allData/allPartData
+      const existing    = new Set((pic?.suppliers || []).map(function(s){ return s.toLowerCase(); }));
+      const fromMaster  = _supplierMasterList.filter(function(s){ return !existing.has(s.toLowerCase()); });
+      const fromCheckin = [...new Set(allData.map(function(r){ return r.company_name; }).filter(Boolean))];
+      const fromParts   = [...new Set(allPartData.map(function(p){ return p.vendor; }).filter(Boolean))];
+      const combined    = [...new Set([...fromMaster, ...fromCheckin, ...fromParts])];
+      _pmAllSuggestions = combined.filter(function(s){ return !existing.has(s.toLowerCase()); }).sort();
 
       _renderPmSuggestions(_pmAllSuggestions);
       _renderPmSelected();
 
       const modal = document.getElementById('pm-add-sup-modal');
       if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
-      setTimeout(() => inp?.focus(), 100);
+      setTimeout(function(){ inp?.focus(); }, 100);
     }
 
     function filterPmSuggestions() {
