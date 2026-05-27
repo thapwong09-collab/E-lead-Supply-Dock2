@@ -5280,10 +5280,29 @@
         let allRows = [];
         results.forEach(function(res) { if (res && res.data) allRows = allRows.concat(res.data); });
 
+        // กรองเฉพาะ PIC ที่อยู่ใน PIC_Master (Active)
+        const activePics = new Set(
+          allPicMaster
+            .filter(function(m){ return (m.status||'active') !== 'inactive'; })
+            .map(function(m){ return String(m.pic_name||'').trim().toLowerCase(); })
+            .filter(Boolean)
+        );
+
         // draft = รอ Confirm
-        myPartsData = allRows.filter(function(r) { return r.status === 'draft' || r.status === ''; });
-        // pending = Confirmed แล้ว
-        const confirmedData = allRows.filter(function(r) { return r.status === 'pending' || r.status === 'completed'; });
+        myPartsData = allRows.filter(function(r) {
+          const isDraft = r.status === 'draft' || r.status === '';
+          if (!isDraft) return false;
+          if (activePics.size === 0) return true; // ถ้ายังไม่มี PIC_Master แสดงทั้งหมด
+          return activePics.has(String(r.pic||'').trim().toLowerCase());
+        });
+
+        // pending = Confirmed แล้ว (กรองเฉพาะ active PIC เช่นกัน)
+        const confirmedData = allRows.filter(function(r) {
+          const isConfirmed = r.status === 'pending' || r.status === 'completed';
+          if (!isConfirmed) return false;
+          if (activePics.size === 0) return true;
+          return activePics.has(String(r.pic||'').trim().toLowerCase());
+        });
 
         if (myPartsData.length === 0 && confirmedData.length === 0) {
           document.getElementById('myparts-empty').classList.remove('hidden');
