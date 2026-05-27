@@ -566,6 +566,7 @@
         <div class="max-w-6xl mx-auto px-4 flex gap-2 pb-3 overflow-x-auto hide-scrollbar">
           <button type="button" onclick="showPicTab('upload503')" id="pic-tab-upload503" class="tab-active px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all shadow-md cursor-pointer">📤 Upload 503</button>
           <button type="button" onclick="showPicTab('myparts')" id="pic-tab-myparts" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📅 Weekly Plan</button>
+          <button type="button" onclick="showPicTab('pic-dashboard')" id="pic-tab-pic-dashboard" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📊 Dashboard</button>
           <button type="button" onclick="showPicTab('responsibility')" id="pic-tab-responsibility" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📋 แผนรายวัน PIC</button>
           <button type="button" onclick="showPicTab('pic-master')" id="pic-tab-pic-master" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">👤 ความรับผิดชอบ PIC</button>
         </div>
@@ -657,6 +658,114 @@
         </div>
 
       </div><!-- end pic-page-upload503 -->
+
+      <!-- ================= PIC Tab: Dashboard ================= -->
+      <div id="pic-page-pic-dashboard" class="hidden max-w-6xl mx-auto p-4 space-y-5 fade-in">
+
+        <!-- Filter -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border flex flex-wrap gap-3 items-end justify-between">
+          <div class="flex flex-wrap gap-3 items-end">
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ปี</label>
+              <select id="picdash-year" onchange="loadPicDashboard()" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 outline-none focus:border-violet-500 font-bold text-xs cursor-pointer"></select>
+            </div>
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เดือน</label>
+              <select id="picdash-month" onchange="loadPicDashboard()" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 outline-none focus:border-violet-500 font-bold text-xs cursor-pointer">
+                <option value="">ทั้งปี</option>
+                <option value="1">ม.ค.</option><option value="2">ก.พ.</option><option value="3">มี.ค.</option>
+                <option value="4">เม.ย.</option><option value="5">พ.ค.</option><option value="6">มิ.ย.</option>
+                <option value="7">ก.ค.</option><option value="8">ส.ค.</option><option value="9">ก.ย.</option>
+                <option value="10">ต.ค.</option><option value="11">พ.ย.</option><option value="12">ธ.ค.</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="picdash-loading" class="hidden bg-white rounded-2xl p-8 text-center shadow-sm border">
+          <div class="text-2xl animate-pulse mb-2">⏳</div>
+          <div class="text-slate-400 font-bold text-sm">กำลังโหลด...</div>
+        </div>
+
+        <!-- Empty -->
+        <div id="picdash-empty" class="hidden bg-white rounded-2xl p-10 text-center shadow-sm border">
+          <div class="text-4xl mb-3">📭</div>
+          <div class="font-black text-slate-500">ยังไม่มีข้อมูล PartHistory</div>
+          <div class="text-xs text-slate-400 mt-1">ข้อมูลจะปรากฏหลัง Staff รับของและ Confirm แล้ว</div>
+        </div>
+
+        <!-- KPI -->
+        <div id="picdash-content" class="hidden space-y-5">
+
+          <!-- KPI Cards -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-violet-600 text-white p-4 rounded-2xl text-center shadow-sm">
+              <div class="text-[9px] font-black opacity-60 uppercase mb-1">PO ทั้งหมด</div>
+              <div id="picdash-total-po" class="text-3xl font-black">0</div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl text-center shadow-sm border">
+              <div class="text-[9px] font-black text-slate-400 uppercase mb-1">รายการ Part</div>
+              <div id="picdash-total-parts" class="text-3xl font-black text-slate-700">0</div>
+            </div>
+            <div class="bg-emerald-50 p-4 rounded-2xl text-center shadow-sm border border-emerald-100">
+              <div class="text-[9px] font-black text-emerald-500 uppercase mb-1">Fill Rate</div>
+              <div id="picdash-fill-rate" class="text-3xl font-black text-emerald-600">-</div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl text-center shadow-sm border">
+              <div class="text-[9px] font-black text-slate-400 uppercase mb-1">Confirm Rate</div>
+              <div id="picdash-confirm-rate" class="text-2xl font-black text-violet-600">-</div>
+              <div class="text-[9px] text-slate-400 mt-0.5">completed/total</div>
+            </div>
+          </div>
+
+          <!-- PIC Performance Table -->
+          <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
+            <div class="px-5 py-4 border-b bg-slate-50">
+              <div class="font-black text-slate-700 text-sm">👤 KPI แยกตาม PIC</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">จาก PartHistory — ข้อมูลที่รับจริงแล้ว</div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50">
+                  <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                    <th class="px-4 py-3">PIC</th>
+                    <th class="px-4 py-3 text-center">PO</th>
+                    <th class="px-4 py-3 text-center">Part</th>
+                    <th class="px-4 py-3 text-center">QTY แผน</th>
+                    <th class="px-4 py-3 text-center">QTY รับจริง</th>
+                    <th class="px-4 py-3 text-center">Fill Rate</th>
+                    <th class="px-4 py-3 text-center">Completed</th>
+                    <th class="px-4 py-3 text-center">Short/Miss</th>
+                  </tr>
+                </thead>
+                <tbody id="picdash-pic-table" class="divide-y divide-slate-50"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Supplier ที่มีปัญหาบ่อย -->
+          <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
+            <div class="px-5 py-4 border-b bg-rose-50">
+              <div class="font-black text-rose-700 text-sm">⚠️ Supplier ที่ Fill Rate ต่ำ (ต่ำกว่า 80%)</div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50">
+                  <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                    <th class="px-4 py-3">Supplier</th>
+                    <th class="px-4 py-3">PIC</th>
+                    <th class="px-4 py-3 text-center">Part</th>
+                    <th class="px-4 py-3 text-center">Fill Rate</th>
+                  </tr>
+                </thead>
+                <tbody id="picdash-problem-table" class="divide-y divide-slate-50"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div><!-- end picdash-content -->
+      </div><!-- end pic-page-pic-dashboard -->
 
       <!-- ================= PIC Tab: My Parts ================= -->
       <div id="pic-page-myparts" class="hidden max-w-6xl mx-auto p-4 space-y-4 fade-in">
@@ -3428,278 +3537,145 @@
 
     function updatePartsDashboard() {
       if (!allPartData) return;
-      const mVal = document.getElementById('parts-month')?.value || 'ALL';
-      const sVal = document.getElementById('parts-supplier')?.value || 'ALL';
+      const mVal = (document.getElementById('parts-month')?.value || 'ALL');
+      const sVal = (document.getElementById('parts-supplier')?.value || 'ALL');
 
-      // ─── Filter checkin data (เฉพาะที่มีการรับของจริง) ───
-      const filteredCheckin = allData.filter(r => {
+      // Filter checkin
+      const filteredCheckin = allData.filter(function(r) {
         if (r.status === 'cancelled') return false;
         if (mVal !== 'ALL') {
-          const [y, m] = mVal.split('-');
-          const dp = String(r.date || '').split('-');
-          if (dp[0] !== y || dp[1] !== m) return false;
+          const parts = mVal.split('-');
+          const dp = String(r.date||'').split('-');
+          if (dp[0] !== parts[0] || dp[1] !== parts[1]) return false;
         }
-        if (sVal !== 'ALL') {
-          if (vendorScore(r.company_name, sVal) < 60 &&
-              !String(r.company_name||'').toLowerCase().includes(String(sVal||'').toLowerCase())) return false;
-        }
+        if (sVal !== 'ALL' && !String(r.company_name||'').toLowerCase().includes(sVal.toLowerCase())) return false;
         return true;
       });
-      // visits = unique checkin (1 คัน = 1 ครั้ง ไม่ใช่นับ row part)
-      const uniqueVisitKeys = new Set(filteredCheckin.map(r => r.date + '_' + r.queue_number));
-      const visits = uniqueVisitKeys.size;
+      const visits = new Set(filteredCheckin.map(function(r){ return r.date+'_'+r.queue_number; })).size;
 
-      // ─── Filter parts data ───
-      const filteredParts = allPartData.filter(p => {
+      // Filter parts (จาก PartDetail — pending/completed)
+      const filteredParts = allPartData.filter(function(p) {
         if (mVal !== 'ALL') {
-          const [y, m] = mVal.split('-');
-          const dp = String(p.date || '').split('-');
-          if (dp[0] !== y || dp[1] !== m) return false;
+          const parts = mVal.split('-');
+          const dp = String(p.date||'').split('-');
+          if (dp[0] !== parts[0] || dp[1] !== parts[1]) return false;
         }
-        if (sVal !== 'ALL') {
-          if (vendorScore(p.vendor, sVal) < 60 &&
-              !String(p.vendor||'').toLowerCase().includes(String(sVal||'').toLowerCase())) return false;
-        }
-        return true;
+        if (sVal !== 'ALL' && !String(p.vendor||'').toLowerCase().includes(sVal.toLowerCase())) return false;
+        return ['pending','completed','short','missing'].includes(p.status||'');
       });
 
-      // ─── Checkin stats ───
-      // visits คำนวณแล้วข้างบน
-      const ontime   = filteredCheckin.filter(r => (r.plan_status||'').includes('ตรงเวลา')).length;
-      const late     = filteredCheckin.filter(r => (r.plan_status||'').includes('ล่าช้า')).length;
-      const early    = filteredCheckin.filter(r => (r.plan_status||'').includes('ก่อนเวลา')).length;
-      const unplanned= filteredCheckin.filter(r => (r.plan_status||'') === 'นอกแผน').length;
-
-      const pct = (v, t) => t > 0 ? ((v/t)*100).toFixed(1)+'%' : '0%';
-      const set = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
-
-      set('pd-visits',        visits);
-      set('pd-ontime',        ontime);   set('pd-ontime-pct',    pct(ontime, visits));
-      set('pd-late',          late);     set('pd-late-pct',      pct(late, visits));
-      set('pd-early',         early);    set('pd-early-pct',     pct(early, visits));
-      set('pd-unplanned',     unplanned);set('pd-unplanned-pct', pct(unplanned, visits));
-
-      // ─── Parts stats ───
-      const partsTotal   = filteredParts.length;
-      const partsComp    = filteredParts.filter(p => p.status === 'completed').length;
-      const partsShort   = filteredParts.filter(p => p.status === 'short').length;
-      const partsMissing = filteredParts.filter(p => p.status === 'missing').length;
-
-      set('pd-parts-total',          partsTotal);
-      set('pd-parts-completed',      partsComp);    set('pd-parts-completed-pct', pct(partsComp, partsTotal));
-      set('pd-parts-short',          partsShort);   set('pd-parts-short-pct',     pct(partsShort, partsTotal));
-      set('pd-parts-missing',        partsMissing); set('pd-parts-missing-pct',   pct(partsMissing, partsTotal));
-
-      // ─── Local vs Import stats ───
-      const localParts  = filteredParts.filter(p => !p.origin || p.origin === 'local');
-      const importParts = filteredParts.filter(p => p.origin === 'import');
-      const localComp   = localParts.filter(p => p.status === 'completed').length;
-      const importComp  = importParts.filter(p => p.status === 'completed').length;
-      const totalP = filteredParts.length;
-      set('pd-local-total',     localParts.length);
-      set('pd-local-pct',       totalP > 0 ? ((localParts.length/totalP)*100).toFixed(0)+'%' : '0%');
-      set('pd-local-comp',      localComp);
-      set('pd-local-comp-pct',  localParts.length > 0 ? ((localComp/localParts.length)*100).toFixed(0)+'%' : '0%');
-      set('pd-import-total',    importParts.length);
-      set('pd-import-pct',      totalP > 0 ? ((importParts.length/totalP)*100).toFixed(0)+'%' : '0%');
-      set('pd-import-comp',     importComp);
-      set('pd-import-comp-pct', importParts.length > 0 ? ((importComp/importParts.length)*100).toFixed(0)+'%' : '0%');
-
-      // ─── Combo: QTY × เวลา ───
-      // join checkin กับ parts ด้วย date+vendor
-      let comboAA = 0, comboAB = 0, comboBA = 0, comboBB = 0;
-      filteredCheckin.forEach(r => {
-        const isOntime = (r.plan_status||'').includes('ตรงเวลา') || (r.plan_status||'').includes('มาก่อนเวลา');
-        // หา parts ของ checkin นี้
-        const rParts = filteredParts.filter(p =>
-          p.date === r.date &&
-          (p.vendor === r.company_name || vendorScore(p.vendor, r.company_name) >= 60)
-        );
-        if (rParts.length === 0) return; // ไม่มีข้อมูล part ข้ามไป
-        const allComplete = rParts.every(p => p.status === 'completed');
-        if (allComplete && isOntime)   comboAA++;
-        else if (allComplete && !isOntime) comboAB++;
-        else if (!allComplete && isOntime)  comboBA++;
-        else comboBB++;
-      });
-      const comboTotal = comboAA + comboAB + comboBA + comboBB;
-      const pctC = (v) => comboTotal > 0 ? ((v/comboTotal)*100).toFixed(1)+'%' : '0%';
-      set('pd-combo-aa', comboAA); set('pd-combo-aa-pct', pctC(comboAA));
-      set('pd-combo-ab', comboAB); set('pd-combo-ab-pct', pctC(comboAB));
-      set('pd-combo-ba', comboBA); set('pd-combo-ba-pct', pctC(comboBA));
-      set('pd-combo-bb', comboBB); set('pd-combo-bb-pct', pctC(comboBB));
-
-      // ─── QTY totals ───
-      const qtyPlan = filteredParts.reduce((s,p) => s+(parseFloat(String(p.qty_plan||0).replace(/,/g,''))||0), 0);
-      const qtyRecv = filteredParts.reduce((s,p) => s+(parseFloat(String(p.qty_received||0).replace(/,/g,''))||0), 0);
-      const fillRate = qtyPlan > 0 ? ((qtyRecv/qtyPlan)*100).toFixed(1) : 0;
-      const fillPct  = qtyPlan > 0 ? Math.min((qtyRecv/qtyPlan)*100, 100) : 0;
-
-      set('pd-sum-plan',     qtyPlan.toLocaleString());
-      set('pd-sum-received', qtyRecv.toLocaleString());
-      set('pd-sum-pct',      fillRate + '%');
-      set('pd-fill-rate',    fillRate + '%');
-      const barRecv = document.getElementById('pd-bar-received');
-      if (barRecv) barRecv.style.width = fillPct + '%';
-
-      // ─── Last update ───
-      const lu = document.getElementById('pd-last-update');
-      if (lu) lu.innerText = 'อัปเดต ' + formatThaiTime(new Date().toISOString());
-
-      // ─── Charts ───
-      updatePdTimeChart(ontime, late, early, unplanned);
-      updatePdQtyChart(partsComp, partsShort, partsMissing, partsTotal - partsComp - partsShort - partsMissing);
+      updateKPIUI(filteredCheckin, filteredParts, visits);
       updatePdBarChart(filteredCheckin, filteredParts);
-
-      // ─── Tables ───
       updatePdPerfTable(filteredCheckin, filteredParts);
     }
 
-    function updatePdTimeChart(ontime, late, early, unplanned) {
-      const canvas = document.getElementById('pd-time-chart');
-      if (!canvas || typeof Chart === 'undefined') return;
-      if (pdTimeChart) pdTimeChart.destroy();
-      const total = ontime + late + early + unplanned;
-      pdTimeChart = new Chart(canvas.getContext('2d'), {
-        type: 'doughnut',
-        data: {
-          labels: ['ตรงเวลา', 'ล่าช้า', 'มาก่อนเวลา', 'นอกแผน'],
-          datasets: [{ data: [ontime, late, early, unplanned],
-            backgroundColor: ['#10b981','#f43f5e','#f59e0b','#cbd5e1'],
-            borderWidth: 0, hoverOffset: 4 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, cutout: '68%',
-          plugins: { legend: { position: 'bottom', labels: { font: { family: 'Prompt', size: 10 }, padding: 8, boxWidth: 10 } } } }
-      });
-    }
+    function updateKPIUI(checkinData, partsData, visits) {
+      const set = function(id, v){ const e=document.getElementById(id); if(e) e.innerText=v; };
 
-    function updatePdQtyChart(comp, short, missing, pending) {
-      const canvas = document.getElementById('pd-qty-chart');
-      if (!canvas || typeof Chart === 'undefined') return;
-      if (pdQtyChart) { pdQtyChart.destroy(); pdQtyChart = null; }
-      pdQtyChart = new Chart(canvas.getContext('2d'), {
-        type: 'doughnut',
-        data: {
-          labels: ['QTY ครบ', 'QTY ไม่ครบ', 'ไม่ได้รับ', 'รอยืนยัน'],
-          datasets: [{ data: [comp, short, missing, pending],
-            backgroundColor: ['#10b981','#f59e0b','#f43f5e','#e2e8f0'],
-            borderWidth: 0, hoverOffset: 4 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, cutout: '68%',
-          plugins: { legend: { position: 'bottom', labels: { font: { family: 'Prompt', size: 10 }, padding: 8, boxWidth: 10 } } } }
-      });
+      set('stat-visits', visits);
+      const completed = checkinData.filter(function(r){ return r.status==='completed'||r.status==='exited'; }).length;
+      const ontime    = checkinData.filter(function(r){ return String(r.plan_status||'').includes('ตรงเวลา'); }).length;
+      const late      = checkinData.filter(function(r){ return String(r.plan_status||'').includes('ล่าช้า'); }).length;
+      set('stat-completed', completed);
+      set('stat-ontime', ontime);
+      set('stat-late', late);
+      set('stat-ontime-pct', completed > 0 ? Math.round(ontime/completed*100)+'%' : '-');
+
+      const totalParts = partsData.length || 1;
+      const compParts  = partsData.filter(function(p){ return p.status==='completed'; }).length;
+      const shortParts = partsData.filter(function(p){ return p.status==='short'; }).length;
+      const missParts  = partsData.filter(function(p){ return p.status==='missing'; }).length;
+      const qtyPlan    = partsData.reduce(function(s,p){ return s+(parseFloat(p.qty_plan)||0); },0);
+      const qtyRecv    = partsData.reduce(function(s,p){ return s+(parseFloat(p.qty_received)||0); },0);
+      set('stat-parts-total', partsData.length);
+      set('stat-parts-completed', compParts);
+      set('stat-parts-short', shortParts);
+      set('stat-parts-missing', missParts);
+      set('stat-fill-rate', qtyPlan > 0 ? (qtyRecv/qtyPlan*100).toFixed(1)+'%' : '-');
+
+      const localParts  = partsData.filter(function(p){ return (p.origin||'local')==='local'; }).length;
+      const importParts = partsData.filter(function(p){ return p.origin==='import'; }).length;
+      set('stat-local', localParts);
+      set('stat-import', importParts);
     }
 
     function updatePdBarChart(checkinData, partsData) {
+      const vendors = [...new Set([
+        ...checkinData.map(function(r){ return r.company_name||''; }),
+        ...partsData.map(function(p){ return p.vendor||''; })
+      ].filter(Boolean))].sort().slice(0, 10);
+
+      const ontimePcts = vendors.map(function(v) {
+        const vl   = v.toLowerCase();
+        const rows = checkinData.filter(function(r){ return String(r.company_name||'').toLowerCase().includes(vl) || vl.includes(String(r.company_name||'').toLowerCase().substring(0,8)); });
+        if (!rows.length) return 0;
+        return parseFloat(((rows.filter(function(r){ return String(r.plan_status||'').includes('ตรงเวลา'); }).length/rows.length)*100).toFixed(1));
+      });
+
+      const qtyPcts = vendors.map(function(v) {
+        const vl    = v.toLowerCase();
+        const parts = partsData.filter(function(p){ return String(p.vendor||'').toLowerCase().includes(vl) || vl.includes(String(p.vendor||'').toLowerCase().substring(0,8)); });
+        if (!parts.length) return 0;
+        return parseFloat(((parts.filter(function(p){ return p.status==='completed'; }).length/parts.length)*100).toFixed(1));
+      });
+
       const canvas = document.getElementById('pd-bar-chart');
       if (!canvas || typeof Chart === 'undefined') return;
-      if (pdBarChart) { pdBarChart.destroy(); pdBarChart = null; }
-
-      // รวมชื่อ vendor ทั้งหมด
-      const vendors = [...new Set([
-        ...checkinData.map(r => r.company_name),
-        ...partsData.map(p => p.vendor)
-      ].filter(Boolean))].sort();
-
-      if (vendors.length === 0) return;
-
-      const ontimePcts = vendors.map(v => {
-        const rows = checkinData.filter(r => vendorScore(r.company_name, v) >= 70 || r.company_name === v);
-        if (!rows.length) return 0;
-        const ot = rows.filter(r => (r.plan_status||'').includes('ตรงเวลา')).length;
-        return parseFloat(((ot/rows.length)*100).toFixed(1));
-      });
-
-      const qtyPcts = vendors.map(v => {
-        const parts = partsData.filter(p => vendorScore(p.vendor, v) >= 70 || p.vendor === v);
-        if (!parts.length) return 0;
-        const comp = parts.filter(p => p.status === 'completed').length;
-        return parseFloat(((comp/parts.length)*100).toFixed(1));
-      });
-
-      pdBarChart = new Chart(canvas.getContext('2d'), {
+      if (window._pdBarChart) { window._pdBarChart.destroy(); window._pdBarChart = null; }
+      window._pdBarChart = new Chart(canvas.getContext('2d'), {
         type: 'bar',
         data: {
-          labels: vendors.map(v => v.length > 16 ? v.substring(0,16)+'…' : v),
+          labels: vendors.map(function(v){ return v.substring(0,15); }),
           datasets: [
-            { label: '% ตรงเวลา', data: ontimePcts, backgroundColor: '#10b981', borderRadius: 6, barPercentage: 0.4 },
-            { label: '% QTY ครบ', data: qtyPcts,    backgroundColor: '#6366f1', borderRadius: 6, barPercentage: 0.4 }
+            { label: 'ตรงเวลา %', data: ontimePcts, backgroundColor: '#6366f1', borderRadius: 4, barPercentage: 0.4 },
+            { label: 'Part ครบ %', data: qtyPcts,   backgroundColor: '#10b981', borderRadius: 4, barPercentage: 0.4 }
           ]
         },
         options: {
           responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { position: 'top', labels: { font: { family: 'Prompt', size: 11 }, padding: 12, boxWidth: 12 } } },
-          scales: {
-            y: { beginAtZero: true, max: 100, ticks: { callback: v => v+'%', font: { family: 'Prompt' } },
-                 grid: { color: '#f1f5f9' } },
-            x: { ticks: { font: { family: 'Prompt', size: 10 } } }
-          }
+          scales: { y: { beginAtZero: true, max: 100, ticks: { font: { size: 10 } }, grid: { color: '#f1f5f9' } }, x: { ticks: { font: { size: 9 } } } },
+          plugins: { legend: { labels: { font: { size: 10 } } } }
         }
       });
     }
 
     function updatePdPerfTable(checkinData, partsData) {
-      const tbody = document.getElementById('pd-perf-table');
-      const countEl = document.getElementById('pd-table-count');
+      const tbody = document.getElementById('pd-perf-tbody');
       if (!tbody) return;
-
       const vendors = [...new Set([
-        ...checkinData.map(r => r.company_name),
-        ...partsData.map(p => p.vendor)
+        ...checkinData.map(function(r){ return r.company_name||''; }),
+        ...partsData.map(function(p){ return p.vendor||''; })
       ].filter(Boolean))].sort();
 
-      const rows = vendors.map(v => {
-        const ci = checkinData.filter(r => r.company_name === v || vendorScore(r.company_name, v) >= 70);
-        const pp = partsData.filter(p => p.vendor === v || vendorScore(p.vendor, v) >= 70);
-        const visits = ci.length;
-        const ontime = ci.filter(r => (r.plan_status||'').includes('ตรงเวลา')).length;
-        const late   = ci.filter(r => (r.plan_status||'').includes('ล่าช้า')).length;
-        const parts  = pp.length;
-        const comp   = pp.filter(p => p.status === 'completed').length;
-        const short  = pp.filter(p => p.status === 'short').length;
-        const miss   = pp.filter(p => p.status === 'missing').length;
-        const ontimePct = visits > 0 ? (ontime/visits)*100 : 0;
-        const qtyPct    = parts  > 0 ? (comp/parts)*100    : 0;
-        const overall   = (ontimePct * 0.4) + (qtyPct * 0.6);
-        return { v, visits, ontime, late, parts, comp, short, miss, ontimePct, qtyPct, overall };
-      }).sort((a,b) => b.overall - a.overall);
+      const rows = vendors.map(function(v) {
+        const vl = v.toLowerCase();
+        const ci = checkinData.filter(function(r){ return String(r.company_name||'').toLowerCase().includes(vl) || vl.includes(String(r.company_name||'').toLowerCase().substring(0,8)); });
+        const pp = partsData.filter(function(p){ return String(p.vendor||'').toLowerCase().includes(vl) || vl.includes(String(p.vendor||'').toLowerCase().substring(0,8)); });
+        const visits    = new Set(ci.map(function(r){ return r.date+'_'+r.queue_number; })).size;
+        const ontime    = ci.filter(function(r){ return String(r.plan_status||'').includes('ตรงเวลา'); }).length;
+        const ontimePct = visits > 0 ? Math.round(ontime/visits*100) : 0;
+        const comp      = pp.filter(function(p){ return p.status==='completed'; }).length;
+        const qtyPct    = pp.length > 0 ? Math.round(comp/pp.length*100) : 0;
+        const score     = Math.round(ontimePct*0.4 + qtyPct*0.6);
+        return { v, visits, ontimePct, qtyPct, score };
+      }).sort(function(a,b){ return b.score-a.score; });
 
-      if (countEl) countEl.innerText = `${rows.length} ซัพ`;
-
-      const bar = (pct, color) => `
-        <div class="flex items-center gap-1.5">
-          <div class="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-            <div class="h-full rounded-full" style="width:${Math.min(pct,100).toFixed(0)}%;background:${color}"></div>
-          </div>
-          <span class="text-[10px] font-black" style="color:${color}">${pct.toFixed(0)}%</span>
-        </div>`;
-
-      const scoreColor = s => s >= 90 ? '#10b981' : s >= 75 ? '#6366f1' : s >= 60 ? '#f59e0b' : '#f43f5e';
-
-      tbody.innerHTML = rows.length ? rows.map((r, i) => `
-        <tr class="hover:bg-slate-50 transition-colors">
-          <td class="px-5 py-3 font-black text-slate-300 text-lg">${i+1}</td>
-          <td class="px-5 py-3 font-bold text-slate-700">${r.v}</td>
-          <td class="px-5 py-3 text-center font-black text-slate-700">${r.visits}</td>
-          <td class="px-5 py-3">${bar(r.ontimePct,'#10b981')}<div class="text-[9px] text-slate-400">${r.ontime} ครั้ง</div></td>
-          <td class="px-5 py-3"><div class="text-sm font-bold text-rose-500">${r.late} ครั้ง</div><div class="text-[9px] text-slate-400">${r.visits > 0 ? ((r.late/r.visits)*100).toFixed(0) : 0}%</div></td>
-          <td class="px-5 py-3 text-center font-bold text-slate-500">${r.parts || '-'}</td>
-          <td class="px-5 py-3">${r.parts > 0 ? bar(r.qtyPct,'#6366f1') : '<span class="text-slate-300 text-xs">-</span>'}</td>
-          <td class="px-5 py-3"><div class="text-sm font-bold text-amber-500">${r.short}</div><div class="text-[9px] text-slate-400">${r.parts > 0 ? ((r.short/r.parts)*100).toFixed(0) : 0}%</div></td>
-          <td class="px-5 py-3 text-center">
-            <div class="font-black text-xl" style="color:${scoreColor(r.overall)}">${r.overall.toFixed(0)}</div>
-            <div class="text-[9px]">${starsHtml(r.overall)}</div>
-          </td>
-        </tr>`).join('')
-        : '<tr><td colspan="9" class="p-10 text-center text-slate-300 text-xs font-bold uppercase">ไม่มีข้อมูล</td></tr>';
+      tbody.innerHTML = rows.map(function(r) {
+        const scoreColor = r.score>=80?'text-emerald-600':r.score>=60?'text-amber-500':'text-rose-500';
+        return '<tr class="hover:bg-slate-50 text-xs">' +
+          '<td class="px-4 py-2 font-bold text-slate-700 max-w-[200px] truncate">' + r.v + '</td>' +
+          '<td class="px-4 py-2 text-center text-slate-600">' + r.visits + '</td>' +
+          '<td class="px-4 py-2 text-center font-bold ' + (r.ontimePct>=80?'text-emerald-600':r.ontimePct>=60?'text-amber-500':'text-rose-500') + '">' + r.ontimePct + '%</td>' +
+          '<td class="px-4 py-2 text-center font-bold ' + (r.qtyPct>=80?'text-emerald-600':r.qtyPct>=60?'text-amber-500':'text-rose-500') + '">' + r.qtyPct + '%</td>' +
+          '<td class="px-4 py-2 text-center font-black ' + scoreColor + '">' + r.score + '</td>' +
+        '</tr>';
+      }).join('') || '<tr><td colspan="5" class="text-center py-6 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
     }
 
-
-        // ==========================================
-    // PIC TAB NAVIGATION
+    // ==========================================
     // ==========================================
     function showPicTab(tab) {
-      ['upload503','myparts','responsibility','pic-master'].forEach(t => {
+      ['upload503','myparts','pic-dashboard','responsibility','pic-master'].forEach(t => {
         const p = document.getElementById('pic-page-' + t);
         const b = document.getElementById('pic-tab-' + t);
         if (p) p.classList.toggle('hidden', t !== tab);
@@ -3708,6 +3684,7 @@
           : 'bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer';
       });
       if (tab === 'myparts') initMyParts();
+      if (tab === 'pic-dashboard') initPicDashboard();
       if (tab === 'responsibility') { initPicResponsibility(); updatePicResponsibility(); }
       if (tab === 'pic-master') updatePicMaster();
     }
@@ -5271,6 +5248,96 @@
     }
     // =====================================================
     // =====================================================
+    // =====================================================
+    // PIC DASHBOARD
+    // =====================================================
+    function initPicDashboard() {
+      const sel = document.getElementById('picdash-year');
+      if (sel && sel.options.length === 0) {
+        const now = new Date().getFullYear();
+        for (let y = now; y >= now - 3; y--) {
+          sel.add(new Option(y, y, y === now, y === now));
+        }
+      }
+      loadPicDashboard();
+    }
+
+    async function loadPicDashboard() {
+      const year  = (document.getElementById('picdash-year')||{}).value  || new Date().getFullYear();
+      const month = (document.getElementById('picdash-month')||{}).value || '';
+      document.getElementById('picdash-loading').classList.remove('hidden');
+      document.getElementById('picdash-empty').classList.add('hidden');
+      document.getElementById('picdash-content').classList.add('hidden');
+      try {
+        const res = await callAPI('getHistorySummary', { year, month });
+        document.getElementById('picdash-loading').classList.add('hidden');
+        if (!res || !res.success || !res.total_rows) {
+          document.getElementById('picdash-empty').classList.remove('hidden');
+          return;
+        }
+        renderPicDashboard(res.summary);
+        document.getElementById('picdash-content').classList.remove('hidden');
+      } catch(err) {
+        document.getElementById('picdash-loading').classList.add('hidden');
+        showToast('โหลดไม่สำเร็จ: ' + err.message);
+      }
+    }
+
+    function renderPicDashboard(s) {
+      const set = function(id, v){ const e=document.getElementById(id); if(e) e.innerText=v; };
+      set('picdash-total-po',    s.total_po    || 0);
+      set('picdash-total-parts', s.total_parts || 0);
+      const fillRate = s.total_qty_plan > 0 ? ((s.total_qty_recv/s.total_qty_plan)*100).toFixed(1)+'%' : '-';
+      set('picdash-fill-rate', fillRate);
+      const total = s.total_parts || 1;
+      const comp  = (s.by_status&&s.by_status.completed) || 0;
+      set('picdash-confirm-rate', ((comp/total)*100).toFixed(0)+'%');
+
+      // PIC Table
+      const byPic  = s.by_pic || {};
+      const byVend = s.by_vendor || {};
+      const tbody  = document.getElementById('picdash-pic-table');
+      if (tbody) {
+        tbody.innerHTML = Object.keys(byPic).sort().map(function(pic) {
+          const pd = byPic[pic];
+          const fr = pd.qty_plan > 0 ? ((pd.qty_recv||0)/pd.qty_plan*100).toFixed(0) : '-';
+          const fc = fr >= 90 ? 'text-emerald-600' : fr >= 70 ? 'text-amber-500' : 'text-rose-500';
+          return '<tr class="hover:bg-slate-50">' +
+            '<td class="px-4 py-2 font-bold text-slate-700">' + pic + '</td>' +
+            '<td class="px-4 py-2 text-center">' + (pd.po_count||0) + '</td>' +
+            '<td class="px-4 py-2 text-center">' + (pd.parts||0) + '</td>' +
+            '<td class="px-4 py-2 text-center text-slate-500">' + ((pd.qty_plan||0).toLocaleString()) + '</td>' +
+            '<td class="px-4 py-2 text-center text-emerald-600 font-bold">' + ((pd.qty_recv||0).toLocaleString()) + '</td>' +
+            '<td class="px-4 py-2 text-center font-black ' + fc + '">' + fr + '%</td>' +
+            '<td class="px-4 py-2 text-center text-emerald-600">' + (pd.completed||0) + '</td>' +
+            '<td class="px-4 py-2 text-center text-rose-400">' + ((pd.short||0)+' / '+(pd.missing||0)) + '</td>' +
+          '</tr>';
+        }).join('') || '<tr><td colspan="8" class="text-center py-6 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
+      }
+
+      // Problem Suppliers
+      const ptbody = document.getElementById('picdash-problem-table');
+      if (ptbody) {
+        const problems = Object.keys(byVend).filter(function(v) {
+          const vd = byVend[v];
+          return vd.qty_plan > 0 && (vd.qty_recv||0)/vd.qty_plan < 0.8;
+        }).sort(function(a,b){ return (byVend[a].qty_recv/byVend[a].qty_plan) - (byVend[b].qty_recv/byVend[b].qty_plan); });
+
+        ptbody.innerHTML = problems.map(function(v) {
+          const vd  = byVend[v];
+          const fr  = ((vd.qty_recv||0)/vd.qty_plan*100).toFixed(0);
+          const pic = allPicMaster.find(function(m){ return String(m.supplier||'').toLowerCase() === v.toLowerCase(); });
+          return '<tr class="hover:bg-rose-50">' +
+            '<td class="px-4 py-2 font-bold text-slate-700 text-xs">' + v + '</td>' +
+            '<td class="px-4 py-2 text-xs text-violet-600 font-bold">' + (pic ? pic.pic_name : '-') + '</td>' +
+            '<td class="px-4 py-2 text-center text-xs">' + (vd.parts||0) + '</td>' +
+            '<td class="px-4 py-2 text-center font-black text-rose-500 text-xs">' + fr + '%</td>' +
+          '</tr>';
+        }).join('') || '<tr><td colspan="4" class="text-center py-4 text-emerald-400 text-xs font-bold">✅ ทุก Supplier Fill Rate ผ่านเกณฑ์</td></tr>';
+      }
+    }
+    // =====================================================
+
     let myPartsData   = [];
     let myPartsModal  = null;
 
