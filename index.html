@@ -4685,18 +4685,30 @@
     }
 
     window.toggleSupplierType = async function(idx) {
-      const s = _supplierMasterList[idx];
+      const s       = _supplierMasterList[idx];
       const name    = typeof s === 'object' ? s.name : s;
       const curType = typeof s === 'object' ? (s.type||'local') : 'local';
       const newType = curType === 'local' ? 'overseas' : 'local';
+
+      // Update UI ทันที (Optimistic)
+      if (typeof s === 'object') s.type = newType;
+      else _supplierMasterList[idx] = { name: name, type: newType };
+      renderSupplierMasterList();
+
+      // Save ใน background
       try {
         const res = await callAPI('updateSupplierType', { name: name, type: newType });
-        if (res && res.success) {
-          if (typeof s === 'object') s.type = newType;
-          else _supplierMasterList[idx] = { name: name, type: newType };
+        if (!res || !res.success) {
+          // Rollback
+          if (typeof _supplierMasterList[idx] === 'object') _supplierMasterList[idx].type = curType;
           renderSupplierMasterList();
-        } else { showToast('ไม่สำเร็จ: ' + (res?.message||'')); }
-      } catch(e) { showToast('Error: ' + e.message); }
+          showToast('ไม่สำเร็จ: ' + (res?.message||''));
+        }
+      } catch(e) {
+        if (typeof _supplierMasterList[idx] === 'object') _supplierMasterList[idx].type = curType;
+        renderSupplierMasterList();
+        showToast('Error: ' + e.message);
+      }
     }
 
     async function saveNewSupplierMaster() {
