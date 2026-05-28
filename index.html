@@ -5099,12 +5099,14 @@
       if (inp) inp.value = '';
 
       // ใช้ Supplier Master เป็นหลัก + เพิ่มจาก allData/allPartData
-      const existing    = new Set((pic?.suppliers || []).map(function(s){ return s.toLowerCase(); }));
-      const fromMaster  = _supplierMasterList.filter(function(s){ return !existing.has(s.toLowerCase()); });
-      const fromCheckin = [...new Set(allData.map(function(r){ return r.company_name; }).filter(Boolean))];
-      const fromParts   = [...new Set(allPartData.map(function(p){ return p.vendor; }).filter(Boolean))];
+      const existing    = new Set((pic?.suppliers || []).map(function(s){ return String(s).toLowerCase(); }));
+      // _supplierMasterList อาจเป็น {name,type} หรือ string
+      const masterNames = _supplierMasterList.map(function(s){ return typeof s==='object' ? (s.name||'') : String(s); }).filter(Boolean);
+      const fromMaster  = masterNames.filter(function(s){ return !existing.has(s.toLowerCase()); });
+      const fromCheckin = [...new Set(allData.map(function(r){ return r.company_name||''; }).filter(Boolean))];
+      const fromParts   = [...new Set(allPartData.map(function(p){ return p.vendor||''; }).filter(Boolean))];
       const combined    = [...new Set([...fromMaster, ...fromCheckin, ...fromParts])];
-      _pmAllSuggestions = combined.filter(function(s){ return !existing.has(s.toLowerCase()); }).sort();
+      _pmAllSuggestions = combined.filter(function(s){ return !existing.has(String(s).toLowerCase()); }).sort();
 
       _renderPmSuggestions(_pmAllSuggestions);
       _renderPmSelected();
