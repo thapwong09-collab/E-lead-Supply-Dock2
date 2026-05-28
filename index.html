@@ -374,13 +374,36 @@
             <div class="font-black text-slate-800 text-xl tracking-tight">📈 เปรียบเทียบรายเดือน</div>
             <div class="text-xs text-slate-400 mt-0.5">เข้าตรงเวลา · Fill Rate · Part ครบ · คะแนน Supplier</div>
           </div>
-          <div class="flex items-center gap-2">
-            <select id="pd-trend-months" class="border-2 border-slate-100 rounded-xl px-3 py-2 bg-slate-50 outline-none font-bold text-sm cursor-pointer">
-              <option value="6">6 เดือน</option>
-              <option value="12" selected>12 เดือน</option>
-              <option value="24">24 เดือน</option>
-            </select>
-            <button type="button" onclick="loadStaffTrend()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-sm cursor-pointer">โหลด</button>
+          <div class="flex items-center gap-2 flex-wrap">
+            <div>
+              <div class="text-[9px] font-black text-slate-400 uppercase mb-1">โหมด</div>
+              <select id="pd-trend-mode" onchange="onTrendModeChange('pd')" class="border-2 border-slate-100 rounded-xl px-3 py-2 bg-slate-50 outline-none font-bold text-sm cursor-pointer">
+                <option value="range">ย้อนหลัง N เดือน</option>
+                <option value="pick">เลือกเดือนเอง</option>
+              </select>
+            </div>
+            <div id="pd-trend-range-wrap">
+              <div class="text-[9px] font-black text-slate-400 uppercase mb-1">จำนวนเดือน</div>
+              <select id="pd-trend-months" class="border-2 border-slate-100 rounded-xl px-3 py-2 bg-slate-50 outline-none font-bold text-sm cursor-pointer">
+                <option value="6">6 เดือน</option>
+                <option value="12" selected>12 เดือน</option>
+                <option value="24">24 เดือน</option>
+              </select>
+            </div>
+            <div id="pd-trend-pick-wrap" class="hidden flex-wrap gap-2 items-end">
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase mb-1">เดือนเริ่มต้น</div>
+                <input type="month" id="pd-trend-from" class="border-2 border-slate-100 rounded-xl px-3 py-2 bg-slate-50 outline-none font-bold text-sm cursor-pointer">
+              </div>
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase mb-1">เดือนสิ้นสุด</div>
+                <input type="month" id="pd-trend-to" class="border-2 border-slate-100 rounded-xl px-3 py-2 bg-slate-50 outline-none font-bold text-sm cursor-pointer">
+              </div>
+            </div>
+            <div class="flex flex-col justify-end">
+              <div class="text-[9px] font-black text-slate-400 uppercase mb-1 opacity-0">-</div>
+              <button type="button" onclick="loadStaffTrend()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-sm cursor-pointer">โหลด</button>
+            </div>
           </div>
         </div>
         <div id="pd-trend-loading" class="hidden bg-white rounded-2xl p-8 text-center shadow-sm border text-slate-400 text-xs font-bold animate-pulse">⏳ กำลังโหลด...</div>
@@ -940,28 +963,6 @@
           </div>
         </div>
 
-        <!-- Monthly Trend Section -->
-        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-          <div class="px-5 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between flex-wrap gap-3">
-            <div>
-              <div class="font-black text-slate-700 text-sm">📈 เปรียบเทียบรายเดือน</div>
-              <div class="text-[10px] text-slate-400 mt-0.5">เข้าตรงเวลา · Fill Rate · Part ครบ · คะแนน Supplier</div>
-            </div>
-            <div class="flex items-center gap-2">
-              <select id="pr-trend-months" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 outline-none font-bold text-xs cursor-pointer">
-                <option value="6">6 เดือน</option>
-                <option value="12" selected>12 เดือน</option>
-                <option value="24">24 เดือน</option>
-              </select>
-              <button type="button" onclick="loadPrTrend()" class="bg-violet-600 hover:bg-violet-700 text-white px-4 py-1.5 rounded-xl font-bold text-xs cursor-pointer">โหลด</button>
-            </div>
-          </div>
-          <div id="pr-trend-loading" class="hidden p-8 text-center text-slate-400 text-xs font-bold animate-pulse">⏳ กำลังโหลด...</div>
-          <div id="pr-trend-content" class="p-5">
-            <div class="text-center text-slate-300 text-xs font-bold py-6">กด "โหลด" เพื่อดู Trend รายเดือน</div>
-          </div>
-        </div>
-
       </div><!-- end pic-page-parts-receiving -->
 
       <!-- ================= PIC Tab: Trend ================= -->
@@ -971,13 +972,36 @@
             <div class="font-black text-slate-800 text-xl tracking-tight">📈 เปรียบเทียบรายเดือน</div>
             <div class="text-xs text-slate-400 mt-0.5">เข้าตรงเวลา · Fill Rate · Part ครบ · คะแนน Supplier</div>
           </div>
-          <div class="flex items-center gap-2">
-            <select id="pr-trend-months" class="border-2 border-slate-100 rounded-xl px-3 py-2 bg-slate-50 outline-none font-bold text-sm cursor-pointer">
-              <option value="6">6 เดือน</option>
-              <option value="12" selected>12 เดือน</option>
-              <option value="24">24 เดือน</option>
-            </select>
-            <button type="button" onclick="loadPrTrend()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-sm cursor-pointer">โหลด</button>
+          <div class="flex items-center gap-2 flex-wrap">
+            <div>
+              <div class="text-[9px] font-black text-slate-400 uppercase mb-1">โหมด</div>
+              <select id="pr-trend-mode" onchange="onTrendModeChange('pr')" class="border-2 border-slate-100 rounded-xl px-3 py-2 bg-slate-50 outline-none font-bold text-sm cursor-pointer">
+                <option value="range">ย้อนหลัง N เดือน</option>
+                <option value="pick">เลือกเดือนเอง</option>
+              </select>
+            </div>
+            <div id="pr-trend-range-wrap">
+              <div class="text-[9px] font-black text-slate-400 uppercase mb-1">จำนวนเดือน</div>
+              <select id="pr-trend-months" class="border-2 border-slate-100 rounded-xl px-3 py-2 bg-slate-50 outline-none font-bold text-sm cursor-pointer">
+                <option value="6">6 เดือน</option>
+                <option value="12" selected>12 เดือน</option>
+                <option value="24">24 เดือน</option>
+              </select>
+            </div>
+            <div id="pr-trend-pick-wrap" class="hidden flex-wrap gap-2 items-end">
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase mb-1">เดือนเริ่มต้น</div>
+                <input type="month" id="pr-trend-from" class="border-2 border-slate-100 rounded-xl px-3 py-2 bg-slate-50 outline-none font-bold text-sm cursor-pointer">
+              </div>
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase mb-1">เดือนสิ้นสุด</div>
+                <input type="month" id="pr-trend-to" class="border-2 border-slate-100 rounded-xl px-3 py-2 bg-slate-50 outline-none font-bold text-sm cursor-pointer">
+              </div>
+            </div>
+            <div class="flex flex-col justify-end">
+              <div class="text-[9px] font-black text-slate-400 uppercase mb-1 opacity-0">-</div>
+              <button type="button" onclick="loadPrTrend()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-sm cursor-pointer">โหลด</button>
+            </div>
           </div>
         </div>
         <div id="pr-trend-loading" class="hidden bg-white rounded-2xl p-8 text-center shadow-sm border text-slate-400 text-xs font-bold animate-pulse">⏳ กำลังโหลด...</div>
@@ -1302,8 +1326,12 @@
             <button type="button" onclick="closeSupplierMasterModal()" class="text-slate-400 hover:text-slate-600 font-black text-xl cursor-pointer">✕</button>
           </div>
           <div class="px-6 py-4 border-b flex gap-2">
-            <input type="text" id="pm-new-supplier-name" placeholder="เพิ่ม Supplier ใหม่..." maxlength="100"
+            <input type="text" id="pm-new-supplier-name" placeholder="ชื่อ Supplier ใหม่..." maxlength="100"
               class="flex-1 border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm">
+            <select id="pm-new-supplier-type" class="border-2 border-slate-100 rounded-xl px-3 py-2.5 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer">
+              <option value="local">🇹🇭 Local</option>
+              <option value="overseas">🌏 Overseas</option>
+            </select>
             <button type="button" onclick="saveNewSupplierMaster()" class="bg-violet-600 hover:bg-violet-700 text-white px-4 rounded-xl font-black text-lg cursor-pointer">+</button>
           </div>
           <div class="flex-1 overflow-y-auto px-6 py-4">
@@ -4486,21 +4514,44 @@
         return;
       }
       list.innerHTML = _supplierMasterList.map(function(s, i) {
-        return `<div class="flex items-center justify-between py-2 px-3 rounded-xl hover:bg-slate-50 group">
-          <span class="text-sm font-bold text-slate-700">${s}</span>
-          <span class="text-[9px] text-slate-300 font-bold">#${i+1}</span>
-        </div>`;
+        const name = typeof s === 'object' ? s.name : s;
+        const type = typeof s === 'object' ? (s.type||'local') : 'local';
+        const isOverseas = type === 'overseas';
+        const badge = isOverseas
+          ? '<span class="bg-blue-100 text-blue-600 text-[9px] font-black px-2 py-0.5 rounded-full cursor-pointer hover:bg-blue-200" onclick="toggleSupplierType('+i+')">🌏 Overseas</span>'
+          : '<span class="bg-emerald-100 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-full cursor-pointer hover:bg-emerald-200" onclick="toggleSupplierType('+i+')">🇹🇭 Local</span>';
+        return '<div class="flex items-center justify-between py-2 px-3 rounded-xl hover:bg-slate-50 group">' +
+          '<span class="text-sm font-bold text-slate-700">' + name + '</span>' +
+          '<div class="flex items-center gap-2">' + badge + '</div>' +
+        '</div>';
       }).join('');
+    }
+
+    async function toggleSupplierType(idx) {
+      const s = _supplierMasterList[idx];
+      const name    = typeof s === 'object' ? s.name : s;
+      const curType = typeof s === 'object' ? (s.type||'local') : 'local';
+      const newType = curType === 'local' ? 'overseas' : 'local';
+      try {
+        const res = await callAPI('updateSupplierType', { name: name, type: newType });
+        if (res && res.success) {
+          if (typeof s === 'object') s.type = newType;
+          else _supplierMasterList[idx] = { name: name, type: newType };
+          renderSupplierMasterList();
+        } else { showToast('ไม่สำเร็จ: ' + (res?.message||'')); }
+      } catch(e) { showToast('Error: ' + e.message); }
     }
 
     async function saveNewSupplierMaster() {
       const input = document.getElementById('pm-new-supplier-name');
+      const typeEl = document.getElementById('pm-new-supplier-type');
       const name  = (input||{}).value?.trim() || '';
+      const type  = (typeEl||{}).value || 'local';
       if (!name) { showToast('กรุณากรอกชื่อ Supplier'); return; }
       try {
-        const res = await callAPI('addSupplierToMaster', { name: name });
+        const res = await callAPI('addSupplierToMaster', { name: name, type: type });
         if (res && res.success) {
-          _supplierMasterList.push(name);
+          _supplierMasterList.push({ name: name, type: type });
           if (input) input.value = '';
           renderSupplierMasterList();
           showToast('เพิ่ม Supplier แล้ว: ' + name);
@@ -5812,20 +5863,61 @@
       await loadTrendData('pr-trend-months', 'pr-trend-loading', 'pr-trend-content', 'pr');
     }
 
+    function onTrendModeChange(prefix) {
+      const mode = (document.getElementById(prefix+'-trend-mode')||{}).value || 'range';
+      const rangeWrap = document.getElementById(prefix+'-trend-range-wrap');
+      const pickWrap  = document.getElementById(prefix+'-trend-pick-wrap');
+      if (rangeWrap) rangeWrap.style.display = mode === 'range' ? '' : 'none';
+      if (pickWrap)  pickWrap.style.display  = mode === 'pick'  ? 'flex' : 'none';
+    }
+
     async function loadTrendData(selId, loadingId, contentId, prefix) {
-      const months = (document.getElementById(selId)||{}).value || 12;
+      const mode = (document.getElementById(prefix+'-trend-mode')||{}).value || 'range';
       const loadEl = document.getElementById(loadingId);
       const contEl = document.getElementById(contentId);
       if (loadEl) loadEl.classList.remove('hidden');
       if (contEl) contEl.innerHTML = '';
+
+      let trendData = [];
       try {
-        const res = await callAPI('getMonthlyTrend', { year: new Date().getFullYear(), months: months });
+        if (mode === 'pick') {
+          // เลือกเดือนเอง
+          const from = (document.getElementById(prefix+'-trend-from')||{}).value || '';
+          const to   = (document.getElementById(prefix+'-trend-to')||{}).value || '';
+          if (!from || !to) {
+            if (loadEl) loadEl.classList.add('hidden');
+            if (contEl) contEl.innerHTML = '<div class="text-center text-amber-400 text-xs font-bold py-6">กรุณาเลือกเดือนเริ่มต้นและสิ้นสุด</div>';
+            return;
+          }
+          // คำนวณจำนวนเดือน
+          const [fy, fm] = from.split('-').map(Number);
+          const [ty, tm] = to.split('-').map(Number);
+          const months   = (ty - fy) * 12 + (tm - fm) + 1;
+          if (months <= 0 || months > 36) {
+            if (loadEl) loadEl.classList.add('hidden');
+            if (contEl) contEl.innerHTML = '<div class="text-center text-rose-400 text-xs font-bold py-6">ช่วงเดือนไม่ถูกต้อง (สูงสุด 36 เดือน)</div>';
+            return;
+          }
+          // ใช้ปีของ to เป็น reference
+          const res = await callAPI('getMonthlyTrend', { year: ty, months: months });
+          if (res && res.success) {
+            // กรองเฉพาะเดือนที่อยู่ในช่วง from-to
+            trendData = (res.data||[]).filter(function(d) {
+              return d.key >= from && d.key <= to;
+            });
+          }
+        } else {
+          const months = (document.getElementById(selId)||{}).value || 12;
+          const res = await callAPI('getMonthlyTrend', { year: new Date().getFullYear(), months: months });
+          if (res && res.success) trendData = res.data || [];
+        }
+
         if (loadEl) loadEl.classList.add('hidden');
-        if (!res || !res.success || !res.data || res.data.length === 0) {
-          if (contEl) contEl.innerHTML = '<div class="text-center text-slate-300 text-xs font-bold py-6">ยังไม่มีข้อมูล PartHistory</div>';
+        if (!trendData.length) {
+          if (contEl) contEl.innerHTML = '<div class="text-center text-slate-300 text-xs font-bold py-6">ยังไม่มีข้อมูลในช่วงที่เลือก</div>';
           return;
         }
-        renderTrend(res.data, contEl, prefix);
+        renderTrend(trendData, contEl, prefix);
       } catch(err) {
         if (loadEl) loadEl.classList.add('hidden');
         if (contEl) contEl.innerHTML = '<div class="text-center text-rose-400 text-xs font-bold py-4">โหลดไม่สำเร็จ: ' + err.message + '</div>';
