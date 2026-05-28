@@ -1407,10 +1407,20 @@
             <div class="text-[10px] text-orange-400 mt-0.5">ข้อมูลจะแจ้ง Staff ทันทีเมื่อบันทึก</div></div>
           </div>
           <div class="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PO No. *</label>
-              <select id="urgent-po" onchange="onUrgentPoChange()" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-500 font-bold text-sm cursor-pointer"><option value="">-- เลือก PO --</option></select></div>
-            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Part No. *</label>
-              <select id="urgent-part" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-500 font-bold text-sm cursor-pointer"><option value="">-- เลือก Part --</option></select></div>
+            <div class="relative">
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PO No. *</label>
+              <input type="text" id="urgent-po" placeholder="พิมพ์ PO No..." autocomplete="off"
+                oninput="filterUrgentSuggest('po')" onfocus="filterUrgentSuggest('po')" onblur="hideUrgentSuggest('po',300)"
+                class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-500 font-bold text-sm">
+              <div id="urgent-po-suggest" class="hidden absolute z-20 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 w-full max-h-48 overflow-y-auto"></div>
+            </div>
+            <div class="relative">
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Part No. *</label>
+              <input type="text" id="urgent-part" placeholder="พิมพ์ Part No..." autocomplete="off"
+                oninput="filterUrgentSuggest('part')" onfocus="filterUrgentSuggest('part')" onblur="hideUrgentSuggest('part',300)"
+                class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-500 font-bold text-sm">
+              <div id="urgent-part-suggest" class="hidden absolute z-20 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 w-full max-h-48 overflow-y-auto"></div>
+            </div>
             <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Model *</label>
               <input type="text" id="urgent-model" placeholder="เช่น EL-321A" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-500 font-bold text-sm"></div>
             <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">WO No.</label>
@@ -6024,31 +6034,85 @@
 
     // ── Urgent Parts ──
     function initPlanningUrgent() {
-      // populate PO dropdown จาก allPartData
-      const poSel = document.getElementById('urgent-po');
-      if (poSel && poSel.options.length <= 1) {
-        const pos = [...new Set(allPartData.map(function(p){ return p.po_no||''; }).filter(Boolean))].sort();
-        pos.forEach(function(po){ poSel.add(new Option(po, po)); });
-      }
       loadUrgentList();
     }
 
-    window.onUrgentPoChange = function() {
-      const po = (document.getElementById('urgent-po')||{}).value || '';
-      const partSel = document.getElementById('urgent-part');
-      if (!partSel) return;
-      partSel.innerHTML = '<option value="">-- เลือก Part --</option>';
-      if (!po) return;
-      const parts = [...new Set(allPartData.filter(function(p){ return p.po_no === po; }).map(function(p){ return p.part_no||''; }).filter(Boolean))].sort();
-      parts.forEach(function(pt){ partSel.add(new Option(pt, pt)); });
-      // auto-fill origin จาก part
-      const partData = allPartData.find(function(p){ return p.po_no === po; });
-      if (partData) {
-        const originSel = document.getElementById('urgent-origin');
-        if (originSel) originSel.value = partData.origin || 'local';
-        const arrival = document.getElementById('urgent-arrival');
-        if (arrival && partData.date) arrival.value = partData.date;
+    window.filterUrgentSuggest = function(field) {
+      const inp = document.getElementById('urgent-' + field);
+      const box = document.getElementById('urgent-' + field + '-suggest');
+      if (!inp || !box) return;
+      const val = inp.value.trim().toLowerCase();
+
+      let items = [];
+      if (field === 'po') {
+        // ดึง PO ทั้งหมดจาก allPartData กรองตาม part ถ้ามี
+        const partVal = (document.getElementById('urgent-part')||{}).value?.trim().toLowerCase() || '';
+        items = [...new Set(allPartData
+          .filter(function(p){ return !partVal || (p.part_no||'').toLowerCase().includes(partVal); })
+          .map(function(p){ return p.po_no||''; })
+          .filter(Boolean)
+        )].sort();
+      } else {
+        // ดึง Part ทั้งหมดกรองตาม PO ถ้ามี
+        const poVal = (document.getElementById('urgent-po')||{}).value?.trim().toLowerCase() || '';
+        items = [...new Set(allPartData
+          .filter(function(p){ return !poVal || (p.po_no||'').toLowerCase().includes(poVal); })
+          .map(function(p){ return p.part_no||''; })
+          .filter(Boolean)
+        )].sort();
       }
+
+      // กรองด้วย keyword
+      const filtered = val ? items.filter(function(x){ return x.toLowerCase().includes(val); }) : items;
+      if (filtered.length === 0) { box.classList.add('hidden'); return; }
+
+      box.innerHTML = filtered.slice(0,20).map(function(x) {
+        // ดึง metadata ที่ตรงกัน
+        const match = allPartData.find(function(p){
+          return field === 'po' ? p.po_no === x : p.part_no === x;
+        });
+        const sub = match ? (field === 'po' ? (match.vendor||'') : (match.po_no||'')) : '';
+        return '<div class="px-4 py-2.5 hover:bg-orange-50 cursor-pointer border-b border-slate-50 last:border-0" ' +
+          'onmousedown="selectUrgentSuggest(\'' + field + '\',\'' + x.replace(/'/g,"\\'") + '\')">' +
+          '<div class="font-bold text-slate-700 text-xs">' + x + '</div>' +
+          (sub ? '<div class="text-[10px] text-slate-400">' + sub + '</div>' : '') +
+          '</div>';
+      }).join('');
+      box.classList.remove('hidden');
+    };
+
+    window.selectUrgentSuggest = function(field, val) {
+      const inp = document.getElementById('urgent-' + field);
+      if (inp) inp.value = val;
+      const box = document.getElementById('urgent-' + field + '-suggest');
+      if (box) box.classList.add('hidden');
+      // auto-fill ข้อมูลที่เกี่ยวข้อง
+      const po   = (document.getElementById('urgent-po')||{}).value?.trim() || '';
+      const part = (document.getElementById('urgent-part')||{}).value?.trim() || '';
+      if (po && part) {
+        const match = allPartData.find(function(p){ return p.po_no===po && p.part_no===part; });
+        if (match) {
+          const originSel = document.getElementById('urgent-origin');
+          if (originSel) originSel.value = match.origin || 'local';
+          const arrival = document.getElementById('urgent-arrival');
+          if (arrival && match.date) arrival.value = match.date;
+        }
+      } else if (po) {
+        const match = allPartData.find(function(p){ return p.po_no===po; });
+        if (match) {
+          const arrival = document.getElementById('urgent-arrival');
+          if (arrival && match.date && !arrival.value) arrival.value = match.date;
+        }
+      }
+      // re-filter อีกช่อง
+      filterUrgentSuggest(field === 'po' ? 'part' : 'po');
+    };
+
+    window.hideUrgentSuggest = function(field, delay) {
+      setTimeout(function() {
+        const box = document.getElementById('urgent-' + field + '-suggest');
+        if (box) box.classList.add('hidden');
+      }, delay || 200);
     };
 
     async function loadUrgentList() {
@@ -6118,10 +6182,10 @@
     }
 
     window.saveUrgentPart = async function() {
-      const po   = (document.getElementById('urgent-po')||{}).value || '';
-      const part = (document.getElementById('urgent-part')||{}).value || '';
+      const po    = (document.getElementById('urgent-po')||{}).value?.trim() || '';
+      const part  = (document.getElementById('urgent-part')||{}).value?.trim() || '';
       const model = (document.getElementById('urgent-model')||{}).value?.trim() || '';
-      if (!po || !part || !model) { showToast('กรุณากรอก PO, Part No. และ Model'); return; }
+      if (!po || !part || !model) { showToast('กรุณากรอก PO No., Part No. และ Model'); return; }
       const payload = {
         po_no:           po,
         part_no:         part,
