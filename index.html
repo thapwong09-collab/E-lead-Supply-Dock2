@@ -12,6 +12,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <script>
     // Polyfill สำหรับ XLS เก่า
     if (typeof XLSX !== 'undefined' && XLSX.SSF) { try { XLSX.SSF.load_table({}); } catch(e) {} }
@@ -1284,6 +1285,7 @@
             <div class="text-xs text-slate-400 mt-0.5">จัดการ PIC และ Supplier ที่รับผิดชอบ</div>
           </div>
           <div class="flex gap-2 flex-wrap">
+            <button type="button" onclick="openQrAll()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm cursor-pointer">🖨️ QR ทั้งหมด</button>
             <button type="button" onclick="addPicCard()" class="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md cursor-pointer">+ เพิ่ม PIC</button>
             <button type="button" onclick="openAddSupplierMasterModal()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 px-5 py-2.5 rounded-xl font-bold text-sm cursor-pointer">🏭 จัดการ Supplier</button>
           </div>
@@ -1345,7 +1347,22 @@
         </div>
       </div>
 
-      <!-- Modal เพิ่ม Supplier ให้ PIC -->
+      <!-- Modal QR Code -->
+      <div id="pm-qr-modal" class="fixed inset-0 z-[300] hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+          <div class="px-6 py-4 border-b flex items-center justify-between bg-slate-50">
+            <div>
+              <div id="pm-qr-modal-title" class="font-black text-slate-700">🖨️ QR Codes</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">สแกนเพื่อเช็คอินอัตโนมัติ</div>
+            </div>
+            <div class="flex gap-2">
+              <button type="button" onclick="printQrModal()" class="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-xl font-bold text-xs cursor-pointer">🖨️ Print</button>
+              <button type="button" onclick="closeQrModal()" class="text-slate-400 hover:text-slate-600 font-black text-xl cursor-pointer">✕</button>
+            </div>
+          </div>
+          <div id="pm-qr-grid" class="overflow-y-auto flex-1 p-6 grid grid-cols-2 sm:grid-cols-3 gap-5"></div>
+        </div>
+      </div>
       <div id="pm-add-sup-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
         <div class="bg-white rounded-2xl w-full max-w-md mx-4 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
           <div class="px-6 py-4 border-b">
@@ -1738,7 +1755,14 @@
     let pcmFactory = null;
 
     const urlParams = new URLSearchParams(window.location.search);
-    const COMPANY_FROM_URL = urlParams.get('company') || '';
+    const COMPANY_FROM_URL = urlParams.get('supplier') || urlParams.get('company') || '';
+
+    // Auto-redirect ถ้ามี ?supplier= ใน URL
+    if (COMPANY_FROM_URL) {
+      document.addEventListener('DOMContentLoaded', function() {
+        showSupplierView();
+      });
+    }
     const LICENSE_FROM_URL = urlParams.get('license') || urlParams.get('plate') || '';
 
     // ==========================================
@@ -4597,6 +4621,8 @@
             </div>
             <div class="flex gap-1.5 flex-wrap justify-end">
               ${isActive ? `<button type="button" onclick="openAddSupModal(${pi})" class="bg-white/20 hover:bg-white/30 text-white text-[9px] font-black px-2 py-1 rounded-lg cursor-pointer">+ Supplier</button>` : ''}
+              <button type="button" onclick="openQrPic('${pic.name.replace(/'/g,"\\'")}','${picKey}')"
+                class="bg-white/20 hover:bg-white/30 text-white text-[9px] font-black px-2 py-1 rounded-lg cursor-pointer">🖨️ QR</button>
               <button type="button" onclick="togglePicStatus(${pi})"
                 class="bg-white/20 hover:bg-white/30 text-white text-[9px] font-black px-2 py-1 rounded-lg cursor-pointer">
                 ${isActive ? '🔒 Inactive' : '✅ Active'}
@@ -6023,7 +6049,140 @@
     // =====================================================
     // =====================================================
     // =====================================================
-    // PLANNING
+    // QR CODE MANAGEMENT
+    // =====================================================
+    const BASE_URL = 'https://thapwong09-collab.github.io/E-lead-Supply-Dock2/';
+
+    function getSupplierCheckinUrl(supplierName) {
+      return BASE_URL + '?supplier=' + encodeURIComponent(supplierName);
+    }
+
+    async function generateQrCanvas(supplierName, size) {
+      size = size || 180;
+      const canvas = document.createElement('canvas');
+      const url = getSupplierCheckinUrl(supplierName);
+      await QRCode.toCanvas(canvas, url, {
+        width: size, margin: 1,
+        color: { dark: '#1e293b', light: '#ffffff' }
+      });
+      return canvas;
+    }
+
+    function buildQrCard(supplierName, canvas, showLabel) {
+      const wrap = document.createElement('div');
+      wrap.className = 'flex flex-col items-center gap-2 p-4 bg-white border-2 border-slate-100 rounded-2xl text-center qr-card';
+      if (canvas) wrap.appendChild(canvas);
+      if (showLabel !== false) {
+        const label = document.createElement('div');
+        label.className = 'font-black text-slate-700 text-xs leading-tight max-w-[160px] text-center';
+        label.innerText = supplierName;
+        wrap.appendChild(label);
+        const url = document.createElement('div');
+        url.className = 'text-[9px] text-slate-400 break-all max-w-[160px]';
+        url.innerText = 'scan to check-in';
+        wrap.appendChild(url);
+      }
+      return wrap;
+    }
+
+    async function openQrPic(picName, picKey) {
+      const data = buildPicStructure(allPicMaster);
+      const pic  = data.pics.find(function(p){ return p.name === picName; });
+      if (!pic || pic.suppliers.length === 0) { showToast('PIC นี้ยังไม่มี Supplier'); return; }
+
+      document.getElementById('pm-qr-modal-title').innerText = '🖨️ QR — ' + picName + ' (' + pic.suppliers.length + ' Supplier)';
+      const grid = document.getElementById('pm-qr-grid');
+      grid.innerHTML = '<div class="col-span-full text-center text-slate-400 text-xs animate-pulse">กำลังสร้าง QR...</div>';
+      const modal = document.getElementById('pm-qr-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      grid.innerHTML = '';
+      for (const sup of pic.suppliers) {
+        try {
+          const canvas = await generateQrCanvas(sup);
+          grid.appendChild(buildQrCard(sup, canvas));
+        } catch(e) {
+          const err = document.createElement('div');
+          err.className = 'text-xs text-rose-400 p-4';
+          err.innerText = sup + ': error';
+          grid.appendChild(err);
+        }
+      }
+    }
+
+    async function openQrAll() {
+      const data = buildPicStructure(allPicMaster);
+      const active = data.pics.filter(function(p){ return p.status !== 'inactive' && p.suppliers.length > 0; });
+      if (active.length === 0) { showToast('ยังไม่มี Supplier ที่ Active'); return; }
+
+      document.getElementById('pm-qr-modal-title').innerText = '🖨️ QR ทั้งหมด — ' + active.length + ' PIC';
+      const grid = document.getElementById('pm-qr-grid');
+      grid.innerHTML = '<div class="col-span-full text-center text-slate-400 text-xs animate-pulse">กำลังสร้าง QR...</div>';
+      const modal = document.getElementById('pm-qr-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      grid.innerHTML = '';
+      for (const pic of active) {
+        // Header แต่ละ PIC
+        const header = document.createElement('div');
+        header.className = 'col-span-full bg-violet-50 rounded-xl px-4 py-2 font-black text-violet-700 text-sm mt-2';
+        header.innerText = '👤 ' + pic.name;
+        grid.appendChild(header);
+
+        for (const sup of pic.suppliers) {
+          try {
+            const canvas = await generateQrCanvas(sup);
+            grid.appendChild(buildQrCard(sup, canvas));
+          } catch(e) {}
+        }
+      }
+    }
+
+    window.closeQrModal = function() {
+      const modal = document.getElementById('pm-qr-modal');
+      if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    };
+
+    window.openQrAll  = openQrAll;
+    window.openQrPic  = openQrPic;
+
+    window.printQrModal = function() {
+      const grid = document.getElementById('pm-qr-grid');
+      if (!grid) return;
+      const title = document.getElementById('pm-qr-modal-title')?.innerText || 'QR Codes';
+      const printWin = window.open('', '_blank');
+      // แปลง canvas เป็น img
+      const cards = grid.querySelectorAll('.qr-card');
+      let html = '<html><head><title>' + title + '</title><style>';
+      html += 'body{font-family:sans-serif;margin:20px;}';
+      html += '.grid{display:flex;flex-wrap:wrap;gap:16px;}';
+      html += '.card{border:2px solid #e2e8f0;border-radius:12px;padding:16px;text-align:center;width:160px;page-break-inside:avoid;}';
+      html += '.card img{width:140px;height:140px;}';
+      html += '.name{font-weight:900;font-size:11px;margin-top:8px;word-break:break-word;}';
+      html += '.sub{font-size:9px;color:#94a3b8;margin-top:4px;}';
+      html += '.pic-header{width:100%;margin:12px 0 4px;font-weight:900;color:#7c3aed;font-size:13px;}';
+      html += '@media print{body{margin:0;} button{display:none;}}';
+      html += '</style></head><body>';
+      html += '<h3 style="margin-bottom:16px;">' + title + '</h3>';
+      html += '<div class="grid">';
+      cards.forEach(function(card) {
+        const canvas = card.querySelector('canvas');
+        const name   = card.querySelector('.font-black')?.innerText || '';
+        const imgSrc = canvas ? canvas.toDataURL() : '';
+        html += '<div class="card">';
+        if (imgSrc) html += '<img src="' + imgSrc + '">';
+        html += '<div class="name">' + name + '</div>';
+        html += '<div class="sub">scan to check-in</div>';
+        html += '</div>';
+      });
+      html += '</div></body></html>';
+      printWin.document.write(html);
+      printWin.document.close();
+      setTimeout(function(){ printWin.print(); }, 500);
+    };
+    // =====================================================
     // =====================================================
     let _urgentAll = [];
     let _urgentFilter = 'all';
