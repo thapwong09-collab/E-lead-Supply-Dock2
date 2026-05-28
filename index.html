@@ -6319,6 +6319,10 @@
       }
     }
 
+    window.closeQrModal = function() {
+      const modal = document.getElementById('pm-qr-modal');
+      if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    };
     window.openQrAll = openQrAll;
     window.openQrPic = openQrPic;
 
