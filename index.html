@@ -1813,10 +1813,12 @@
             }
           }
           if (res.picMaster) {
-            // ไม่ทับถ้ากำลังอยู่ในหน้า PIC Master (ป้องกัน ลบแล้วกลับมา)
+            // ไม่ทับถ้ากำลังอยู่ในหน้า PIC Master และมีข้อมูลแล้ว (ป้องกัน ลบแล้วกลับมา)
             const picMasterPage = document.getElementById('pic-page-pic-master');
             const isOnPicMaster = picMasterPage && !picMasterPage.classList.contains('hidden');
-            if (!isOnPicMaster) allPicMaster = res.picMaster || [];
+            if (!isOnPicMaster || allPicMaster.length === 0) {
+              allPicMaster = res.picMaster || [];
+            }
           }
           _partsDashboardDirty = true;
           refreshUI();
@@ -4582,8 +4584,14 @@
     let _vehicleData = []; // { supplier_name, license_plate }
 
     async function updatePicMaster() {
-      // โหลด Supplier Master และ Vehicles ถ้ายังไม่มี
       const promises = [];
+
+      // ถ้า allPicMaster ว่าง ให้โหลดจาก API ก่อนเลย
+      if (allPicMaster.length === 0) {
+        promises.push(callAPI('getPicMaster').then(function(res){
+          if (res && res.success && res.picMaster) allPicMaster = res.picMaster;
+        }).catch(function(){}));
+      }
       if (_supplierMasterList.length === 0) {
         promises.push(callAPI('getSupplierMaster').then(function(res){
           if (res && res.success) _supplierMasterList = res.suppliers || [];
@@ -4594,6 +4602,7 @@
           if (res && res.success) _vehicleData = res.data || [];
         }).catch(function(){}));
       }
+
       if (promises.length > 0) await Promise.all(promises);
       renderPicMasterCards(_pmCurrentFilter);
     }
