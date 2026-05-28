@@ -4608,6 +4608,7 @@
       grid.innerHTML = pics.map(function(pic, pi) {
         const sups      = pic.suppliers || [];
         const isActive  = pic.status !== 'inactive';
+        const thisPicKey = pic.name.replace(/[^a-zA-Z0-9]/g,'_');
         const statusBadge = isActive
           ? '<span class="bg-emerald-100 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-full">Active</span>'
           : '<span class="bg-slate-100 text-slate-400 text-[9px] font-black px-2 py-0.5 rounded-full">Inactive</span>';
@@ -4621,7 +4622,7 @@
             </div>
             <div class="flex gap-1.5 flex-wrap justify-end">
               ${isActive ? `<button type="button" onclick="openAddSupModal(${pi})" class="bg-white/20 hover:bg-white/30 text-white text-[9px] font-black px-2 py-1 rounded-lg cursor-pointer">+ Supplier</button>` : ''}
-              <button type="button" onclick="openQrPic('${pic.name.replace(/'/g,"\\'")}','${picKey}')"
+              <button type="button" onclick="openQrPic('${pic.name.replace(/'/g,"\\'")}','${thisPicKey}')"
                 class="bg-white/20 hover:bg-white/30 text-white text-[9px] font-black px-2 py-1 rounded-lg cursor-pointer">🖨️ QR</button>
               <button type="button" onclick="togglePicStatus(${pi})"
                 class="bg-white/20 hover:bg-white/30 text-white text-[9px] font-black px-2 py-1 rounded-lg cursor-pointer">
