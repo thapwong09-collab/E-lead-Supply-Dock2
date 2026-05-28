@@ -12,7 +12,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script>
     // Polyfill สำหรับ XLS เก่า
     if (typeof XLSX !== 'undefined' && XLSX.SSF) { try { XLSX.SSF.load_table({}); } catch(e) {} }
@@ -6203,13 +6203,49 @@
 
     async function generateQrCanvas(supplierName, licensePlate, size) {
       size = size || 180;
-      const canvas = document.createElement('canvas');
       const url = getSupplierCheckinUrl(supplierName, licensePlate);
-      await QRCode.toCanvas(canvas, url, {
-        width: size, margin: 1,
-        color: { dark: '#1e293b', light: '#ffffff' }
+      return new Promise(function(resolve, reject) {
+        const div = document.createElement('div');
+        div.style.cssText = 'position:fixed;top:-9999px;left:-9999px;';
+        document.body.appendChild(div);
+        try {
+          new QRCode(div, {
+            text:          url,
+            width:         size,
+            height:        size,
+            colorDark:     '#1e293b',
+            colorLight:    '#ffffff',
+            correctLevel:  QRCode.CorrectLevel.M
+          });
+          // qrcodejs สร้าง canvas หรือ img ขึ้นอยู่กับ browser
+          setTimeout(function() {
+            const canvas = div.querySelector('canvas');
+            const img    = div.querySelector('img');
+            if (canvas) {
+              document.body.removeChild(div);
+              resolve(canvas);
+            } else if (img) {
+              // fallback: วาด img ลง canvas ใหม่
+              const c = document.createElement('canvas');
+              c.width = size; c.height = size;
+              const image = new Image();
+              image.onload = function() {
+                c.getContext('2d').drawImage(image, 0, 0, size, size);
+                document.body.removeChild(div);
+                resolve(c);
+              };
+              image.onerror = function() { document.body.removeChild(div); reject(new Error('QR img load failed')); };
+              image.src = img.src;
+            } else {
+              document.body.removeChild(div);
+              reject(new Error('QR generation failed'));
+            }
+          }, 100);
+        } catch(e) {
+          document.body.removeChild(div);
+          reject(e);
+        }
       });
-      return canvas;
     }
 
     function buildQrCard(label, sublabel, canvas) {
