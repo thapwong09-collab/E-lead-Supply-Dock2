@@ -115,6 +115,11 @@
             <div><div class="font-bold text-slate-800 text-lg">Planning</div><div class="text-slate-500 text-xs">แผนการผลิต / พาร์ทเร่งด่วน</div></div>
           </button>
 
+          <button type="button" onclick="showLogin('manager')" class="w-full bg-white hover:border-rose-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer">
+            <div class="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform flex-shrink-0">👔</div>
+            <div><div class="font-bold text-slate-800 text-lg">ผู้จัดการ</div><div class="text-slate-500 text-xs">อนุมัติงานนอกแผน</div></div>
+          </button>
+
           <button type="button" onclick="enterGuardView()" class="w-full bg-white hover:border-emerald-500 border-2 border-transparent rounded-3xl p-6 transition-all card-shadow flex items-center gap-4 group text-left cursor-pointer">
             <div class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform flex-shrink-0">👮‍♂️</div>
             <div><div class="font-bold text-slate-800 text-lg">Guard (รปภ.)</div><div class="text-slate-500 text-xs font-medium">กล้องสแกนตรวจปล่อยรถ (เข้า-ออก)</div></div>
@@ -710,6 +715,7 @@
           <button type="button" onclick="showPicTab('myparts')" id="pic-tab-myparts" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📅 Weekly Plan</button>
           <button type="button" onclick="showPicTab('pic-dashboard')" id="pic-tab-pic-dashboard" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📊 Dashboard PIC</button>
           <button type="button" onclick="showPicTab('parts-receiving')" id="pic-tab-parts-receiving" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📦 Parts Receiving</button>
+          <button type="button" onclick="showPicTab('unplanned')" id="pic-tab-unplanned" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">⚡ นอกแผน</button>
           <button type="button" onclick="showPicTab('pic-trend')" id="pic-tab-pic-trend" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📈 เปรียบเทียบ</button>
           <button type="button" onclick="showPicTab('pic-master')" id="pic-tab-pic-master" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">👤 ความรับผิดชอบ PIC</button>
         </div>
@@ -941,6 +947,15 @@
               <div>← ปริมาณ (QTY)</div><div>เวลา (Timing) →</div>
             </div>
           </div>
+        </div>
+
+        <!-- Bar Chart -->
+        <div class="bg-white rounded-2xl border border-slate-100 p-5">
+          <div class="mb-4">
+            <div class="font-black text-slate-700 text-sm">ประสิทธิภาพแยกตาม Supplier</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">ตรงเวลา % vs Part ครบ %</div>
+          </div>
+          <div style="height:200px;position:relative;"><canvas id="pr-bar-chart"></canvas></div>
         </div>
 
         <!-- Performance Table -->
@@ -1309,6 +1324,88 @@
 
       </div><!-- end pic-page-pic-master -->
 
+      <!-- ================= PIC Tab: นอกแผน ================= -->
+      <div id="pic-page-unplanned" class="hidden max-w-5xl mx-auto p-4 space-y-4 fade-in">
+        <!-- Form -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div class="px-5 py-4 border-b bg-rose-50 flex items-center gap-3">
+            <span class="text-xl">⚡</span>
+            <div>
+              <div class="font-black text-rose-700 text-sm">แจ้งงานนอกแผน</div>
+              <div class="text-[10px] text-rose-400 mt-0.5">ส่งให้ผู้จัดการ Approve 2 ขั้น ก่อนดำเนินการได้</div>
+            </div>
+          </div>
+          <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="relative">
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Supplier *</label>
+              <input type="text" id="unp-supplier" placeholder="พิมพ์ชื่อ Supplier..." autocomplete="off"
+                oninput="filterUnpSuggest()" onfocus="filterUnpSuggest()" onblur="hideUnpSuggest(200)"
+                class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
+              <div id="unp-supplier-suggest" class="hidden absolute z-20 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 w-full max-h-48 overflow-y-auto"></div>
+            </div>
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PO No.</label>
+              <input type="text" id="unp-po" placeholder="เลข PO (ถ้ามี)" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
+            </div>
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Part No.</label>
+              <input type="text" id="unp-part" placeholder="Part No. (ถ้ามี)" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
+            </div>
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">จำนวน (QTY)</label>
+              <input type="number" id="unp-qty" placeholder="0" min="0" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
+            </div>
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เหตุผล *</label>
+              <select id="unp-reason" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer">
+                <option value="">-- เลือกเหตุผล --</option>
+                <option value="ส่งเพิ่มเติม">ส่งเพิ่มเติม</option>
+                <option value="ส่งแทนรอบก่อน">ส่งแทนรอบก่อน</option>
+                <option value="เร่งด่วน/ฉุกเฉิน">เร่งด่วน / ฉุกเฉิน</option>
+                <option value="ซัพแจ้งผิดพลาด">ซัพแจ้งผิดพลาด</option>
+                <option value="อื่นๆ">อื่นๆ</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">หมายเหตุ</label>
+              <input type="text" id="unp-remark" placeholder="รายละเอียดเพิ่มเติม..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
+            </div>
+          </div>
+          <div class="px-5 pb-5">
+            <button type="button" onclick="submitUnplanned()" class="bg-rose-500 hover:bg-rose-600 text-white px-8 py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">⚡ ส่งขออนุมัติ</button>
+          </div>
+        </div>
+
+        <!-- List -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div class="px-5 py-4 border-b bg-slate-50 flex items-center justify-between flex-wrap gap-2">
+            <div class="font-black text-slate-700 text-sm">รายการนอกแผนที่ส่งไป</div>
+            <div class="flex gap-2">
+              <button type="button" onclick="filterUnplanned('all')" id="unp-f-all" class="tab-active text-[10px] font-black px-3 py-1.5 rounded-xl cursor-pointer">ทั้งหมด</button>
+              <button type="button" onclick="filterUnplanned('pending')" id="unp-f-pending" class="bg-slate-100 text-slate-400 text-[10px] font-black px-3 py-1.5 rounded-xl cursor-pointer">รออนุมัติ</button>
+              <button type="button" onclick="filterUnplanned('approved')" id="unp-f-approved" class="bg-slate-100 text-slate-400 text-[10px] font-black px-3 py-1.5 rounded-xl cursor-pointer">อนุมัติแล้ว</button>
+              <button type="button" onclick="filterUnplanned('rejected')" id="unp-f-rejected" class="bg-slate-100 text-slate-400 text-[10px] font-black px-3 py-1.5 rounded-xl cursor-pointer">ไม่อนุมัติ</button>
+            </div>
+          </div>
+          <div id="unp-list-empty" class="hidden p-10 text-center"><div class="text-4xl mb-3">📋</div><div class="font-black text-slate-400 text-sm">ยังไม่มีรายการ</div></div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead class="bg-slate-50 border-b border-slate-100">
+                <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                  <th class="px-4 py-3">วันที่</th><th class="px-4 py-3">ผู้กรอก</th>
+                  <th class="px-4 py-3">Supplier</th><th class="px-4 py-3">PO</th>
+                  <th class="px-4 py-3 text-center">QTY</th><th class="px-4 py-3">เหตุผล</th>
+                  <th class="px-4 py-3 text-center">สถานะ</th>
+                  <th class="px-4 py-3">Logistics</th><th class="px-4 py-3">โรงงาน</th>
+                </tr>
+              </thead>
+              <tbody id="unp-table-body" class="divide-y divide-slate-50"></tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- end pic-page-unplanned -->
+
+
       <!-- Modal เพิ่ม PIC -->
       <div id="pm-add-pic-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl">
@@ -1428,6 +1525,7 @@
         <div class="max-w-6xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto">
           <button type="button" onclick="showPlanningTab('urgent')" id="planning-tab-urgent" class="tab-active px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap shadow-md cursor-pointer">🚨 Urgent Parts</button>
           <button type="button" onclick="showPlanningTab('weekly')" id="planning-tab-weekly" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer">📅 Weekly Plan</button>
+          <button type="button" onclick="showPlanningTab('unplanned')" id="planning-tab-unplanned" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer">⚡ นอกแผน</button>
           <button type="button" onclick="showPlanningTab('dashboard')" id="planning-tab-dashboard" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer">📊 Dashboard</button>
         </div>
       </div>
@@ -1557,7 +1655,119 @@
         </div>
       </div><!-- end planning-page-dashboard -->
 
+      <!-- Planning Tab: นอกแผน — ใช้ div เดียวกับ PIC (reuse) -->
+      <div id="planning-page-unplanned" class="hidden max-w-5xl mx-auto p-4 space-y-4 fade-in">
+        <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-sm font-bold text-rose-700 flex items-center gap-2">
+          <span>⚡</span> หน้านี้ใช้แบบฟอร์มเดียวกับ PIC/จัดซื้อ รายการที่กรอกจะแสดงพร้อมชื่อผู้กรอกและ Role ครับ
+        </div>
+        <!-- Reuse: unp-* inputs และ table เดียวกัน แต่ render ใหม่ -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div class="px-5 py-4 border-b bg-rose-50 flex items-center gap-3">
+            <span class="text-xl">⚡</span>
+            <div><div class="font-black text-rose-700 text-sm">แจ้งงานนอกแผน (Planning)</div>
+            <div class="text-[10px] text-rose-400 mt-0.5">ส่งให้ผู้จัดการ Approve 2 ขั้น ก่อนดำเนินการ</div></div>
+          </div>
+          <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="relative">
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Supplier *</label>
+              <input type="text" id="unp2-supplier" placeholder="พิมพ์ชื่อ Supplier..." autocomplete="off"
+                oninput="filterUnpSuggest2()" onfocus="filterUnpSuggest2()" onblur="hideUnpSuggest2(200)"
+                class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
+              <div id="unp2-supplier-suggest" class="hidden absolute z-20 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 w-full max-h-48 overflow-y-auto"></div>
+            </div>
+            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PO No.</label>
+              <input type="text" id="unp2-po" placeholder="เลข PO (ถ้ามี)" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm"></div>
+            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Part No.</label>
+              <input type="text" id="unp2-part" placeholder="Part No. (ถ้ามี)" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm"></div>
+            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">จำนวน (QTY)</label>
+              <input type="number" id="unp2-qty" placeholder="0" min="0" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm"></div>
+            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เหตุผล *</label>
+              <select id="unp2-reason" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer">
+                <option value="">-- เลือกเหตุผล --</option>
+                <option value="ส่งเพิ่มเติม">ส่งเพิ่มเติม</option>
+                <option value="ส่งแทนรอบก่อน">ส่งแทนรอบก่อน</option>
+                <option value="เร่งด่วน/ฉุกเฉิน">เร่งด่วน / ฉุกเฉิน</option>
+                <option value="ซัพแจ้งผิดพลาด">ซัพแจ้งผิดพลาด</option>
+                <option value="อื่นๆ">อื่นๆ</option>
+              </select></div>
+            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">หมายเหตุ</label>
+              <input type="text" id="unp2-remark" placeholder="รายละเอียดเพิ่มเติม..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm"></div>
+          </div>
+          <div class="px-5 pb-5">
+            <button type="button" onclick="submitUnplanned2()" class="bg-rose-500 hover:bg-rose-600 text-white px-8 py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">⚡ ส่งขออนุมัติ</button>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+          <div class="px-5 py-4 border-b bg-slate-50"><div class="font-black text-slate-700 text-sm">รายการนอกแผนที่ส่งไป</div></div>
+          <div id="unp2-list-empty" class="hidden p-10 text-center"><div class="text-4xl mb-3">📋</div><div class="font-black text-slate-400 text-sm">ยังไม่มีรายการ</div></div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead class="bg-slate-50 border-b border-slate-100">
+                <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                  <th class="px-4 py-3">วันที่</th><th class="px-4 py-3">ผู้กรอก</th>
+                  <th class="px-4 py-3">Supplier</th><th class="px-4 py-3">PO</th>
+                  <th class="px-4 py-3 text-center">QTY</th><th class="px-4 py-3">เหตุผล</th>
+                  <th class="px-4 py-3 text-center">สถานะ</th>
+                  <th class="px-4 py-3">Logistics</th><th class="px-4 py-3">โรงงาน</th>
+                </tr>
+              </thead>
+              <tbody id="unp2-table-body" class="divide-y divide-slate-50"></tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- end planning-page-unplanned -->
+
+
     </div><!-- end planning-view -->
+
+    <!-- ================= Manager View ================= -->
+    <div id="manager-view" class="min-h-full hidden fade-in">
+      <div class="bg-white/80 backdrop-blur-md border-b sticky top-0 z-10 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+          <div class="font-bold text-xl text-slate-800 tracking-tight flex items-center gap-2">
+            <span>👔</span> ผู้จัดการ
+            <span id="mgr-role-badge" class="text-xs font-bold bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full"></span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div id="mgr-pending-badge" class="hidden bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full"></div>
+            <button type="button" onclick="managerLogout()" class="text-rose-600 px-4 py-2 rounded-xl font-bold text-xs hover:bg-rose-50 cursor-pointer">ออกจากระบบ</button>
+          </div>
+        </div>
+        <div class="max-w-6xl mx-auto px-4 pb-3 flex gap-2">
+          <button type="button" onclick="showManagerTab('approve')" id="mgr-tab-approve" class="tab-active px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap shadow-md cursor-pointer">✅ รออนุมัติ</button>
+          <button type="button" onclick="showManagerTab('history')" id="mgr-tab-history" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer">📋 ประวัติทั้งหมด</button>
+        </div>
+      </div>
+
+      <!-- Approve Tab -->
+      <div id="mgr-page-approve" class="max-w-6xl mx-auto p-4 space-y-4 fade-in">
+        <div id="mgr-approve-loading" class="hidden bg-white rounded-2xl p-8 text-center border"><div class="text-2xl animate-pulse mb-2">⏳</div><div class="text-slate-400 font-bold text-sm">กำลังโหลด...</div></div>
+        <div id="mgr-approve-empty" class="hidden bg-white rounded-2xl p-10 text-center border"><div class="text-4xl mb-3">✅</div><div class="font-black text-slate-400">ไม่มีรายการรออนุมัติ</div></div>
+        <div id="mgr-approve-list" class="space-y-3"></div>
+      </div>
+
+      <!-- History Tab -->
+      <div id="mgr-page-history" class="hidden max-w-6xl mx-auto p-4 space-y-4 fade-in">
+        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+          <div class="px-5 py-4 border-b bg-slate-50"><div class="font-black text-slate-700 text-sm">📋 ประวัติงานนอกแผนทั้งหมด</div></div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead class="bg-slate-50 border-b border-slate-100">
+                <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                  <th class="px-4 py-3">วันที่</th><th class="px-4 py-3">ผู้กรอก</th><th class="px-4 py-3">Role</th>
+                  <th class="px-4 py-3">Supplier</th><th class="px-4 py-3">PO</th><th class="px-4 py-3">Part</th>
+                  <th class="px-4 py-3 text-center">QTY</th><th class="px-4 py-3">เหตุผล</th>
+                  <th class="px-4 py-3 text-center">สถานะ</th>
+                  <th class="px-4 py-3">Logistics</th><th class="px-4 py-3">โรงงาน</th>
+                </tr>
+              </thead>
+              <tbody id="mgr-history-body" class="divide-y divide-slate-50"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div><!-- end manager-view -->
+
 
     <!-- ================= ส่วน Guard ================= -->
     <div id="guard-view" class="min-h-full hidden flex-col bg-slate-900 w-full h-full fade-in">
@@ -1752,9 +1962,11 @@
     let globalPlanData = [];
     let allPartData = [];       // ← NEW: Part ที่ PIC กรอกไว้
     let currentSupplierRecord = null;
-    let isStaffLoggedIn   = false;
-    let isPICLoggedIn     = false;
+    let isStaffLoggedIn    = false;
+    let isPICLoggedIn      = false;
     let isPlanningLoggedIn = false;
+    let isManagerLoggedIn  = false;
+    let _managerRole       = ''; // 'logistics' | 'factory'
     let isGuardLoggedIn = false;
     let dailyChart = null, monthlyChart = null, kpiPieChart = null;
     let pendingUpdates = new Set();
@@ -1934,7 +2146,7 @@
     // NAVIGATION
     // ==========================================
     function hideAll() {
-      ['role-selection','supplier-view','unified-login','staff-view','pic-view','guard-view','planning-view'].forEach(id => {
+      ['role-selection','supplier-view','unified-login','staff-view','pic-view','guard-view','planning-view','manager-view'].forEach(id => {
         const el = document.getElementById(id);
         if (el) { el.classList.add('hidden'); if (id === 'guard-view') el.classList.remove('flex'); }
       });
@@ -1983,6 +2195,11 @@
           hideAll();
           document.getElementById('planning-view').classList.remove('hidden');
           showPlanningTab('urgent');
+        } else if (loginTarget === 'manager') {
+          isManagerLoggedIn = true;
+          hideAll();
+          document.getElementById('manager-view').classList.remove('hidden');
+          initManagerView();
         } else {
           isStaffLoggedIn = true;
           hideAll();
@@ -4318,7 +4535,7 @@
     // ==========================================
     // ==========================================
     function showPicTab(tab) {
-      ['upload503','myparts','pic-dashboard','parts-receiving','pic-trend','pic-master'].forEach(t => {
+      ['upload503','myparts','pic-dashboard','parts-receiving','unplanned','pic-trend','pic-master'].forEach(t => {
         const p = document.getElementById('pic-page-' + t);
         const b = document.getElementById('pic-tab-' + t);
         if (p) p.classList.toggle('hidden', t !== tab);
@@ -4329,13 +4546,11 @@
       if (tab === 'myparts') initMyParts();
       if (tab === 'pic-dashboard') initPicDashboard();
       if (tab === 'parts-receiving') initPartsReceiving();
+      if (tab === 'unplanned') initUnplanned('pic');
       if (tab === 'pic-trend') { onTrendModeChange('pr'); loadPrTrend(); }
-      if (tab === 'pic-master') {
-        // force reload vehicles เสมอ เพราะอาจเพิ่มทะเบียนใหม่
-        _vehicleData = [];
-        updatePicMaster();
-      }
+      if (tab === 'pic-master') { _vehicleData = []; updatePicMaster(); }
     }
+
 
 
     // ==========================================
@@ -6018,11 +6233,14 @@
           mSel.add(new Option(d.toLocaleDateString('th-TH',{month:'long',year:'numeric'}), d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')));
         }
       }
+      // rebuild supplier list เสมอ (อาจมีข้อมูลใหม่)
       const sSel = document.getElementById('pr-supplier');
-      if (sSel && sSel.options.length <= 1) {
+      if (sSel) {
+        const cur = sSel.value;
         sSel.innerHTML = '<option value="ALL">ทั้งหมด</option>';
-        const vendors = [...new Set([...allData.map(r=>r.company_name),...allPartData.map(p=>p.vendor)].filter(Boolean))].sort();
+        const vendors = [...new Set([...allData.map(function(r){ return r.company_name||''; }),...allPartData.map(function(p){ return p.vendor||''; })].filter(Boolean))].sort();
         vendors.forEach(function(v){ sSel.add(new Option(v,v)); });
+        if (cur) sSel.value = cur;
       }
       updatePartsReceiving();
     }
@@ -6089,6 +6307,45 @@
       set('pr-combo-ab',cAB); set('pr-combo-ab-pct',Math.round(cAB/cT*100)+'% ของทั้งหมด');
       set('pr-combo-ba',cBA); set('pr-combo-ba-pct',Math.round(cBA/cT*100)+'% ของทั้งหมด');
       set('pr-combo-bb',cBB); set('pr-combo-bb-pct',Math.round(cBB/cT*100)+'% ของทั้งหมด');
+
+      // Bar Chart — ใช้ข้อมูลทั้งหมด (ไม่ filter) เพื่อให้กราฟแสดงเสมอ
+      const prCanvas = document.getElementById('pr-bar-chart');
+      if (prCanvas && typeof Chart !== 'undefined') {
+        if (prCanvas._chartInstance) { prCanvas._chartInstance.destroy(); prCanvas._chartInstance = null; }
+        // ใช้ข้อมูลทั้งหมดถ้า filtered ว่างเกินไป
+        const chartCi = fci.length >= 3 ? fci : allData.filter(function(r){ return r.status !== 'cancelled'; });
+        const chartFp = fp.length >= 3 ? fp : allPartData.filter(function(p){ return ['pending','completed','short','missing'].includes(p.status||''); });
+        const vendors = [...new Set([...chartCi.map(function(r){ return r.company_name||''; }),...chartFp.map(function(p){ return p.vendor||''; })].filter(Boolean))].sort().slice(0,10);
+        if (vendors.length === 0) return;
+        const ontimePcts = vendors.map(function(v) {
+          const vl = v.toLowerCase();
+          const ci = chartCi.filter(function(r){ return String(r.company_name||'').toLowerCase().includes(vl); });
+          return ci.length > 0 ? parseFloat(((ci.filter(function(r){ return String(r.plan_status||'').includes('ตรงเวลา'); }).length/ci.length)*100).toFixed(1)) : 0;
+        });
+        const qtyPcts = vendors.map(function(v) {
+          const vl = v.toLowerCase();
+          const pp = chartFp.filter(function(p){ return String(p.vendor||'').toLowerCase().includes(vl); });
+          return pp.length > 0 ? parseFloat(((pp.filter(function(p){ return p.status==='completed'; }).length/pp.length)*100).toFixed(1)) : 0;
+        });
+        prCanvas._chartInstance = new Chart(prCanvas.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: vendors.map(function(v){ return v.length > 12 ? v.substring(0,12)+'…' : v; }),
+            datasets: [
+              { label: 'ตรงเวลา %', data: ontimePcts, backgroundColor: '#6366f1', borderRadius: 4, barPercentage: 0.4 },
+              { label: 'Part ครบ %', data: qtyPcts, backgroundColor: '#10b981', borderRadius: 4, barPercentage: 0.4 }
+            ]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: {
+              y: { beginAtZero: true, max: 100, ticks: { font:{size:10}, callback: function(v){ return v+'%'; } }, grid: { color:'#f1f5f9' } },
+              x: { ticks: { font:{size:9}, maxRotation: 45 } }
+            },
+            plugins: { legend: { labels: { font:{size:10} } } }
+          }
+        });
+      }
 
       // Performance Table
       const vendors = [...new Set([...fci.map(r=>r.company_name||''),...fp.map(p=>p.vendor||'')].filter(Boolean))].sort();
@@ -6503,7 +6760,7 @@
     window.planningLogout = function() { isPlanningLoggedIn = false; showRoleSelection(); };
 
     window.showPlanningTab = function(tab) {
-      ['urgent','weekly','dashboard'].forEach(function(t) {
+      ['urgent','weekly','unplanned','dashboard'].forEach(function(t) {
         const p = document.getElementById('planning-page-' + t);
         const b = document.getElementById('planning-tab-' + t);
         if (p) p.classList.toggle('hidden', t !== tab);
@@ -6513,8 +6770,10 @@
       });
       if (tab === 'urgent')    initPlanningUrgent();
       if (tab === 'weekly')    initPlanningWeekly();
+      if (tab === 'unplanned') initUnplanned('planning');
       if (tab === 'dashboard') updatePlanningDashboard();
     };
+
 
     // ── Urgent Parts ──
     function initPlanningUrgent() {
@@ -6765,6 +7024,225 @@
         showToast('โหลดไม่สำเร็จ: ' + e.message);
       }
     }
+    // =====================================================
+    // UNPLANNED PARTS
+    // =====================================================
+    let _unplannedData   = [];
+    let _unplannedFilter = 'all';
+
+    function getUnpStatusBadge(s) {
+      if (s==='pending_l') return '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-0.5 rounded-full">⏳ รอ Logistics</span>';
+      if (s==='pending_f') return '<span class="bg-blue-100 text-blue-600 font-black text-[9px] px-2 py-0.5 rounded-full">⏳ รอโรงงาน</span>';
+      if (s==='approved')  return '<span class="bg-emerald-100 text-emerald-600 font-black text-[9px] px-2 py-0.5 rounded-full">✅ อนุมัติแล้ว</span>';
+      if (s==='rejected')  return '<span class="bg-rose-100 text-rose-500 font-black text-[9px] px-2 py-0.5 rounded-full">❌ ไม่อนุมัติ</span>';
+      return '<span class="bg-slate-100 text-slate-400 font-black text-[9px] px-2 py-0.5 rounded-full">'+s+'</span>';
+    }
+
+    function renderUnplannedTable(data, tbodyId, emptyId) {
+      const tbody = document.getElementById(tbodyId);
+      const empty = document.getElementById(emptyId);
+      if (!tbody) return;
+      const f = _unplannedFilter;
+      const filtered = f==='all' ? data
+        : f==='pending' ? data.filter(function(u){ return u.status==='pending_l'||u.status==='pending_f'; })
+        : data.filter(function(u){ return u.status===f; });
+      if (empty) empty.classList.toggle('hidden', filtered.length>0);
+      tbody.innerHTML = filtered.map(function(u) {
+        const d = u.created_at ? new Date(u.created_at).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}) : '-';
+        return '<tr class="hover:bg-slate-50">' +
+          '<td class="px-4 py-2.5 text-slate-500">'+d+'</td>' +
+          '<td class="px-4 py-2.5"><div class="font-bold text-slate-700">'+(u.created_by||'-')+'</div><div class="text-[9px] text-slate-400">'+(u.created_role||'')+'</div></td>' +
+          '<td class="px-4 py-2.5 font-bold text-slate-700">'+(u.supplier||'-')+'</td>' +
+          '<td class="px-4 py-2.5 text-slate-600">'+(u.po_no||'-')+'</td>' +
+          '<td class="px-4 py-2.5 text-center font-bold">'+(u.qty||0)+'</td>' +
+          '<td class="px-4 py-2.5 text-slate-500">'+(u.reason||'-')+'</td>' +
+          '<td class="px-4 py-2.5 text-center">'+getUnpStatusBadge(u.status)+'</td>' +
+          '<td class="px-4 py-2.5 text-[10px] text-slate-500">'+(u.logistics_by ? '✅ '+u.logistics_by : '-')+'</td>' +
+          '<td class="px-4 py-2.5 text-[10px] text-slate-500">'+(u.factory_by ? '✅ '+u.factory_by : (u.rejected_by ? '❌ '+u.rejected_by : '-'))+'</td>' +
+        '</tr>';
+      }).join('') || '<tr><td colspan="9" class="text-center py-6 text-slate-300 text-xs font-bold">ไม่มีข้อมูล</td></tr>';
+    }
+
+    async function initUnplanned(role) {
+      try {
+        const res = await callAPI('getUnplanned');
+        _unplannedData = (res && res.data) ? res.data : [];
+      } catch(e) { _unplannedData = []; }
+      renderUnplannedTable(_unplannedData, 'unp-table-body',  'unp-list-empty');
+      renderUnplannedTable(_unplannedData, 'unp2-table-body', 'unp2-list-empty');
+    }
+
+    window.filterUnplanned = function(f) {
+      _unplannedFilter = f;
+      ['all','pending','approved','rejected'].forEach(function(x){
+        const b = document.getElementById('unp-f-'+x);
+        if (b) b.className = x===f ? 'tab-active text-[10px] font-black px-3 py-1.5 rounded-xl cursor-pointer' : 'bg-slate-100 text-slate-400 text-[10px] font-black px-3 py-1.5 rounded-xl cursor-pointer';
+      });
+      renderUnplannedTable(_unplannedData, 'unp-table-body',  'unp-list-empty');
+      renderUnplannedTable(_unplannedData, 'unp2-table-body', 'unp2-list-empty');
+    };
+
+    window.filterUnpSuggest = function() {
+      const inp = document.getElementById('unp-supplier');
+      const box = document.getElementById('unp-supplier-suggest');
+      if (!inp || !box) return;
+      const val = inp.value.trim().toLowerCase();
+      const items = [...new Set([...allPicMaster.map(function(m){ return m.supplier||''; }),..._supplierMasterList.map(function(s){ return typeof s==='object'?s.name:s; })].filter(Boolean))].sort();
+      const filtered = val ? items.filter(function(x){ return x.toLowerCase().includes(val); }) : items;
+      if (!filtered.length) { box.classList.add('hidden'); return; }
+      box.innerHTML = filtered.slice(0,15).map(function(x){ var xs=encodeURIComponent(x); return '<div class="px-4 py-2.5 hover:bg-rose-50 cursor-pointer text-xs font-bold text-slate-700" onclick="selectUnpSup(decodeURIComponent(\'' + xs + '\'))">' + x + '</div>'; }).join('');
+      box.classList.remove('hidden');
+    };
+    window.hideUnpSuggest   = function(d){ setTimeout(function(){ const b=document.getElementById('unp-supplier-suggest'); if(b) b.classList.add('hidden'); }, d||200); };
+    window.selectUnpSup     = function(v){ const i=document.getElementById('unp-supplier'); if(i) i.value=v; window.hideUnpSuggest(0); };
+
+    window.filterUnpSuggest2 = function() {
+      const inp = document.getElementById('unp2-supplier');
+      const box = document.getElementById('unp2-supplier-suggest');
+      if (!inp || !box) return;
+      const val = inp.value.trim().toLowerCase();
+      const items = [...new Set([...allPicMaster.map(function(m){ return m.supplier||''; }),..._supplierMasterList.map(function(s){ return typeof s==='object'?s.name:s; })].filter(Boolean))].sort();
+      const filtered = val ? items.filter(function(x){ return x.toLowerCase().includes(val); }) : items;
+      if (!filtered.length) { box.classList.add('hidden'); return; }
+      box.innerHTML = filtered.slice(0,15).map(function(x){ var xs=encodeURIComponent(x); return '<div class="px-4 py-2.5 hover:bg-rose-50 cursor-pointer text-xs font-bold text-slate-700" onclick="selectUnpSup2(decodeURIComponent(\'' + xs + '\'))">' + x + '</div>'; }).join('');
+      box.classList.remove('hidden');
+    };
+    window.hideUnpSuggest2  = function(d){ setTimeout(function(){ const b=document.getElementById('unp2-supplier-suggest'); if(b) b.classList.add('hidden'); }, d||200); };
+    window.selectUnpSup2    = function(v){ const i=document.getElementById('unp2-supplier'); if(i) i.value=v; window.hideUnpSuggest2(0); };
+
+    async function doSubmitUnplanned(prefix, roleLabel) {
+      const sup    = (document.getElementById(prefix+'-supplier')||{}).value?.trim() || '';
+      const reason = (document.getElementById(prefix+'-reason')||{}).value || '';
+      if (!sup)    { showToast('กรุณาระบุ Supplier'); return; }
+      if (!reason) { showToast('กรุณาเลือกเหตุผล'); return; }
+      const payload = {
+        supplier: sup, po_no: (document.getElementById(prefix+'-po')||{}).value?.trim()||'',
+        part_no: (document.getElementById(prefix+'-part')||{}).value?.trim()||'',
+        qty: parseFloat((document.getElementById(prefix+'-qty')||{}).value||'0')||0,
+        reason: reason, remark: (document.getElementById(prefix+'-remark')||{}).value?.trim()||'',
+        created_by: (typeof currentPicUser!=='undefined'&&currentPicUser) ? currentPicUser : 'ผู้ใช้',
+        created_role: roleLabel,
+      };
+      try {
+        const res = await callAPI('saveUnplanned', payload);
+        if (res && res.success) {
+          showToast('ส่งขออนุมัติแล้ว รอ Logistics Manager');
+          ['supplier','po','part','qty','reason','remark'].forEach(function(f){ const el=document.getElementById(prefix+'-'+f); if(el) el.value=''; });
+          await initUnplanned(roleLabel);
+        } else { showToast('ไม่สำเร็จ: '+(res?.message||'')); }
+      } catch(e) { showToast('Error: '+e.message); }
+    }
+    window.submitUnplanned  = function(){ doSubmitUnplanned('unp',  'PIC/จัดซื้อ'); };
+    window.submitUnplanned2 = function(){ doSubmitUnplanned('unp2', 'Planning'); };
+
+    // =====================================================
+    // MANAGER VIEW
+    // =====================================================
+    window.managerLogout = function() { isManagerLoggedIn=false; showRoleSelection(); };
+
+    window.showManagerTab = function(tab) {
+      ['approve','history'].forEach(function(t) {
+        const p=document.getElementById('mgr-page-'+t); const b=document.getElementById('mgr-tab-'+t);
+        if(p) p.classList.toggle('hidden', t!==tab);
+        if(b) b.className = t===tab ? 'tab-active px-6 py-2.5 rounded-xl text-xs font-bold shadow-md cursor-pointer' : 'bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer';
+      });
+      if (tab==='approve') loadManagerApprove();
+      if (tab==='history') loadManagerHistory();
+    };
+
+    async function initManagerView() {
+      const badge = document.getElementById('mgr-role-badge');
+      const role  = prompt('คุณเป็น:\n1 = ผู้จัดการ Logistics\n2 = ผู้จัดการโรงงาน\n\nกรุณาพิมพ์ 1 หรือ 2');
+      if (role==='1')      { _managerRole='logistics'; if(badge) badge.innerText='Logistics'; }
+      else if (role==='2') { _managerRole='factory';   if(badge) badge.innerText='โรงงาน'; }
+      else { managerLogout(); return; }
+      showManagerTab('approve');
+    }
+
+    async function loadManagerApprove() {
+      const loadEl=document.getElementById('mgr-approve-loading'), emptyEl=document.getElementById('mgr-approve-empty'), listEl=document.getElementById('mgr-approve-list');
+      if(loadEl) loadEl.classList.remove('hidden');
+      if(emptyEl) emptyEl.classList.add('hidden');
+      if(listEl) listEl.innerHTML='';
+      try {
+        const res = await callAPI('getUnplanned');
+        if(loadEl) loadEl.classList.add('hidden');
+        const all = (res&&res.data)?res.data:[];
+        const mine = _managerRole==='logistics' ? all.filter(function(u){ return u.status==='pending_l'; }) : all.filter(function(u){ return u.status==='pending_f'; });
+        const badge = document.getElementById('mgr-pending-badge');
+        if(badge){ badge.innerText=mine.length+' รายการ'; badge.classList.toggle('hidden', mine.length===0); }
+        if(mine.length===0){ if(emptyEl) emptyEl.classList.remove('hidden'); return; }
+        listEl.innerHTML = mine.map(function(u) {
+          const d = u.created_at ? new Date(u.created_at).toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}) : '-';
+          const lTok = String(u.logistics_token||''); const fTok = String(u.factory_token||'');
+          return '<div class="bg-white rounded-2xl border-2 border-amber-200 shadow-sm p-5 space-y-3">' +
+            '<div class="flex items-start justify-between flex-wrap gap-2"><div>' +
+              '<div class="font-black text-slate-800 text-sm">'+(u.supplier||'-')+'</div>' +
+              '<div class="text-[10px] text-slate-400 mt-0.5">แจ้งโดย '+(u.created_by||'-')+' ('+(u.created_role||'')+') · '+d+'</div>' +
+            '</div>'+getUnpStatusBadge(u.status)+'</div>' +
+            '<div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">' +
+              '<div class="bg-slate-50 rounded-xl p-3"><div class="text-[9px] text-slate-400 uppercase font-black mb-0.5">PO No.</div><div class="font-bold">'+(u.po_no||'-')+'</div></div>' +
+              '<div class="bg-slate-50 rounded-xl p-3"><div class="text-[9px] text-slate-400 uppercase font-black mb-0.5">Part No.</div><div class="font-bold">'+(u.part_no||'-')+'</div></div>' +
+              '<div class="bg-slate-50 rounded-xl p-3"><div class="text-[9px] text-slate-400 uppercase font-black mb-0.5">QTY</div><div class="font-bold">'+(u.qty||0)+'</div></div>' +
+              '<div class="bg-slate-50 rounded-xl p-3"><div class="text-[9px] text-slate-400 uppercase font-black mb-0.5">เหตุผล</div><div class="font-bold">'+(u.reason||'-')+'</div></div>' +
+            '</div>' +
+            (u.remark ? '<div class="text-xs text-slate-500 bg-slate-50 rounded-xl p-3"><span class="font-black">หมายเหตุ:</span> '+u.remark+'</div>' : '') +
+            '<div class="flex gap-3 pt-1">' +
+              '<button type="button" data-ltok="'+lTok+'" data-ftok="'+fTok+'" onclick="doMgrApprove(this.dataset.ltok,this.dataset.ftok)" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 rounded-xl font-bold text-sm cursor-pointer">✅ อนุมัติ</button>' +
+              '<button type="button" data-ltok="'+lTok+'" data-ftok="'+fTok+'" onclick="doMgrReject(this.dataset.ltok,this.dataset.ftok)" class="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 py-2.5 rounded-xl font-bold text-sm cursor-pointer">❌ ไม่อนุมัติ</button>' +
+            '</div></div>';
+        }).join('');
+      } catch(e){ if(loadEl) loadEl.classList.add('hidden'); showToast('โหลดไม่สำเร็จ'); }
+    }
+
+    window.doMgrApprove = async function(lTok, fTok) {
+      const token = _managerRole==='logistics' ? lTok : fTok;
+      const name  = _managerRole==='logistics' ? 'Logistics Manager' : 'Factory Manager';
+      if (!confirm('ยืนยันอนุมัติรายการนี้?')) return;
+      try {
+        const res = await callAPI('approveUnplanned', { token: token, approvedBy: name });
+        if (res&&res.success) { showToast(res.step==='logistics' ? 'อนุมัติแล้ว ส่งต่อให้ผู้จัดการโรงงาน' : 'อนุมัติครบ 2 ขั้นแล้ว!'); loadManagerApprove(); }
+        else { showToast('ไม่สำเร็จ: '+(res?.message||'')); }
+      } catch(e){ showToast('Error: '+e.message); }
+    };
+
+    window.doMgrReject = async function(lTok, fTok) {
+      const reason = prompt('เหตุผลที่ไม่อนุมัติ:');
+      if (reason===null) return;
+      const token = _managerRole==='logistics' ? lTok : fTok;
+      const name  = _managerRole==='logistics' ? 'Logistics Manager' : 'Factory Manager';
+      try {
+        const res = await callAPI('rejectUnplanned', { token: token, rejectedBy: name, reason: reason });
+        if (res&&res.success) { showToast('ไม่อนุมัติแล้ว'); loadManagerApprove(); }
+        else { showToast('ไม่สำเร็จ: '+(res?.message||'')); }
+      } catch(e){ showToast('Error: '+e.message); }
+    };
+
+    async function loadManagerHistory() {
+      try {
+        const res = await callAPI('getUnplanned');
+        const all = (res&&res.data) ? res.data.slice().reverse() : [];
+        const tbody = document.getElementById('mgr-history-body');
+        if (!tbody) return;
+        tbody.innerHTML = all.map(function(u){
+          const d = u.created_at ? new Date(u.created_at).toLocaleDateString('th-TH',{day:'numeric',month:'short'}) : '-';
+          return '<tr class="hover:bg-slate-50">' +
+            '<td class="px-4 py-2.5 text-slate-500">'+d+'</td>' +
+            '<td class="px-4 py-2.5 font-bold text-slate-700">'+(u.created_by||'-')+'</td>' +
+            '<td class="px-4 py-2.5 text-[9px] text-violet-600 font-bold">'+(u.created_role||'')+'</td>' +
+            '<td class="px-4 py-2.5 font-bold">'+(u.supplier||'-')+'</td>' +
+            '<td class="px-4 py-2.5">'+(u.po_no||'-')+'</td>' +
+            '<td class="px-4 py-2.5">'+(u.part_no||'-')+'</td>' +
+            '<td class="px-4 py-2.5 text-center font-bold">'+(u.qty||0)+'</td>' +
+            '<td class="px-4 py-2.5 text-slate-500">'+(u.reason||'-')+'</td>' +
+            '<td class="px-4 py-2.5 text-center">'+getUnpStatusBadge(u.status)+'</td>' +
+            '<td class="px-4 py-2.5 text-[10px]">'+(u.logistics_by||'-')+'</td>' +
+            '<td class="px-4 py-2.5 text-[10px]">'+(u.factory_by||(u.rejected_by?'❌ '+u.rejected_by:'-'))+'</td>' +
+          '</tr>';
+        }).join('') || '<tr><td colspan="11" class="text-center py-6 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
+      } catch(e){ showToast('โหลดไม่สำเร็จ'); }
+    }
+
     // =====================================================
     // =====================================================
     async function loadStaffTrend() {
