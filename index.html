@@ -2626,9 +2626,9 @@
 
     function processPaste() {
       const raw = document.getElementById('pic-paste-area').value.trim();
-      if (!raw) return alert('กรุณาวางข้อมูลก่อน');
+      if (!raw) { showToast('กรุณาวางข้อมูลก่อน'); return; }
       const { rows } = parsePasteData(raw);
-      if (rows.length === 0) return alert('ไม่พบข้อมูลที่สามารถอ่านได้ กรุณาตรวจสอบรูปแบบข้อมูล');
+      if (rows.length === 0) { showToast('ไม่พบข้อมูลที่สามารถอ่านได้ กรุณาตรวจสอบรูปแบบข้อมูล'); return; }
 
       // Merge ก่อน import
       const merged = mergeRows(rows.filter(r => r.vendor || r.part_no || r.po_no));
@@ -2952,7 +2952,7 @@
 
         async function savePICParts() {
       const rows = getPICTableData();
-      if (rows.length === 0) return alert('ยังไม่มีรายการพาร์ท');
+      if (rows.length === 0) { showToast('ยังไม่มีรายการพาร์ท'); return; }
       const invalid = rows.filter(r => !r.vendor || !r.part_no || !r.qty);
       if (invalid.length > 0) return alert(`กรุณากรอก Vendor Name, Part No. และ QTY ให้ครบ (${invalid.length} แถวที่ยังขาด)`);
 
@@ -3111,8 +3111,8 @@
       const poNo    = document.getElementById('pic-edit-po')?.value.trim();
       const time    = document.getElementById('pic-edit-time')?.value || '';
 
-      if (!partNo) return alert('กรุณากรอก Part No.');
-      if (!qty)    return alert('กรุณากรอก QTY');
+      if (!partNo) { showToast('กรุณากรอก Part No.'); return; }
+      if (!qty)    { showToast('กรุณากรอก QTY'); return; }
 
       const btn = document.getElementById('pic-edit-save-btn');
       if (btn) { btn.disabled = true; btn.innerText = '⏳ กำลังบันทึก...'; }
@@ -3477,8 +3477,8 @@
       if (!nameInput || !licenseInput) return;
       const name    = nameInput.value.trim();
       const license = licenseInput.value.trim();
-      if (!name)    return alert('กรุณากรอกชื่อบริษัท');
-      if (!license) return alert('กรุณากรอกทะเบียนรถ');
+      if (!name)    { showToast('กรุณากรอกชื่อบริษัท'); return; }
+      if (!license) { showToast('กรุณากรอกทะเบียนรถ'); return; }
 
       const btn = document.getElementById('checkin-btn');
       if (btn) { btn.disabled = true; btn.innerText = '📍 กำลังตรวจสอบตำแหน่ง...'; }
@@ -3486,7 +3486,7 @@
       // ตรวจสอบ GPS ก่อนเช็คอิน
       if (!navigator.geolocation) {
         if (btn) { btn.disabled = false; btn.innerText = 'รับหมายเลขคิว'; }
-        return alert('เบราว์เซอร์นี้ไม่รองรับ GPS กรุณาใช้เบราว์เซอร์อื่น');
+        { showToast('เบราว์เซอร์นี้ไม่รองรับ GPS กรุณาใช้เบราว์เซอร์อื่น'); return; }
       }
 
       navigator.geolocation.getCurrentPosition(
@@ -5064,9 +5064,9 @@
 
     async function savePicCard() {
       const name = document.getElementById('pm-new-pic-name')?.value.trim();
-      if (!name) return alert('กรุณากรอกชื่อ PIC');
+      if (!name) { showToast('กรุณากรอกชื่อ PIC'); return; }
       const exists = allPicMaster.some(function(m){ return String(m.pic_name||'').toLowerCase() === name.toLowerCase(); });
-      if (exists) return alert('มี PIC ชื่อนี้อยู่แล้ว');
+      if (exists) { showToast('มี PIC ชื่อนี้อยู่แล้ว'); return; }
 
       closePmModal();
       showToast('⏳ กำลังบันทึก...');
@@ -5216,7 +5216,7 @@
     async function savePicSup() {
       if (pmCurrentPic === null) return;
       const toAdd = [..._pmSelectedSups];
-      if (toAdd.length === 0) return alert('กรุณาเลือกหรือพิมพ์ชื่อ Supplier อย่างน้อย 1 รายการ');
+      if (toAdd.length === 0) { showToast('กรุณาเลือกหรือพิมพ์ชื่อ Supplier อย่างน้อย 1 รายการ'); return; }
       const data = buildPicStructure(allPicMaster);
       const pic  = data.pics[pmCurrentPic];
       if (!pic) return;
@@ -5264,7 +5264,7 @@
       if (!pic) return;
       const supName = pic.suppliers[si] || '';
       if (!supName) return;
-      if (!confirm(`ลบ Supplier "${supName}" ออกจาก ${pic.name}?`)) return;
+      // showConfirm below
       showToast('⏳ กำลังลบ...');
       const res = await callAPI('deletePicMasterEntry', { picName: pic.name, supplier: supName });
       if (res && res.success) {
@@ -5441,12 +5441,51 @@
       } catch(e) { return '-'; }
     }
 
-    function showToast(msg) {
+    function showToast(msg, type) {
+      const existing = document.querySelectorAll('.toast-msg');
+      existing.forEach(function(t){ t.remove(); });
       const toast = document.createElement('div');
-      toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-2xl z-[9999] fade-in';
+      toast.className = 'toast-msg fixed bottom-6 left-1/2 -translate-x-1/2 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-2xl z-[9999] fade-in';
+      toast.style.cssText = 'transform:translateX(-50%);pointer-events:none;';
+      const isError = type==='error' || msg.startsWith('ไม่สำเร็จ') || msg.startsWith('Error');
+      toast.style.background = isError ? '#ef4444' : '#1e293b';
       toast.innerText = msg;
       document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 3000);
+      setTimeout(function(){ if(toast.parentNode) toast.remove(); }, 3000);
+    }
+
+    // showConfirm — แทน confirm() ที่บล็อก browser
+    function showConfirm(msg, onOk, onCancel) {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
+      overlay.innerHTML = '<div style="background:#fff;border-radius:20px;padding:24px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">' +
+        '<div style="font-weight:900;color:#1e293b;font-size:14px;margin-bottom:16px;line-height:1.5;">' + msg + '</div>' +
+        '<div style="display:flex;gap:10px;">' +
+          '<button id="scn-cancel" style="flex:1;background:#f1f5f9;color:#64748b;border:none;padding:10px;border-radius:12px;font-weight:700;font-size:13px;cursor:pointer;">ยกเลิก</button>' +
+          '<button id="scn-ok"     style="flex:1;background:#6366f1;color:#fff;border:none;padding:10px;border-radius:12px;font-weight:700;font-size:13px;cursor:pointer;">ยืนยัน</button>' +
+        '</div></div>';
+      document.body.appendChild(overlay);
+      overlay.querySelector('#scn-ok').onclick     = function(){ overlay.remove(); if(onOk) onOk(); };
+      overlay.querySelector('#scn-cancel').onclick = function(){ overlay.remove(); if(onCancel) onCancel(); };
+    }
+
+    // showPromptModal — แทน prompt() ที่บล็อก browser
+    function showPromptModal(msg, placeholder, onOk) {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
+      overlay.innerHTML = '<div style="background:#fff;border-radius:20px;padding:24px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">' +
+        '<div style="font-weight:900;color:#1e293b;font-size:14px;margin-bottom:12px;">' + msg + '</div>' +
+        '<input id="spm-input" type="text" placeholder="' + (placeholder||'') + '" style="width:100%;border:2px solid #e2e8f0;border-radius:12px;padding:10px 14px;font-size:13px;font-weight:600;outline:none;margin-bottom:14px;box-sizing:border-box;">' +
+        '<div style="display:flex;gap:10px;">' +
+          '<button id="spm-cancel" style="flex:1;background:#f1f5f9;color:#64748b;border:none;padding:10px;border-radius:12px;font-weight:700;font-size:13px;cursor:pointer;">ยกเลิก</button>' +
+          '<button id="spm-ok"     style="flex:1;background:#6366f1;color:#fff;border:none;padding:10px;border-radius:12px;font-weight:700;font-size:13px;cursor:pointer;">ยืนยัน</button>' +
+        '</div></div>';
+      document.body.appendChild(overlay);
+      const inp = overlay.querySelector('#spm-input');
+      setTimeout(function(){ inp?.focus(); }, 100);
+      overlay.querySelector('#spm-ok').onclick     = function(){ const v=inp.value.trim(); overlay.remove(); if(onOk) onOk(v); };
+      overlay.querySelector('#spm-cancel').onclick = function(){ overlay.remove(); };
+      inp.onkeydown = function(e){ if(e.key==='Enter'){ const v=inp.value.trim(); overlay.remove(); if(onOk) onOk(v); } };
     }
 
     function resetSupplierView() {
@@ -6496,19 +6535,19 @@
     };
 
 
-    window.deleteVehicle = async function(supName, plate) {
-      if (!confirm('ลบทะเบียน ' + plate + ' ออก?')) return;
-      // Optimistic
-      _vehicleData = _vehicleData.filter(function(v){ return !(v.supplier_name===supName && v.license_plate===plate); });
-      renderPicMasterCards(_pmCurrentFilter);
-      try {
-        const res = await callAPI('deleteVehicle', { supplierName: supName, licensePlate: plate });
-        if (!res || !res.success) {
-          _vehicleData.push({ supplier_name: supName, license_plate: plate });
-          renderPicMasterCards(_pmCurrentFilter);
-          showToast('ลบไม่สำเร็จ');
-        } else { showToast('ลบทะเบียน ' + plate + ' แล้ว'); }
-      } catch(e) { showToast('Error: ' + e.message); }
+    window.deleteVehicle = function(supName, plate) {
+      showConfirm('ลบทะเบียน ' + plate + ' ออก?', async function() {
+        _vehicleData = _vehicleData.filter(function(v){ return !(v.supplier_name===supName && v.license_plate===plate); });
+        renderPicMasterCards(_pmCurrentFilter);
+        try {
+          const res = await callAPI('deleteVehicle', { supplierName: supName, licensePlate: plate });
+          if (!res || !res.success) {
+            _vehicleData.push({ supplier_name: supName, license_plate: plate });
+            renderPicMasterCards(_pmCurrentFilter);
+            showToast('ลบไม่สำเร็จ');
+          } else { showToast('ลบทะเบียน ' + plate + ' แล้ว'); }
+        } catch(e) { showToast('Error: ' + e.message); }
+      });
     };
 
     // =====================================================
@@ -7211,7 +7250,7 @@
 
     async function initManagerView() {
       const badge = document.getElementById('mgr-role-badge');
-      const role  = prompt('คุณเป็น:\n1 = ผู้จัดการ Logistics\n2 = ผู้จัดการโรงงาน\n\nกรุณาพิมพ์ 1 หรือ 2');
+      const role  = window.prompt('คุณเป็น:\n1 = ผู้จัดการ Logistics\n2 = ผู้จัดการโรงงาน\n\nกรุณาพิมพ์ 1 หรือ 2');
       if (role==='1')      { _managerRole='logistics'; if(badge) badge.innerText='Logistics'; }
       else if (role==='2') { _managerRole='factory';   if(badge) badge.innerText='โรงงาน'; }
       else { managerLogout(); return; }
@@ -7266,8 +7305,8 @@
     };
 
     window.doMgrReject = async function(lTok, fTok) {
-      const reason = prompt('เหตุผลที่ไม่อนุมัติ:');
-      if (reason===null) return;
+      showPromptModal('เหตุผลที่ไม่อนุมัติ', 'กรอกเหตุผล...', async function(reason) {
+      if (!reason && reason !== '') return;
       const token = _managerRole==='logistics' ? lTok : fTok;
       const name  = _managerRole==='logistics' ? 'Logistics Manager' : 'Factory Manager';
       try {
@@ -7275,6 +7314,7 @@
         if (res&&res.success) { showToast('ไม่อนุมัติแล้ว'); loadManagerApprove(); }
         else { showToast('ไม่สำเร็จ: '+(res?.message||'')); }
       } catch(e){ showToast('Error: '+e.message); }
+      }); // end showPromptModal
     };
 
     async function loadManagerHistory() {
