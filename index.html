@@ -4330,7 +4330,11 @@
       if (tab === 'pic-dashboard') initPicDashboard();
       if (tab === 'parts-receiving') initPartsReceiving();
       if (tab === 'pic-trend') { onTrendModeChange('pr'); loadPrTrend(); }
-      if (tab === 'pic-master') updatePicMaster();
+      if (tab === 'pic-master') {
+        // force reload vehicles เสมอ เพราะอาจเพิ่มทะเบียนใหม่
+        _vehicleData = [];
+        updatePicMaster();
+      }
     }
 
 
@@ -4692,6 +4696,7 @@
                       '</div>' +
                       (isActive ? '<div class="flex gap-1 opacity-0 group-hover:opacity-100">' +
                         '<button type="button" onclick="openAddVehicleModal(\'' + s.replace(/'/g,"\\'") + '\')" class="text-[9px] text-violet-600 bg-violet-50 border border-violet-200 px-2 py-1 rounded-lg cursor-pointer">+ รถ</button>' +
+                        '<button type="button" onclick="openQrSupplier(\'' + s.replace(/'/g,"\\'") + '\')" class="text-[9px] text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg cursor-pointer">🖨️ QR ทั้งหมด</button>' +
                         '<button type="button" onclick="deleteSupFromPic(' + pi + ',' + si + ')" class="text-[9px] text-rose-400 hover:text-rose-600 bg-rose-50 border border-rose-100 px-2 py-1 rounded-lg cursor-pointer">ลบ</button>' +
                       '</div>' : '') +
                     '</div>' +
@@ -6201,7 +6206,8 @@
       return url;
     }
 
-    async function generateQrCanvas(supplierName, licensePlate, size) {
+    // สร้าง QR แล้ว return { dataUrl, canvas } — ไม่ detach canvas
+    async function generateQrData(supplierName, licensePlate, size) {
       size = size || 180;
       const url = getSupplierCheckinUrl(supplierName, licensePlate);
       return new Promise(function(resolve, reject) {
@@ -6210,50 +6216,48 @@
         document.body.appendChild(div);
         try {
           new QRCode(div, {
-            text:          url,
-            width:         size,
-            height:        size,
-            colorDark:     '#1e293b',
-            colorLight:    '#ffffff',
-            correctLevel:  QRCode.CorrectLevel.M
+            text: url, width: size, height: size,
+            colorDark: '#1e293b', colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.M
           });
-          // qrcodejs สร้าง canvas หรือ img ขึ้นอยู่กับ browser
           setTimeout(function() {
             const canvas = div.querySelector('canvas');
             const img    = div.querySelector('img');
             if (canvas) {
+              const dataUrl = canvas.toDataURL('image/png');
               document.body.removeChild(div);
-              resolve(canvas);
-            } else if (img) {
-              // fallback: วาด img ลง canvas ใหม่
-              const c = document.createElement('canvas');
-              c.width = size; c.height = size;
-              const image = new Image();
-              image.onload = function() {
-                c.getContext('2d').drawImage(image, 0, 0, size, size);
-                document.body.removeChild(div);
-                resolve(c);
-              };
-              image.onerror = function() { document.body.removeChild(div); reject(new Error('QR img load failed')); };
-              image.src = img.src;
+              resolve({ dataUrl: dataUrl });
+            } else if (img && img.src) {
+              // IE fallback — img.src เป็น dataURL อยู่แล้ว
+              document.body.removeChild(div);
+              resolve({ dataUrl: img.src });
             } else {
               document.body.removeChild(div);
               reject(new Error('QR generation failed'));
             }
-          }, 100);
+          }, 150);
         } catch(e) {
-          document.body.removeChild(div);
+          if (document.body.contains(div)) document.body.removeChild(div);
           reject(e);
         }
       });
     }
 
-    function buildQrCard(label, sublabel, canvas) {
+    function buildQrCard(label, sublabel, dataUrl) {
       const wrap = document.createElement('div');
-      wrap.className = 'flex flex-col items-center gap-2 p-4 bg-white border-2 border-slate-100 rounded-2xl text-center qr-card';
-      if (canvas) wrap.appendChild(canvas);
+      wrap.className = 'flex flex-col items-center gap-1.5 p-4 bg-white border-2 border-slate-100 rounded-2xl text-center qr-card';
+      wrap.dataset.label    = label;
+      wrap.dataset.sublabel = sublabel || '';
+      wrap.dataset.dataurl  = dataUrl  || '';
+
+      if (dataUrl) {
+        const img = document.createElement('img');
+        img.src = dataUrl;
+        img.style.cssText = 'width:' + '160px;height:160px;image-rendering:pixelated;';
+        wrap.appendChild(img);
+      }
       const nameEl = document.createElement('div');
-      nameEl.className = 'font-black text-slate-700 text-xs leading-tight max-w-[160px] text-center';
+      nameEl.className = 'font-black text-slate-700 text-xs leading-tight max-w-[160px] text-center mt-1';
       nameEl.innerText = label;
       wrap.appendChild(nameEl);
       if (sublabel) {
@@ -6270,17 +6274,24 @@
     }
 
     window.openQrSingle = async function(supName, plate) {
-      document.getElementById('pm-qr-modal-title').innerText = '🖨️ QR — ' + supName + ' (' + plate + ')';
-      const grid = document.getElementById('pm-qr-grid');
-      grid.innerHTML = '<div class="col-span-full text-center text-slate-400 text-xs animate-pulse">กำลังสร้าง QR...</div>';
       const modal = document.getElementById('pm-qr-modal');
+      const grid  = document.getElementById('pm-qr-grid');
+      document.getElementById('pm-qr-modal-title').innerText = '🖨️ QR — ' + supName + (plate ? ' (' + plate + ')' : '');
+      grid.style.gridTemplateColumns = '1fr';
+      grid.innerHTML = '<div class="col-span-full text-center text-slate-400 text-xs animate-pulse py-8">กำลังสร้าง QR...</div>';
       modal.classList.remove('hidden'); modal.classList.add('flex');
       try {
-        const canvas = await generateQrCanvas(supName, plate, 220);
+        const qr   = await generateQrData(supName, plate, 220);
+        const card = buildQrCard(supName, plate, qr.dataUrl);
+        // ปุ่ม Download
+        const dlBtn = document.createElement('button');
+        dlBtn.className = 'text-[9px] font-black text-violet-600 bg-violet-50 border border-violet-200 px-3 py-1 rounded-lg cursor-pointer hover:bg-violet-100';
+        dlBtn.innerText = '⬇️ บันทึก PNG';
+        dlBtn.onclick = function() { downloadQrDataUrl(qr.dataUrl, supName, plate); };
+        card.appendChild(dlBtn);
         grid.innerHTML = '';
-        grid.style.gridTemplateColumns = '1fr';
-        grid.appendChild(buildQrCard(supName, plate, canvas));
-      } catch(e) { grid.innerHTML = '<div class="col-span-full text-rose-400 text-xs">Error: ' + e.message + '</div>'; }
+        grid.appendChild(card);
+      } catch(e) { grid.innerHTML = '<div class="col-span-full text-rose-400 text-xs p-4">Error: ' + e.message + '</div>'; }
     };
 
     async function openQrPic(picName) {
@@ -6326,13 +6337,12 @@
             noplate.innerHTML = '<div class="text-3xl opacity-30">🚛</div><div class="font-black text-slate-400 text-xs">' + item.sup + '</div><div class="text-[9px] text-slate-300">ยังไม่มีทะเบียน</div>';
             grid.appendChild(noplate);
           } else {
-            const canvas = await generateQrCanvas(item.sup, item.plate, 180);
-            const card = buildQrCard(item.sup, item.plate, canvas);
-            // ปุ่ม Download PNG
+            const qr   = await generateQrData(item.sup, item.plate, 180);
+            const card = buildQrCard(item.sup, item.plate, qr.dataUrl);
             const dlBtn = document.createElement('button');
             dlBtn.className = 'text-[9px] font-black text-violet-600 bg-violet-50 border border-violet-200 px-3 py-1 rounded-lg cursor-pointer hover:bg-violet-100';
-            dlBtn.innerText = '⬇️ บันทึก PNG';
-            dlBtn.onclick = function() { downloadQrPng(canvas, item.sup, item.plate); };
+            dlBtn.innerText = '⬇️ PNG';
+            dlBtn.onclick = (function(du, sn, pl) { return function() { downloadQrDataUrl(du, sn, pl); }; })(qr.dataUrl, item.sup, item.plate);
             card.appendChild(dlBtn);
             grid.appendChild(card);
           }
@@ -6369,8 +6379,14 @@
           } else {
             for (const v of vlist) {
               try {
-                const canvas = await generateQrCanvas(s, v.license_plate);
-                grid.appendChild(buildQrCard(s, v.license_plate, canvas));
+                const qr   = await generateQrData(s, v.license_plate, 160);
+                const card = buildQrCard(s, v.license_plate, qr.dataUrl);
+                const dlBtn = document.createElement('button');
+                dlBtn.className = 'text-[9px] font-black text-violet-600 bg-violet-50 border border-violet-200 px-3 py-1 rounded-lg cursor-pointer';
+                dlBtn.innerText = '⬇️ PNG';
+                dlBtn.onclick = (function(du, sn, pl) { return function() { downloadQrDataUrl(du, sn, pl); }; })(qr.dataUrl, s, v.license_plate);
+                card.appendChild(dlBtn);
+                grid.appendChild(card);
               } catch(e) {}
             }
           }
@@ -6382,14 +6398,41 @@
       const modal = document.getElementById('pm-qr-modal');
       if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
     };
+    window.openQrSupplier = async function(supName) {
+      const modal = document.getElementById('pm-qr-modal');
+      const grid  = document.getElementById('pm-qr-grid');
+      document.getElementById('pm-qr-modal-title').innerText = 'QR — ' + supName;
+      grid.style.gridTemplateColumns = '';
+      grid.innerHTML = '<div class="col-span-full text-center text-slate-400 text-xs animate-pulse py-8">กำลังสร้าง QR...</div>';
+      modal.classList.remove('hidden'); modal.classList.add('flex');
+      try { const vres = await callAPI('getVehicles'); if (vres&&vres.success) _vehicleData=vres.data||[]; } catch(e) {}
+      const vlist = _vehicleData.filter(function(v){ return String(v.supplier_name||'').toLowerCase()===supName.toLowerCase(); });
+      grid.innerHTML = '';
+      if (!vlist.length) {
+        grid.innerHTML = '<div class="col-span-full p-8 text-center text-slate-300 text-xs font-bold">ยังไม่มีทะเบียนรถสำหรับ '+supName+'</div>';
+        return;
+      }
+      for (const v of vlist) {
+        try {
+          const qr = await generateQrData(supName, v.license_plate, 180);
+          const card = buildQrCard(supName, v.license_plate, qr.dataUrl);
+          const dlBtn = document.createElement('button');
+          dlBtn.className = 'text-[9px] font-black text-violet-600 bg-violet-50 border border-violet-200 px-3 py-1 rounded-lg cursor-pointer';
+          dlBtn.innerText = 'PNG';
+          dlBtn.onclick = (function(du,sn,pl){ return function(){ downloadQrDataUrl(du,sn,pl); }; })(qr.dataUrl, supName, v.license_plate);
+          card.appendChild(dlBtn);
+          grid.appendChild(card);
+        } catch(e) {}
+      }
+    };
+
     window.openQrAll = openQrAll;
     window.openQrPic = openQrPic;
 
-    // Download QR เดี่ยว
-    function downloadQrPng(canvas, supName, plate) {
+    function downloadQrDataUrl(dataUrl, supName, plate) {
       const link = document.createElement('a');
-      link.download = supName.replace(/[^a-zA-Z0-9ก-๙]/g,'_') + '_' + (plate||'').replace(/[^a-zA-Z0-9ก-๙]/g,'_') + '.png';
-      link.href = canvas.toDataURL('image/png');
+      link.download = (supName||'qr').replace(/[^a-zA-Z0-9ก-๙]/g,'_') + (plate ? '_'+(plate).replace(/[^a-zA-Z0-9ก-๙]/g,'_') : '') + '.png';
+      link.href = dataUrl;
       link.click();
     }
 
@@ -6414,11 +6457,9 @@
       html += '</style></head><body>';
       html += '<h3>' + title + '</h3><div class="grid">';
       cards.forEach(function(card) {
-        const canvas  = card.querySelector('canvas');
-        const nameEl  = card.querySelectorAll('.font-black, .font-bold');
-        const name    = nameEl[0]?.innerText || '';
-        const plate   = nameEl[1]?.innerText || '';
-        const imgSrc  = canvas ? canvas.toDataURL('image/png') : '';
+        const imgSrc = card.dataset.dataurl || (card.querySelector('img')?.src) || '';
+        const name   = card.dataset.label    || '';
+        const plate  = card.dataset.sublabel || '';
         html += '<div class="card">';
         if (imgSrc) html += '<img src="' + imgSrc + '">';
         html += '<div class="name">' + name + '</div>';
@@ -6433,26 +6474,26 @@
     };
 
     // Download ทั้งหมดเป็น PNG ต่อ card
-    window.downloadAllQrPng = async function() {
+    window.downloadAllQrPng = function() {
       const grid  = document.getElementById('pm-qr-grid');
       if (!grid) return;
       const cards = grid.querySelectorAll('.qr-card');
       if (cards.length === 0) { showToast('ยังไม่มี QR ให้บันทึก'); return; }
       let count = 0;
       cards.forEach(function(card) {
-        const canvas = card.querySelector('canvas');
-        const nameEl = card.querySelectorAll('.font-black, .font-bold');
-        const name   = (nameEl[0]?.innerText||'supplier').replace(/[^a-zA-Z0-9ก-๙]/g,'_');
-        const plate  = (nameEl[1]?.innerText||'').replace(/[^a-zA-Z0-9ก-๙]/g,'_');
-        if (!canvas) return;
+        const dataUrl = card.dataset.dataurl || (card.querySelector('img')?.src) || '';
+        const name    = (card.dataset.label||'qr').replace(/[^a-zA-Z0-9ก-๙]/g,'_');
+        const plate   = (card.dataset.sublabel||'').replace(/[^a-zA-Z0-9ก-๙]/g,'_');
+        if (!dataUrl) return;
         setTimeout(function() {
           const link = document.createElement('a');
           link.download = name + (plate?'_'+plate:'') + '.png';
-          link.href = canvas.toDataURL('image/png');
+          link.href = dataUrl;
           link.click();
-        }, count * 300);
+        }, count * 400);
         count++;
       });
+      showToast('กำลังดาวน์โหลด ' + count + ' ไฟล์...');
     };
     // =====================================================
     // =====================================================
