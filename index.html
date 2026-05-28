@@ -1449,8 +1449,19 @@
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl">
           <div id="pm-vehicle-modal-title" class="font-black text-slate-700 mb-1">+ เพิ่มทะเบียนรถ</div>
           <div id="pm-vehicle-sup-label" class="text-xs text-violet-600 font-bold mb-4"></div>
-          <input type="text" id="pm-vehicle-plate" placeholder="เลขทะเบียน เช่น กข-1234" maxlength="20"
-            class="w-full border-2 border-slate-100 rounded-xl px-4 py-3 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm mb-4 uppercase">
+          <!-- โหมดเพิ่มใหม่: textarea หลายทะเบียน -->
+          <div id="pm-vehicle-multi-wrap">
+            <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ทะเบียนรถ (กรอกทีละบรรทัด หรือคั่นด้วยจุลภาค)</label>
+            <textarea id="pm-vehicle-plates" rows="4" placeholder="เช่น&#10;กข-1234&#10;กข-5678&#10;บค-9999"
+              class="w-full border-2 border-slate-100 rounded-xl px-4 py-3 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm mb-1 uppercase resize-none"></textarea>
+            <div class="text-[9px] text-slate-400 mb-4">คั่นด้วยขึ้นบรรทัดใหม่หรือจุลภาค (,) ได้</div>
+          </div>
+          <!-- โหมดแก้ไข: input เดียว -->
+          <div id="pm-vehicle-single-wrap" class="hidden">
+            <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ทะเบียนรถ</label>
+            <input type="text" id="pm-vehicle-plate" placeholder="เลขทะเบียน เช่น กข-1234" maxlength="20"
+              class="w-full border-2 border-slate-100 rounded-xl px-4 py-3 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm mb-4 uppercase">
+          </div>
           <input type="hidden" id="pm-vehicle-old-plate">
           <input type="hidden" id="pm-vehicle-sup-name">
           <div class="flex gap-3">
@@ -4846,6 +4857,9 @@
       const empty = document.getElementById('pm-empty');
       if (!grid) return;
 
+      // เก็บ scroll position ก่อน render
+      const scrollY = window.scrollY;
+
       // กรองตาม status
       let pics = data.pics;
       if (filter === 'active')   pics = pics.filter(function(p){ return p.status !== 'inactive'; });
@@ -4925,6 +4939,9 @@
           </div>
         </div>`;
       }).join('');
+
+      // restore scroll หลัง render เสร็จ
+      requestAnimationFrame(function() { window.scrollTo({ top: scrollY, behavior: 'instant' }); });
     }
 
     async function togglePicStatus(pi) {
@@ -5205,22 +5222,40 @@
       if (!pic) return;
 
       const btn = document.getElementById('pm-save-sup-btn');
-      if (btn) { btn.disabled = true; btn.innerHTML = '⏳ กำลังบันทึก...'; }
+      if (btn) { btn.disabled = true; btn.innerHTML = '⏳ กำลังบันทึก ' + toAdd.length + ' รายการ...'; }
 
-      let added = 0;
-      for (const name of toAdd) {
-        // ข้ามถ้ามีอยู่แล้ว
-        if (pic.suppliers.some(s => s.toLowerCase() === name.toLowerCase())) continue;
-        const res = await callAPI('savePicMasterEntry', { picName: pic.name, supplier: name });
-        if (res && res.success && !res.skipped) {
-          allPicMaster.push({ pic_name: pic.name, supplier: name, created_at: new Date().toISOString() });
-          added++;
-        }
+      // กรองเฉพาะที่ยังไม่มี (client-side)
+      const newOnes = toAdd.filter(function(name) {
+        return !pic.suppliers.some(function(s){ return String(s).toLowerCase() === name.toLowerCase(); });
+      });
+
+      if (newOnes.length === 0) {
+        showToast('ทุกรายการมีอยู่แล้ว');
+        if (btn) { btn.disabled = false; btn.innerHTML = '✅ บันทึก'; }
+        closePmSupModal();
+        return;
       }
 
-      closePmSupModal();
-      updatePicMaster();
-      if (added > 0) showToast(`เพิ่ม ${added} Supplier ให้ ${pic.name} แล้ว ✅`);
+      try {
+        // ส่งทีเดียว — 1 API call ไม่ว่าจะกี่รายการ
+        const res = await callAPI('savePicMasterBatch', { picName: pic.name, suppliers: newOnes });
+        if (res && res.success) {
+          // Optimistic: เพิ่มใน allPicMaster ทันที
+          const now = new Date().toISOString();
+          newOnes.forEach(function(name) {
+            allPicMaster.push({ pic_name: pic.name, supplier: name, created_at: now, updated_at: now, status: 'active' });
+          });
+          showToast('เพิ่ม ' + res.added + ' Supplier แล้ว' + (res.skipped > 0 ? ' (ข้าม ' + res.skipped + ' ที่มีอยู่แล้ว)' : ''));
+          closePmSupModal();
+          renderPicMasterCards(_pmCurrentFilter);
+        } else {
+          showToast('ไม่สำเร็จ: ' + (res?.message || ''));
+          if (btn) { btn.disabled = false; btn.innerHTML = '✅ บันทึก'; }
+        }
+      } catch(e) {
+        showToast('Error: ' + e.message);
+        if (btn) { btn.disabled = false; btn.innerHTML = '✅ บันทึก'; }
+      }
     }
 
     async function deleteSupFromPic(pi, si) {
@@ -6377,22 +6412,27 @@
     window.openAddVehicleModal = function(supName) {
       document.getElementById('pm-vehicle-modal-title').innerText = '+ เพิ่มทะเบียนรถ';
       document.getElementById('pm-vehicle-sup-label').innerText = '🏭 ' + supName;
-      document.getElementById('pm-vehicle-plate').value = '';
+      document.getElementById('pm-vehicle-multi-wrap').classList.remove('hidden');
+      document.getElementById('pm-vehicle-single-wrap').classList.add('hidden');
+      document.getElementById('pm-vehicle-plates').value = '';
       document.getElementById('pm-vehicle-old-plate').value = '';
       document.getElementById('pm-vehicle-sup-name').value = supName;
       const modal = document.getElementById('pm-vehicle-modal');
       modal.classList.remove('hidden'); modal.classList.add('flex');
-      setTimeout(function(){ document.getElementById('pm-vehicle-plate')?.focus(); }, 100);
+      setTimeout(function(){ document.getElementById('pm-vehicle-plates')?.focus(); }, 100);
     };
 
     window.editVehicle = function(supName, plate) {
-      document.getElementById('pm-vehicle-modal-title').innerText = '✏️ แก้ไขทะเบียนรถ';
+      document.getElementById('pm-vehicle-modal-title').innerText = 'แก้ไขทะเบียนรถ';
       document.getElementById('pm-vehicle-sup-label').innerText = '🏭 ' + supName;
+      document.getElementById('pm-vehicle-multi-wrap').classList.add('hidden');
+      document.getElementById('pm-vehicle-single-wrap').classList.remove('hidden');
       document.getElementById('pm-vehicle-plate').value = plate;
       document.getElementById('pm-vehicle-old-plate').value = plate;
       document.getElementById('pm-vehicle-sup-name').value = supName;
       const modal = document.getElementById('pm-vehicle-modal');
       modal.classList.remove('hidden'); modal.classList.add('flex');
+      setTimeout(function(){ document.getElementById('pm-vehicle-plate')?.focus(); }, 100);
     };
 
     window.closeVehicleModal = function() {
@@ -6401,43 +6441,60 @@
     };
 
     window.saveVehicle = async function() {
-      const plate    = (document.getElementById('pm-vehicle-plate')?.value || '').trim().toUpperCase();
       const oldPlate = (document.getElementById('pm-vehicle-old-plate')?.value || '').trim();
       const supName  = (document.getElementById('pm-vehicle-sup-name')?.value || '').trim();
-      if (!plate) { showToast('กรุณากรอกเลขทะเบียน'); return; }
+      const isEdit   = !!oldPlate;
 
-      // Optimistic update
-      if (oldPlate) {
+      if (isEdit) {
+        const plate = (document.getElementById('pm-vehicle-plate')?.value || '').trim().toUpperCase();
+        if (!plate) { showToast('กรุณากรอกเลขทะเบียน'); return; }
         const idx = _vehicleData.findIndex(function(v){ return v.supplier_name===supName && v.license_plate===oldPlate; });
         if (idx >= 0) _vehicleData[idx].license_plate = plate;
-      } else {
-        _vehicleData.push({ supplier_name: supName, license_plate: plate });
-      }
-      closeVehicleModal();
-      renderPicMasterCards(_pmCurrentFilter);
-
-      try {
-        let res;
-        if (oldPlate) {
-          res = await callAPI('updateVehicle', { supplierName: supName, oldPlate: oldPlate, newPlate: plate });
-        } else {
-          res = await callAPI('addVehicle', { supplierName: supName, licensePlate: plate });
-        }
-        if (!res || !res.success) {
-          // Rollback
-          if (oldPlate) {
-            const idx = _vehicleData.findIndex(function(v){ return v.supplier_name===supName && v.license_plate===plate; });
+        closeVehicleModal();
+        renderPicMasterCards(_pmCurrentFilter);
+        try {
+          const res = await callAPI('updateVehicle', { supplierName: supName, oldPlate: oldPlate, newPlate: plate });
+          if (!res || !res.success) {
             if (idx >= 0) _vehicleData[idx].license_plate = oldPlate;
-          } else {
-            _vehicleData = _vehicleData.filter(function(v){ return !(v.supplier_name===supName && v.license_plate===plate); });
-          }
+            renderPicMasterCards(_pmCurrentFilter);
+            showToast('ไม่สำเร็จ: ' + (res?.message||''));
+          } else { showToast('แก้ไขทะเบียน ' + plate + ' แล้ว'); }
+        } catch(e) {
+          if (idx >= 0) _vehicleData[idx].license_plate = oldPlate;
           renderPicMasterCards(_pmCurrentFilter);
-          showToast('ไม่สำเร็จ: ' + (res?.message||''));
-        } else {
-          showToast((oldPlate ? 'แก้ไข' : 'เพิ่ม') + 'ทะเบียน ' + plate + ' แล้ว');
+          showToast('Error: ' + e.message);
         }
-      } catch(e) { showToast('Error: ' + e.message); }
+      } else {
+        const raw = (document.getElementById('pm-vehicle-plates')?.value || '');
+        const plates = raw.split(/[\n,]+/).map(function(p){ return p.trim().toUpperCase(); }).filter(function(p){ return p.length > 0; });
+        if (plates.length === 0) { showToast('กรุณากรอกเลขทะเบียนอย่างน้อย 1 คัน'); return; }
+        const existing = new Set(_vehicleData.filter(function(v){ return v.supplier_name===supName; }).map(function(v){ return v.license_plate.toUpperCase(); }));
+        const newPlates = plates.filter(function(p){ return !existing.has(p); });
+        const dupCount  = plates.length - newPlates.length;
+        if (newPlates.length === 0) { showToast('ทะเบียนทั้งหมดมีอยู่แล้ว'); return; }
+        newPlates.forEach(function(p){ _vehicleData.push({ supplier_name: supName, license_plate: p }); });
+        closeVehicleModal();
+        renderPicMasterCards(_pmCurrentFilter);
+        try {
+          const results = await Promise.all(newPlates.map(function(p){
+            return callAPI('addVehicle', { supplierName: supName, licensePlate: p }).catch(function(){ return { success: false }; });
+          }));
+          const failed = results.filter(function(r){ return !r || !r.success; });
+          if (failed.length > 0) {
+            newPlates.forEach(function(p, i){
+              if (!results[i] || !results[i].success) {
+                _vehicleData = _vehicleData.filter(function(v){ return !(v.supplier_name===supName && v.license_plate===p); });
+              }
+            });
+            renderPicMasterCards(_pmCurrentFilter);
+            showToast('บันทึก ' + (newPlates.length-failed.length) + ' คัน, ไม่สำเร็จ ' + failed.length + ' คัน');
+          } else {
+            showToast('เพิ่ม ' + newPlates.length + ' ทะเบียนแล้ว' + (dupCount>0?' (ข้าม '+dupCount+' ซ้ำ)':''));
+          }
+        } catch(e) { showToast('Error: ' + e.message); }
+      }
     };
+
 
     window.deleteVehicle = async function(supName, plate) {
       if (!confirm('ลบทะเบียน ' + plate + ' ออก?')) return;
