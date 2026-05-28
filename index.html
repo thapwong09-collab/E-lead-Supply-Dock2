@@ -1347,6 +1347,22 @@
         </div>
       </div>
 
+      <!-- Modal เพิ่ม/แก้ไขทะเบียนรถ -->
+      <div id="pm-vehicle-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl">
+          <div id="pm-vehicle-modal-title" class="font-black text-slate-700 mb-1">+ เพิ่มทะเบียนรถ</div>
+          <div id="pm-vehicle-sup-label" class="text-xs text-violet-600 font-bold mb-4"></div>
+          <input type="text" id="pm-vehicle-plate" placeholder="เลขทะเบียน เช่น กข-1234" maxlength="20"
+            class="w-full border-2 border-slate-100 rounded-xl px-4 py-3 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm mb-4 uppercase">
+          <input type="hidden" id="pm-vehicle-old-plate">
+          <input type="hidden" id="pm-vehicle-sup-name">
+          <div class="flex gap-3">
+            <button type="button" onclick="closeVehicleModal()" class="flex-1 bg-slate-100 text-slate-500 py-3 rounded-xl font-bold text-sm cursor-pointer">ยกเลิก</button>
+            <button type="button" onclick="saveVehicle()" class="flex-1 bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">บันทึก</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Modal QR Code -->
       <div id="pm-qr-modal" class="fixed inset-0 z-[300] hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4">
         <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
@@ -1756,12 +1772,10 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const COMPANY_FROM_URL = urlParams.get('supplier') || urlParams.get('company') || '';
+    const PLATE_FROM_URL   = urlParams.get('plate') || '';
 
-    // Auto-redirect ถ้ามี ?supplier= ใน URL
     if (COMPANY_FROM_URL) {
-      document.addEventListener('DOMContentLoaded', function() {
-        showSupplierView();
-      });
+      document.addEventListener('DOMContentLoaded', function() { showSupplierView(); });
     }
     const LICENSE_FROM_URL = urlParams.get('license') || urlParams.get('plate') || '';
 
@@ -4564,17 +4578,23 @@
     // ลบ localStorage เก่าถ้ายังมีค้างอยู่
     try { localStorage.removeItem('pic_master_data'); } catch(e) {}
 
-    let _supplierMasterList = []; // รายชื่อจาก QR for Supplier1
-    let _pmCurrentFilter = 'active';
+    let _supplierMasterList = [];
+    let _vehicleData = []; // { supplier_name, license_plate }
 
     async function updatePicMaster() {
-      // โหลด Supplier Master ถ้ายังไม่มี
+      // โหลด Supplier Master และ Vehicles ถ้ายังไม่มี
+      const promises = [];
       if (_supplierMasterList.length === 0) {
-        try {
-          const res = await callAPI('getSupplierMaster');
+        promises.push(callAPI('getSupplierMaster').then(function(res){
           if (res && res.success) _supplierMasterList = res.suppliers || [];
-        } catch(e) {}
+        }).catch(function(){}));
       }
+      if (_vehicleData.length === 0) {
+        promises.push(callAPI('getVehicles').then(function(res){
+          if (res && res.success) _vehicleData = res.data || [];
+        }).catch(function(){}));
+      }
+      if (promises.length > 0) await Promise.all(promises);
       renderPicMasterCards(_pmCurrentFilter);
     }
 
@@ -4632,18 +4652,42 @@
                 class="bg-white/10 hover:bg-rose-500 text-white text-[9px] font-black px-2 py-1 rounded-lg cursor-pointer">✕</button>
             </div>
           </div>
-          <div class="divide-y divide-slate-50 ${sups.length > 8 ? 'max-h-72 overflow-y-auto' : ''}">
+          <div class="divide-y divide-slate-50 ${sups.length > 6 ? 'max-h-80 overflow-y-auto' : ''}">
             ${sups.length === 0
               ? '<div class="px-4 py-5 text-center text-slate-300 text-xs font-bold">ยังไม่มี Supplier</div>'
-              : sups.map(function(s, si){ return `
-                <div class="flex items-center justify-between px-4 py-2.5 hover:bg-violet-50 group">
-                  <span class="font-bold text-slate-700 text-xs">${s}</span>
-                  ${isActive ? `<button type="button" onclick="deleteSupFromPic(${pi},${si})" class="opacity-0 group-hover:opacity-100 text-slate-200 hover:text-rose-500 cursor-pointer ml-2 flex-shrink-0">✕</button>` : ''}
-                </div>`; }).join('')
+              : sups.map(function(s, si) {
+                  const vehicles = _vehicleData.filter(function(v){ return String(v.supplier_name||'').toLowerCase() === String(s).toLowerCase(); });
+                  const vList = vehicles.map(function(v, vi) {
+                    return '<div class="flex items-center justify-between pl-8 pr-4 py-2 bg-slate-50/50 hover:bg-violet-50/50 group border-t border-slate-50">' +
+                      '<div class="flex items-center gap-2">' +
+                        '<span class="text-slate-300">🚛</span>' +
+                        '<span id="vplate-' + pi + '-' + si + '-' + vi + '" class="text-xs font-bold text-slate-600">' + (v.license_plate||'') + '</span>' +
+                      '</div>' +
+                      (isActive ? '<div class="flex gap-1 opacity-0 group-hover:opacity-100">' +
+                        '<button type="button" onclick="editVehicle(\'' + s.replace(/'/g,"\\'") + '\',\'' + (v.license_plate||'').replace(/'/g,"\\'") + '\',' + pi + ',' + si + ',' + vi + ')" class="text-[9px] text-blue-400 hover:text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded cursor-pointer">แก้</button>' +
+                        '<button type="button" onclick="deleteVehicle(\'' + s.replace(/'/g,"\\'") + '\',\'' + (v.license_plate||'').replace(/'/g,"\\'") + '\')" class="text-[9px] text-rose-400 hover:text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded cursor-pointer">ลบ</button>' +
+                        '<button type="button" onclick="openQrSingle(\'' + s.replace(/'/g,"\\'") + '\',\'' + (v.license_plate||'').replace(/'/g,"\\'") + '\')" class="text-[9px] text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded cursor-pointer">QR</button>' +
+                      '</div>' : '') +
+                    '</div>';
+                  }).join('');
+                  return '<div>' +
+                    '<div class="flex items-center justify-between px-4 py-2.5 hover:bg-violet-50 group">' +
+                      '<div>' +
+                        '<div class="font-bold text-slate-700 text-xs">' + s + '</div>' +
+                        '<div class="text-[9px] text-slate-400">' + vehicles.length + ' ทะเบียน</div>' +
+                      '</div>' +
+                      (isActive ? '<div class="flex gap-1 opacity-0 group-hover:opacity-100">' +
+                        '<button type="button" onclick="openAddVehicleModal(\'' + s.replace(/'/g,"\\'") + '\')" class="text-[9px] text-violet-600 bg-violet-50 border border-violet-200 px-2 py-1 rounded-lg cursor-pointer">+ รถ</button>' +
+                        '<button type="button" onclick="deleteSupFromPic(' + pi + ',' + si + ')" class="text-[9px] text-rose-400 hover:text-rose-600 bg-rose-50 border border-rose-100 px-2 py-1 rounded-lg cursor-pointer">ลบ</button>' +
+                      '</div>' : '') +
+                    '</div>' +
+                    vList +
+                  '</div>';
+                }).join('')
             }
           </div>
-          <div class="px-4 py-2 bg-slate-50 border-t">
-            <span class="text-[9px] font-bold text-slate-400">${sups.length} Supplier</span>
+          <div class="px-4 py-2 bg-slate-50 border-t flex items-center justify-between">
+            <span class="text-[9px] font-bold text-slate-400">${sups.length} Supplier · ${_vehicleData.filter(function(v){ return sups.some(function(s){ return String(s).toLowerCase()===String(v.supplier_name||'').toLowerCase(); }); }).length} ทะเบียน</span>
           </div>
         </div>`;
       }).join('');
@@ -6050,18 +6094,103 @@
     // =====================================================
     // =====================================================
     // =====================================================
+    // VEHICLE MANAGEMENT
+    // =====================================================
+    window.openAddVehicleModal = function(supName) {
+      document.getElementById('pm-vehicle-modal-title').innerText = '+ เพิ่มทะเบียนรถ';
+      document.getElementById('pm-vehicle-sup-label').innerText = '🏭 ' + supName;
+      document.getElementById('pm-vehicle-plate').value = '';
+      document.getElementById('pm-vehicle-old-plate').value = '';
+      document.getElementById('pm-vehicle-sup-name').value = supName;
+      const modal = document.getElementById('pm-vehicle-modal');
+      modal.classList.remove('hidden'); modal.classList.add('flex');
+      setTimeout(function(){ document.getElementById('pm-vehicle-plate')?.focus(); }, 100);
+    };
+
+    window.editVehicle = function(supName, plate) {
+      document.getElementById('pm-vehicle-modal-title').innerText = '✏️ แก้ไขทะเบียนรถ';
+      document.getElementById('pm-vehicle-sup-label').innerText = '🏭 ' + supName;
+      document.getElementById('pm-vehicle-plate').value = plate;
+      document.getElementById('pm-vehicle-old-plate').value = plate;
+      document.getElementById('pm-vehicle-sup-name').value = supName;
+      const modal = document.getElementById('pm-vehicle-modal');
+      modal.classList.remove('hidden'); modal.classList.add('flex');
+    };
+
+    window.closeVehicleModal = function() {
+      const modal = document.getElementById('pm-vehicle-modal');
+      modal.classList.add('hidden'); modal.classList.remove('flex');
+    };
+
+    window.saveVehicle = async function() {
+      const plate    = (document.getElementById('pm-vehicle-plate')?.value || '').trim().toUpperCase();
+      const oldPlate = (document.getElementById('pm-vehicle-old-plate')?.value || '').trim();
+      const supName  = (document.getElementById('pm-vehicle-sup-name')?.value || '').trim();
+      if (!plate) { showToast('กรุณากรอกเลขทะเบียน'); return; }
+
+      // Optimistic update
+      if (oldPlate) {
+        const idx = _vehicleData.findIndex(function(v){ return v.supplier_name===supName && v.license_plate===oldPlate; });
+        if (idx >= 0) _vehicleData[idx].license_plate = plate;
+      } else {
+        _vehicleData.push({ supplier_name: supName, license_plate: plate });
+      }
+      closeVehicleModal();
+      renderPicMasterCards(_pmCurrentFilter);
+
+      try {
+        let res;
+        if (oldPlate) {
+          res = await callAPI('updateVehicle', { supplierName: supName, oldPlate: oldPlate, newPlate: plate });
+        } else {
+          res = await callAPI('addVehicle', { supplierName: supName, licensePlate: plate });
+        }
+        if (!res || !res.success) {
+          // Rollback
+          if (oldPlate) {
+            const idx = _vehicleData.findIndex(function(v){ return v.supplier_name===supName && v.license_plate===plate; });
+            if (idx >= 0) _vehicleData[idx].license_plate = oldPlate;
+          } else {
+            _vehicleData = _vehicleData.filter(function(v){ return !(v.supplier_name===supName && v.license_plate===plate); });
+          }
+          renderPicMasterCards(_pmCurrentFilter);
+          showToast('ไม่สำเร็จ: ' + (res?.message||''));
+        } else {
+          showToast((oldPlate ? 'แก้ไข' : 'เพิ่ม') + 'ทะเบียน ' + plate + ' แล้ว');
+        }
+      } catch(e) { showToast('Error: ' + e.message); }
+    };
+
+    window.deleteVehicle = async function(supName, plate) {
+      if (!confirm('ลบทะเบียน ' + plate + ' ออก?')) return;
+      // Optimistic
+      _vehicleData = _vehicleData.filter(function(v){ return !(v.supplier_name===supName && v.license_plate===plate); });
+      renderPicMasterCards(_pmCurrentFilter);
+      try {
+        const res = await callAPI('deleteVehicle', { supplierName: supName, licensePlate: plate });
+        if (!res || !res.success) {
+          _vehicleData.push({ supplier_name: supName, license_plate: plate });
+          renderPicMasterCards(_pmCurrentFilter);
+          showToast('ลบไม่สำเร็จ');
+        } else { showToast('ลบทะเบียน ' + plate + ' แล้ว'); }
+      } catch(e) { showToast('Error: ' + e.message); }
+    };
+
+    // =====================================================
     // QR CODE MANAGEMENT
     // =====================================================
     const BASE_URL = 'https://thapwong09-collab.github.io/E-lead-Supply-Dock2/';
 
-    function getSupplierCheckinUrl(supplierName) {
-      return BASE_URL + '?supplier=' + encodeURIComponent(supplierName);
+    function getSupplierCheckinUrl(supplierName, licensePlate) {
+      let url = BASE_URL + '?supplier=' + encodeURIComponent(supplierName);
+      if (licensePlate) url += '&plate=' + encodeURIComponent(licensePlate);
+      return url;
     }
 
-    async function generateQrCanvas(supplierName, size) {
+    async function generateQrCanvas(supplierName, licensePlate, size) {
       size = size || 180;
       const canvas = document.createElement('canvas');
-      const url = getSupplierCheckinUrl(supplierName);
+      const url = getSupplierCheckinUrl(supplierName, licensePlate);
       await QRCode.toCanvas(canvas, url, {
         width: size, margin: 1,
         color: { dark: '#1e293b', light: '#ffffff' }
@@ -6069,85 +6198,120 @@
       return canvas;
     }
 
-    function buildQrCard(supplierName, canvas, showLabel) {
+    function buildQrCard(label, sublabel, canvas) {
       const wrap = document.createElement('div');
       wrap.className = 'flex flex-col items-center gap-2 p-4 bg-white border-2 border-slate-100 rounded-2xl text-center qr-card';
       if (canvas) wrap.appendChild(canvas);
-      if (showLabel !== false) {
-        const label = document.createElement('div');
-        label.className = 'font-black text-slate-700 text-xs leading-tight max-w-[160px] text-center';
-        label.innerText = supplierName;
-        wrap.appendChild(label);
-        const url = document.createElement('div');
-        url.className = 'text-[9px] text-slate-400 break-all max-w-[160px]';
-        url.innerText = 'scan to check-in';
-        wrap.appendChild(url);
+      const nameEl = document.createElement('div');
+      nameEl.className = 'font-black text-slate-700 text-xs leading-tight max-w-[160px] text-center';
+      nameEl.innerText = label;
+      wrap.appendChild(nameEl);
+      if (sublabel) {
+        const subEl = document.createElement('div');
+        subEl.className = 'text-[10px] text-violet-600 font-black';
+        subEl.innerText = sublabel;
+        wrap.appendChild(subEl);
       }
+      const hint = document.createElement('div');
+      hint.className = 'text-[9px] text-slate-400';
+      hint.innerText = 'scan to check-in';
+      wrap.appendChild(hint);
       return wrap;
     }
 
-    async function openQrPic(picName, picKey) {
+    window.openQrSingle = async function(supName, plate) {
+      document.getElementById('pm-qr-modal-title').innerText = '🖨️ QR — ' + supName + ' (' + plate + ')';
+      const grid = document.getElementById('pm-qr-grid');
+      grid.innerHTML = '<div class="col-span-full text-center text-slate-400 text-xs animate-pulse">กำลังสร้าง QR...</div>';
+      const modal = document.getElementById('pm-qr-modal');
+      modal.classList.remove('hidden'); modal.classList.add('flex');
+      try {
+        const canvas = await generateQrCanvas(supName, plate, 220);
+        grid.innerHTML = '';
+        grid.style.gridTemplateColumns = '1fr';
+        grid.appendChild(buildQrCard(supName, plate, canvas));
+      } catch(e) { grid.innerHTML = '<div class="col-span-full text-rose-400 text-xs">Error: ' + e.message + '</div>'; }
+    };
+
+    async function openQrPic(picName) {
       const data = buildPicStructure(allPicMaster);
       const pic  = data.pics.find(function(p){ return p.name === picName; });
       if (!pic || pic.suppliers.length === 0) { showToast('PIC นี้ยังไม่มี Supplier'); return; }
 
-      document.getElementById('pm-qr-modal-title').innerText = '🖨️ QR — ' + picName + ' (' + pic.suppliers.length + ' Supplier)';
+      // หา vehicles ของ PIC นี้
+      const supVehicles = [];
+      pic.suppliers.forEach(function(s) {
+        const vlist = _vehicleData.filter(function(v){ return String(v.supplier_name||'').toLowerCase() === String(s).toLowerCase(); });
+        if (vlist.length > 0) {
+          vlist.forEach(function(v){ supVehicles.push({ sup: s, plate: v.license_plate }); });
+        } else {
+          supVehicles.push({ sup: s, plate: '' }); // ยังไม่มีทะเบียน
+        }
+      });
+
+      document.getElementById('pm-qr-modal-title').innerText = '🖨️ QR — ' + picName + ' (' + supVehicles.length + ' QR)';
       const grid = document.getElementById('pm-qr-grid');
+      grid.style.gridTemplateColumns = '';
       grid.innerHTML = '<div class="col-span-full text-center text-slate-400 text-xs animate-pulse">กำลังสร้าง QR...</div>';
       const modal = document.getElementById('pm-qr-modal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      modal.classList.remove('hidden'); modal.classList.add('flex');
 
       grid.innerHTML = '';
-      for (const sup of pic.suppliers) {
+      for (const item of supVehicles) {
         try {
-          const canvas = await generateQrCanvas(sup);
-          grid.appendChild(buildQrCard(sup, canvas));
-        } catch(e) {
-          const err = document.createElement('div');
-          err.className = 'text-xs text-rose-400 p-4';
-          err.innerText = sup + ': error';
-          grid.appendChild(err);
-        }
+          if (!item.plate) {
+            const noplate = document.createElement('div');
+            noplate.className = 'flex flex-col items-center gap-2 p-4 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl text-center';
+            noplate.innerHTML = '<div class="text-3xl opacity-30">🚛</div><div class="font-black text-slate-400 text-xs">' + item.sup + '</div><div class="text-[9px] text-slate-300">ยังไม่มีทะเบียน</div>';
+            grid.appendChild(noplate);
+          } else {
+            const canvas = await generateQrCanvas(item.sup, item.plate);
+            grid.appendChild(buildQrCard(item.sup, item.plate, canvas));
+          }
+        } catch(e) {}
       }
     }
 
     async function openQrAll() {
-      const data = buildPicStructure(allPicMaster);
+      const data   = buildPicStructure(allPicMaster);
       const active = data.pics.filter(function(p){ return p.status !== 'inactive' && p.suppliers.length > 0; });
       if (active.length === 0) { showToast('ยังไม่มี Supplier ที่ Active'); return; }
 
-      document.getElementById('pm-qr-modal-title').innerText = '🖨️ QR ทั้งหมด — ' + active.length + ' PIC';
+      document.getElementById('pm-qr-modal-title').innerText = '🖨️ QR ทั้งหมด';
       const grid = document.getElementById('pm-qr-grid');
+      grid.style.gridTemplateColumns = '';
       grid.innerHTML = '<div class="col-span-full text-center text-slate-400 text-xs animate-pulse">กำลังสร้าง QR...</div>';
       const modal = document.getElementById('pm-qr-modal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-
+      modal.classList.remove('hidden'); modal.classList.add('flex');
       grid.innerHTML = '';
+
       for (const pic of active) {
-        // Header แต่ละ PIC
         const header = document.createElement('div');
         header.className = 'col-span-full bg-violet-50 rounded-xl px-4 py-2 font-black text-violet-700 text-sm mt-2';
         header.innerText = '👤 ' + pic.name;
         grid.appendChild(header);
 
-        for (const sup of pic.suppliers) {
-          try {
-            const canvas = await generateQrCanvas(sup);
-            grid.appendChild(buildQrCard(sup, canvas));
-          } catch(e) {}
+        for (const s of pic.suppliers) {
+          const vlist = _vehicleData.filter(function(v){ return String(v.supplier_name||'').toLowerCase() === String(s).toLowerCase(); });
+          if (vlist.length === 0) {
+            const noplate = document.createElement('div');
+            noplate.className = 'flex flex-col items-center gap-2 p-4 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl text-center';
+            noplate.innerHTML = '<div class="text-2xl opacity-30">🚛</div><div class="font-black text-slate-400 text-xs">' + s + '</div><div class="text-[9px] text-slate-300">ยังไม่มีทะเบียน</div>';
+            grid.appendChild(noplate);
+          } else {
+            for (const v of vlist) {
+              try {
+                const canvas = await generateQrCanvas(s, v.license_plate);
+                grid.appendChild(buildQrCard(s, v.license_plate, canvas));
+              } catch(e) {}
+            }
+          }
         }
       }
     }
 
-    window.closeQrModal = function() {
-      const modal = document.getElementById('pm-qr-modal');
-      if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
-    };
-
-    window.openQrAll  = openQrAll;
-    window.openQrPic  = openQrPic;
+    window.openQrAll = openQrAll;
+    window.openQrPic = openQrPic;
 
     window.printQrModal = function() {
       const grid = document.getElementById('pm-qr-grid');
