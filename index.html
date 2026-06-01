@@ -2163,6 +2163,43 @@
     }
     const LICENSE_FROM_URL = urlParams.get('license') || urlParams.get('plate') || '';
 
+    // Auto-login จาก URL ?role=
+    (function() {
+      const role = urlParams.get('role') || '';
+      if (!role) return;
+      document.addEventListener('DOMContentLoaded', function() {
+        hideAll();
+        switch(role.toLowerCase()) {
+          case 'staff':
+            isStaffLoggedIn = true; _hashCheckin = ''; _hashParts = '';
+            document.getElementById('staff-view').classList.remove('hidden');
+            showStaffTab('queue'); fetchAll();
+            break;
+          case 'pic':
+            isPICLoggedIn = true;
+            document.getElementById('pic-view').classList.remove('hidden');
+            showPicTab('upload503');
+            break;
+          case 'planning':
+            isPlanningLoggedIn = true;
+            document.getElementById('planning-view').classList.remove('hidden');
+            showPlanningTab('urgent');
+            break;
+          case 'manager':
+            isManagerLoggedIn = true;
+            document.getElementById('manager-view').classList.remove('hidden');
+            initManagerView();
+            break;
+          case 'guard':
+            document.getElementById('guard-view').classList.remove('hidden');
+            initGuardScanner();
+            break;
+          default:
+            showRoleSelection();
+        }
+      });
+    })();
+
     // ==========================================
     // FETCH ALL DATA
     // ==========================================
