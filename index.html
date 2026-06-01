@@ -84,6 +84,14 @@
   
   <div id="debug-error" class="hidden fixed top-0 w-full bg-rose-600 text-white font-bold p-3 z-[9999] text-xs text-center shadow-lg"></div>
 
+  <!-- Maintenance Mode Overlay -->
+  <div id="maintenance-overlay" class="hidden fixed inset-0 bg-slate-900 z-[99999] flex flex-col items-center justify-center text-center p-8">
+    <div class="text-6xl mb-6">🔧</div>
+    <div class="text-white font-black text-2xl mb-3">ระบบปิดปรับปรุงชั่วคราว</div>
+    <div id="maintenance-message" class="text-slate-400 font-bold text-sm max-w-md">กรุณาติดต่อ Staff</div>
+    <div class="mt-8 text-slate-600 text-xs">E-lead Supply Dock2</div>
+  </div>
+
   <div id="app" class="h-full w-full overflow-auto bg-gradient-to-br from-blue-50 to-indigo-50 relative">
     
     <!-- ================= หน้าเลือก Role ================= -->
@@ -213,6 +221,7 @@
           <button type="button" onclick="showStaffTab('daily')" id="tab-daily" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">สรุปวันนี้</button>
           <button type="button" onclick="showStaffTab('parts')" id="tab-parts" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📦 Parts Dashboard</button>
           <button type="button" onclick="showStaffTab('trend')" id="tab-trend" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📈 เปรียบเทียบ</button>
+          <button type="button" onclick="showStaffTab('settings')" id="tab-settings" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">⚙️ ตั้งค่า</button>
         </div>
       </div>
 
@@ -697,6 +706,117 @@
 
       </div>
 
+      <!-- Tab: ตั้งค่า -->
+      <div id="page-settings" class="hidden max-w-3xl mx-auto p-4 space-y-4 fade-in">
+
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="font-black text-slate-800 text-xl">⚙️ ตั้งค่าระบบ</div>
+            <div class="text-xs text-slate-400 mt-0.5">เปิด/ปิดฟีเจอร์ต่างๆ — บันทึกลง Google Sheet</div>
+          </div>
+          <button type="button" onclick="saveSystemSettings()" id="settings-save-btn"
+            class="bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm cursor-pointer shadow-md">
+            💾 บันทึก
+          </button>
+        </div>
+
+        <!-- Maintenance Mode — โดดเด่นที่สุด -->
+        <div id="settings-maintenance-card" class="rounded-2xl border-2 p-5 transition-all">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center text-xl">🔧</div>
+              <div>
+                <div class="font-black text-slate-800 text-sm">Maintenance Mode</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">ปิดระบบชั่วคราว — ทุก Role เห็นหน้า "ปิดปรับปรุง" ยกเว้น Staff</div>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="set-maintenance_mode" class="sr-only peer" onchange="onSettingChange()">
+              <div class="w-12 h-6 bg-slate-200 peer-focus:ring-2 peer-focus:ring-rose-300 rounded-full peer peer-checked:bg-rose-500 transition-colors"></div>
+              <div class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-6"></div>
+            </label>
+          </div>
+          <div id="settings-maintenance-msg-wrap" class="hidden mt-3 pt-3 border-t border-slate-100">
+            <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ข้อความแสดงให้ผู้ใช้เห็น</label>
+            <input type="text" id="set-maintenance_message" placeholder="เช่น ระบบปิดปรับปรุงชั่วคราว"
+              class="w-full border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
+          </div>
+        </div>
+
+        <!-- Settings Grid -->
+        <div class="space-y-3">
+          <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">การเข้าใช้งาน</div>
+
+          <!-- Checkin -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center text-lg">🚚</div>
+              <div>
+                <div class="font-bold text-slate-700 text-sm">รับเช็คอิน Supplier</div>
+                <div class="text-[10px] text-slate-400">ถ้าปิด — ปุ่มเช็คอินจะถูก disable</div>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="set-checkin_enabled" class="sr-only peer" onchange="onSettingChange()">
+              <div class="w-11 h-6 bg-slate-200 peer-checked:bg-emerald-500 rounded-full peer transition-colors"></div>
+              <div class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5"></div>
+            </label>
+          </div>
+
+          <!-- GPS -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center text-lg">📍</div>
+              <div>
+                <div class="font-bold text-slate-700 text-sm">ตรวจสอบ GPS ก่อนเช็คอิน</div>
+                <div class="text-[10px] text-slate-400">ถ้าปิด — เช็คอินได้โดยไม่ต้องอยู่ในรัศมี 5 กม.</div>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="set-gps_check_enabled" class="sr-only peer" onchange="onSettingChange()">
+              <div class="w-11 h-6 bg-slate-200 peer-checked:bg-emerald-500 rounded-full peer transition-colors"></div>
+              <div class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5"></div>
+            </label>
+          </div>
+
+          <!-- Guard Scan -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center text-lg">👮</div>
+              <div>
+                <div class="font-bold text-slate-700 text-sm">Guard สแกน QR ปล่อยรถ</div>
+                <div class="text-[10px] text-slate-400">ถ้าปิด — รปภ.ยังเห็นหน้า Guard แต่ไม่ต้องสแกน</div>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="set-guard_scan_enabled" class="sr-only peer" onchange="onSettingChange()">
+              <div class="w-11 h-6 bg-slate-200 peer-checked:bg-emerald-500 rounded-full peer transition-colors"></div>
+              <div class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5"></div>
+            </label>
+          </div>
+
+          <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1 pt-2">การวางแผน</div>
+
+          <!-- Weekly Plan Lock -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center text-lg">🔒</div>
+              <div>
+                <div class="font-bold text-slate-700 text-sm">Lock Weekly Plan (จันทร์ 08:30)</div>
+                <div class="text-[10px] text-slate-400">ถ้าปิด — PIC สามารถ Confirm ได้ตลอดเวลา</div>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="set-weekly_plan_lock" class="sr-only peer" onchange="onSettingChange()">
+              <div class="w-11 h-6 bg-slate-200 peer-checked:bg-emerald-500 rounded-full peer transition-colors"></div>
+              <div class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5"></div>
+            </label>
+          </div>
+        </div>
+
+        <div id="settings-status" class="hidden text-center text-xs font-bold py-2 rounded-xl"></div>
+      </div>
+
     </div><!-- end staff-view -->
 
     <!-- ================= ส่วน PIC / จัดซื้อ ================= -->
@@ -753,6 +873,8 @@
             <div class="font-black text-violet-700 text-base mb-1">📊 สรุปไฟล์ที่อัพโหลด</div>
             <div class="text-xs text-slate-500">ตรวจสอบให้แน่ใจก่อนกดยืนยัน</div>
           </div>
+          <!-- Week Filter Banner -->
+          <div id="upload503-week-banner" class="hidden mx-6 mt-4 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-xs text-blue-700 font-bold"></div>
           <div class="p-6 space-y-4">
             <!-- Stats -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -2030,6 +2152,7 @@
               allPicMaster = res.picMaster || [];
             }
           }
+          if (res.settings) applySettings(res.settings);
           _partsDashboardDirty = true;
           refreshUI();
         } else {
@@ -2566,7 +2689,7 @@
       const raw = document.getElementById('pic-paste-area').value.trim();
       if (!raw) { alert('กรุณาวางข้อมูลก่อน'); return; }
       const { rows } = parsePasteData(raw);
-      if (rows.length === 0) { alert('ไม่พบข้อมูลที่สามารถอ่านได้ กรุณาตรวจสอบรูปแบบข้อมูล'); return; }
+      if (rows.length === 0) { showToast('ไม่พบข้อมูลที่สามารถอ่านได้ กรุณาตรวจสอบรูปแบบข้อมูล'); return; }
 
       // Merge ก่อน preview
       const merged = mergeRows(rows);
@@ -2640,7 +2763,7 @@
         setTimeout(() => mergeDuplicatePICRows(), 50);
         showToast(`นำเข้า ${added} รายการเรียบร้อย ✅`);
       } else {
-        alert('ไม่มีข้อมูลที่นำเข้าได้ (ต้องมีอย่างน้อย Vendor หรือ Part No.)');
+        showToast('ไม่มีข้อมูลที่นำเข้าได้ (ต้องมีอย่างน้อย Vendor หรือ Part No.)');
       }
     }
 
@@ -3326,7 +3449,7 @@
       if (camContainer) camContainer.classList.remove('hidden');
 
       if (typeof Html5Qrcode === 'undefined') {
-        alert('ไม่สามารถโหลดระบบกล้องได้');
+        showToast('ไม่สามารถโหลดระบบกล้องได้');
         if (btnRetry) btnRetry.classList.remove('hidden');
         return;
       }
@@ -3336,7 +3459,7 @@
         .catch(() => html5QrCode.start({ facingMode: "user" }, config, onScanSuccess, onScanFailure)
           .catch(() => {
             if (btnRetry) { btnRetry.classList.remove('hidden'); btnRetry.disabled = false; }
-            alert("ไม่สามารถเปิดกล้องได้");
+            showToast("ไม่สามารถเปิดกล้องได้");
           }));
     }
 
@@ -3469,8 +3592,27 @@
       const btn = document.getElementById('checkin-btn');
       if (btn) { btn.disabled = true; btn.innerText = '📍 กำลังตรวจสอบตำแหน่ง...'; }
 
-      // ตรวจสอบ GPS ก่อนเช็คอิน
-      if (!navigator.geolocation) {
+      // ตรวจสอบ settings
+      if (!_sysSettings.checkin_enabled) {
+        if (btn) { btn.disabled = false; btn.innerText = 'รับหมายเลขคิว'; }
+        showToast('ระบบปิดรับเช็คอินชั่วคราว', 'error');
+        return;
+      }
+
+      // ข้าม GPS ถ้าปิด setting
+      if (!_sysSettings.gps_check_enabled) {
+        if (btn) btn.innerText = 'กำลังประมวลผล...';
+        callAPI('createRecord', { companyName: name, licensePlate: license }).then(function(res) {
+          if (res.success) {
+            currentSupplierRecord = res.record;
+            safeSetLocal('my_active_queue', JSON.stringify(res.record));
+            fetchAll();
+            showSupplierStatus(res.record);
+          } else { showToast('Error: ' + res.message, 'error'); }
+          if (btn) { btn.disabled = false; btn.innerText = 'รับหมายเลขคิว'; }
+        });
+        return;
+      }
         if (btn) { btn.disabled = false; btn.innerText = 'รับหมายเลขคิว'; }
         { showToast('เบราว์เซอร์นี้ไม่รองรับ GPS กรุณาใช้เบราว์เซอร์อื่น'); return; }
       }
@@ -3480,7 +3622,7 @@
           const dist = calcDistanceKm(pos.coords.latitude, pos.coords.longitude, FACTORY_LAT, FACTORY_LNG);
           if (dist > MAX_RADIUS_KM) {
             if (btn) { btn.disabled = false; btn.innerText = 'รับหมายเลขคิว'; }
-            alert('❌ ไม่สามารถเช็คอินได้\n\nคุณอยู่ห่างจากโรงงาน ' + dist.toFixed(2) + ' กม.\n(อนุญาตสูงสุด ' + MAX_RADIUS_KM + ' กม.)');
+            showToast('❌ ไม่สามารถเช็คอินได้\n\nคุณอยู่ห่างจากโรงงาน ' + dist.toFixed(2) + ' กม.\n(อนุญาตสูงสุด ' + MAX_RADIUS_KM + ' กม.)');
             return;
           }
           // อยู่ในรัศมี → เช็คอินได้
@@ -3491,7 +3633,7 @@
               safeSetLocal('my_active_queue', JSON.stringify(res.record));
               fetchAll();
               showSupplierStatus(res.record);
-            } else { alert('Error: ' + res.message); }
+            } else { showToast('Error: ' + res.message, 'error'); }
             if (btn) { btn.disabled = false; btn.innerText = 'รับหมายเลขคิว'; }
           });
         },
@@ -3500,7 +3642,7 @@
           const msg = err.code === 1
             ? 'กรุณาอนุญาต GPS ในเบราว์เซอร์ก่อนเช็คอิน'
             : 'ไม่สามารถดึงตำแหน่ง GPS ได้ กรุณาลองใหม่';
-          alert('⚠️ ' + msg);
+          showToast('⚠️ ' + msg, 'error');
         },
         { timeout: 10000, maximumAge: 60000, enableHighAccuracy: true }
       );
@@ -3648,7 +3790,7 @@
         originalQueue: record.queue_number
       }).then(res => {
         pendingUpdates.delete(updateId);
-        if (!res || !res.success) alert('Error: ' + res.message);
+        if (!res || !res.success) showToast('Error: ' + res.message, 'error');
         fetchAll();
       });
     }
@@ -4037,7 +4179,7 @@
       if (tab === _lastStaffTab) return;
       _lastStaffTab = tab;
 
-      ['queue','weekly','daily','parts','trend'].forEach(t => {
+      ['queue','weekly','daily','parts','trend','settings'].forEach(t => {
         const p = document.getElementById('page-' + t);
         const b = document.getElementById('tab-' + t);
         if (p) p.classList.toggle('hidden', t !== tab);
@@ -4053,6 +4195,7 @@
         }, 100);
       }
       if (tab === 'trend') { onTrendModeChange('pd'); loadStaffTrend(); }
+      if (tab === 'settings') initSettingsPage();
     }
 
     function populateMonthSelector(elementId) {
@@ -5557,14 +5700,72 @@
       reader.readAsArrayBuffer(file);
     }
 
+    // คำนวณช่วงสัปดาห์ที่ควรกรอง
+    function getTargetWeekRange() {
+      const now   = new Date();
+      const day   = now.getDay(); // 0=อาทิตย์, 1=จันทร์ ... 6=เสาร์
+      const h     = now.getHours();
+      const min   = now.getMinutes();
+      const isMonday = day === 1;
+      const isBeforeDeadline = isMonday && (h < 8 || (h === 8 && min < 30));
+
+      // หาวันจันทร์ของสัปดาห์นี้
+      const thisMonday = new Date(now);
+      const daysToMon  = (day === 0) ? -6 : 1 - day;
+      thisMonday.setDate(now.getDate() + daysToMon);
+      thisMonday.setHours(0,0,0,0);
+
+      // ถ้า จันทร์ก่อน 08:30 → สัปดาห์นี้ ไม่งั้น → สัปดาห์ถัดไป
+      const targetMonday = new Date(thisMonday);
+      if (!isBeforeDeadline) targetMonday.setDate(thisMonday.getDate() + 7);
+
+      const targetSaturday = new Date(targetMonday);
+      targetSaturday.setDate(targetMonday.getDate() + 5); // จันทร์ + 5 = เสาร์
+
+      const fmt = function(d) {
+        return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+      };
+
+      return { from: fmt(targetMonday), to: fmt(targetSaturday) };
+    }
+
     function get503Filtered() {
       const dateFilter = (document.getElementById('upload503-date-filter') || {}).value || '';
       if (!dateFilter) return upload503Data;
       return upload503Data.filter(function(r) { return r.arrival_date === dateFilter; });
     }
 
+    // กรองตาม target week อัตโนมัติ
+    function get503WeekFiltered() {
+      const range = getTargetWeekRange();
+      return upload503Data.filter(function(r) {
+        return r.arrival_date && r.arrival_date >= range.from && r.arrival_date <= range.to;
+      });
+    }
+
     function show503Preview() {
-      const data    = upload503Data;
+      const range      = getTargetWeekRange();
+      const weekData   = get503WeekFiltered();   // กรองตามสัปดาห์แล้ว
+      const allData503 = upload503Data;           // ทั้งหมดในไฟล์
+
+      // สร้าง label สัปดาห์
+      const fmtDate = function(d) {
+        const parts = d.split('-');
+        return parseInt(parts[2]) + '/' + parseInt(parts[1]) + '/' + (parseInt(parts[0])+543);
+      };
+      const weekLabel  = fmtDate(range.from) + ' — ' + fmtDate(range.to);
+      const outOfRange = allData503.length - weekData.length;
+
+      // แสดง banner สัปดาห์
+      const bannerEl = document.getElementById('upload503-week-banner');
+      if (bannerEl) {
+        bannerEl.innerHTML = '📅 กรองเฉพาะ <strong>' + weekLabel + '</strong> — ' +
+          weekData.length + ' แถว' +
+          (outOfRange > 0 ? ' <span class="text-amber-500">(ตัด ' + outOfRange + ' แถวที่นอกช่วงออก)</span>' : ' ✅');
+        bannerEl.classList.remove('hidden');
+      }
+
+      const data    = weekData;   // ← ใช้ข้อมูลที่กรองแล้ว
       const pics    = [...new Set(data.map(function(r){ return r.pic_name||'(ไม่ระบุ)'; }))].sort();
       const pos     = new Set(data.map(function(r){ return r.po_no; }));
       const vendors = new Set(data.map(function(r){ return r.vendor; }));
@@ -5618,8 +5819,13 @@
       document.getElementById('upload503-preview').classList.add('hidden');
       document.getElementById('upload503-saving').classList.remove('hidden');
 
+      // ── กรองตามช่วงสัปดาห์ก่อน ──
+      const range = getTargetWeekRange();
+      const weekFiltered = upload503Data.filter(function(r) {
+        return r.arrival_date && r.arrival_date >= range.from && r.arrival_date <= range.to;
+      });
+
       // ── กรองเฉพาะแถวที่ Supplier ตรงกับ PIC_Master ──
-      // สร้าง map: vendor_lower → pic_name
       const vendorToPic = {};
       allPicMaster.forEach(function(m) {
         const sup = String(m.supplier||'').trim().toLowerCase();
@@ -5631,15 +5837,13 @@
 
       const hasPicMaster = Object.keys(vendorToPic).length > 0;
 
-      // กรองและ assign PIC จาก master
-      let filteredData = upload503Data;
+      let filteredData = weekFiltered;
       if (hasPicMaster) {
-        filteredData = upload503Data.filter(function(r) {
+        filteredData = weekFiltered.filter(function(r) {
           const vendor = String(r.vendor||'').trim().toLowerCase();
           return !!vendorToPic[vendor];
         }).map(function(r) {
           const vendor = String(r.vendor||'').trim().toLowerCase();
-          // override pic_name ด้วยข้อมูลจาก master (ถ้าตรงกัน)
           return Object.assign({}, r, { pic_name: vendorToPic[vendor] || r.pic_name });
         });
       }
@@ -5713,7 +5917,7 @@
     }
 
     function render503Sections() {
-      const rows = get503Filtered();
+      const rows = get503WeekFiltered();
 
       // แยกตาม PIC
       const byPic = {};
@@ -5773,7 +5977,7 @@
     // ─── Modal per PIC ───────────────────────────────
     function openModal503(pic) {
       modal503CurrentPic = pic;
-      const rows = get503Filtered();
+      const rows = get503WeekFiltered();
       const items = rows
         .map(function(r) { return { r, trueIdx: upload503Data.indexOf(r) }; })
         .filter(function(x) { return (x.r.pic_name || '(ไม่ระบุ PIC)') === pic; });
@@ -6965,7 +7169,100 @@
       }
     }
     // =====================================================
-    // UNPLANNED PARTS
+    // SYSTEM SETTINGS
+    // =====================================================
+    let _sysSettings = {
+      guard_scan_enabled:  true,
+      checkin_enabled:     true,
+      gps_check_enabled:   true,
+      weekly_plan_lock:    true,
+      maintenance_mode:    false,
+      maintenance_message: 'ระบบปิดปรับปรุงชั่วคราว กรุณาติดต่อ Staff'
+    };
+
+    function applySettings(s) {
+      _sysSettings = Object.assign(_sysSettings, s);
+
+      // Maintenance Mode
+      const overlay = document.getElementById('maintenance-overlay');
+      const msgEl   = document.getElementById('maintenance-message');
+      if (overlay) {
+        const showMaintenance = s.maintenance_mode && !isStaffLoggedIn;
+        overlay.classList.toggle('hidden', !showMaintenance);
+        overlay.style.display = showMaintenance ? 'flex' : '';
+      }
+      if (msgEl && s.maintenance_message) msgEl.innerText = s.maintenance_message;
+
+      // Checkin button
+      const checkinBtn = document.getElementById('checkin-btn');
+      if (checkinBtn) {
+        checkinBtn.disabled = !s.checkin_enabled;
+        checkinBtn.title    = s.checkin_enabled ? '' : 'ระบบปิดรับเช็คอินชั่วคราว';
+        checkinBtn.style.opacity = s.checkin_enabled ? '1' : '0.4';
+      }
+    }
+
+    async function initSettingsPage() {
+      try {
+        const res = await callAPI('getSettings');
+        if (res && res.settings) {
+          _sysSettings = Object.assign(_sysSettings, res.settings);
+        }
+      } catch(e) {}
+      renderSettingsPage();
+    }
+
+    function renderSettingsPage() {
+      const s = _sysSettings;
+      const keys = ['maintenance_mode','checkin_enabled','gps_check_enabled','guard_scan_enabled','weekly_plan_lock'];
+      keys.forEach(function(k) {
+        const el = document.getElementById('set-' + k);
+        if (el && el.type === 'checkbox') el.checked = !!s[k];
+        if (el && el.type === 'text') el.value = s[k] || '';
+      });
+      const msgInput = document.getElementById('set-maintenance_message');
+      if (msgInput) msgInput.value = s.maintenance_message || '';
+      onSettingChange();
+    }
+
+    window.onSettingChange = function() {
+      const isMaintenance = document.getElementById('set-maintenance_mode')?.checked;
+      const wrap = document.getElementById('settings-maintenance-msg-wrap');
+      if (wrap) wrap.classList.toggle('hidden', !isMaintenance);
+      const card = document.getElementById('settings-maintenance-card');
+      if (card) {
+        card.className = 'rounded-2xl border-2 p-5 transition-all ' + (isMaintenance ? 'border-rose-300 bg-rose-50' : 'border-slate-100 bg-white');
+      }
+    };
+
+    window.saveSystemSettings = async function() {
+      const btn = document.getElementById('settings-save-btn');
+      const statusEl = document.getElementById('settings-status');
+      if (btn) { btn.disabled = true; btn.innerText = '⏳ กำลังบันทึก...'; }
+
+      const newSettings = {
+        maintenance_mode:    !!(document.getElementById('set-maintenance_mode')?.checked),
+        maintenance_message: (document.getElementById('set-maintenance_message')?.value || '').trim(),
+        checkin_enabled:     !!(document.getElementById('set-checkin_enabled')?.checked),
+        gps_check_enabled:   !!(document.getElementById('set-gps_check_enabled')?.checked),
+        guard_scan_enabled:  !!(document.getElementById('set-guard_scan_enabled')?.checked),
+        weekly_plan_lock:    !!(document.getElementById('set-weekly_plan_lock')?.checked),
+      };
+
+      try {
+        const res = await callAPI('saveSettings', { settings: newSettings });
+        if (res && res.success) {
+          applySettings(newSettings);
+          if (statusEl) { statusEl.className = 'text-center text-xs font-bold py-2 rounded-xl bg-emerald-50 text-emerald-600'; statusEl.innerText = '✅ บันทึกแล้ว'; statusEl.classList.remove('hidden'); }
+          showToast('✅ บันทึกการตั้งค่าแล้ว');
+          setTimeout(function(){ statusEl?.classList.add('hidden'); }, 3000);
+        } else {
+          showToast('ไม่สำเร็จ: ' + (res?.message||''), 'error');
+        }
+      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+      if (btn) { btn.disabled = false; btn.innerText = '💾 บันทึก'; }
+    };
+    // =====================================================
     // =====================================================
     let _unplannedData   = [];
     let _unplannedFilter = 'all';
