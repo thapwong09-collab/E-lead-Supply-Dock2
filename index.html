@@ -5789,15 +5789,19 @@
             return;
           }
 
-          // กรองตามสัปดาห์ทันที — เก็บเฉพาะที่จะใช้จริงเท่านั้น
+          // กรองตามสัปดาห์ทันที — ยกเว้นถ้าอยู่ใน retro mode (กรองด้วย range ที่เลือกแล้ว)
           const range503 = getTargetWeekRange();
           const totalRaw = upload503Data.length;
-          upload503Data = upload503Data.filter(function(r) {
-            if (!r.arrival_date) return false; // ไม่มีวันตัดทิ้ง
-            return r.arrival_date >= range503.from && r.arrival_date <= range503.to;
-          });
+          if (!_retroMode) {
+            upload503Data = upload503Data.filter(function(r) {
+              if (!r.arrival_date) return false;
+              return r.arrival_date >= range503.from && r.arrival_date <= range503.to;
+            });
+          }
           const filteredOut = totalRaw - upload503Data.length;
-          console.log('[503] ทั้งหมด ' + totalRaw + ' แถว, กรองเหลือ ' + upload503Data.length + ' แถว (ตัด ' + filteredOut + ' แถวนอกช่วง ' + range503.from + ' — ' + range503.to + ')');
+          if (filteredOut > 0) {
+            console.log('[503] ตัดออก ' + filteredOut + ' แถว (นอกช่วง ' + range503.from + ' — ' + range503.to + ')');
+          }
 
           show503Preview();
 
@@ -5896,6 +5900,8 @@
 
     // กรองตาม target week อัตโนมัติ
     function get503WeekFiltered() {
+      // retro mode — ข้อมูลกรองด้วย date picker แล้วตั้งแต่ parse ใช้ทั้งหมดได้เลย
+      if (_retroMode) return upload503Data;
       const range = getTargetWeekRange();
       return upload503Data.filter(function(r) {
         return r.arrival_date && r.arrival_date >= range.from && r.arrival_date <= range.to;
@@ -5978,7 +5984,7 @@
       document.getElementById('upload503-preview').classList.add('hidden');
       document.getElementById('upload503-saving').classList.remove('hidden');
 
-      // ── กรองเฉพาะแถวที่ Supplier ตรงกับ PIC_Master ──
+      // กรองเฉพาะ Supplier ที่ตรงกับ PIC_Master
       const vendorToPic = {};
       allPicMaster.forEach(function(m) {
         const sup = String(m.supplier||'').trim().toLowerCase();
@@ -5987,17 +5993,15 @@
           if (!vendorToPic[sup]) vendorToPic[sup] = pic;
         }
       });
-
       const hasPicMaster = Object.keys(vendorToPic).length > 0;
 
       let filteredData = upload503Data;
       if (hasPicMaster) {
         filteredData = upload503Data.filter(function(r) {
-          const vendor = String(r.vendor||'').trim().toLowerCase();
-          return !!vendorToPic[vendor];
+          return !!vendorToPic[String(r.vendor||'').trim().toLowerCase()];
         }).map(function(r) {
-          const vendor = String(r.vendor||'').trim().toLowerCase();
-          return Object.assign({}, r, { pic_name: vendorToPic[vendor] || r.pic_name });
+          const v = String(r.vendor||'').trim().toLowerCase();
+          return Object.assign({}, r, { pic_name: vendorToPic[v] || r.pic_name });
         });
       }
 
@@ -6006,22 +6010,17 @@
         document.getElementById('upload503-saving').classList.add('hidden');
         document.getElementById('upload503-preview').classList.remove('hidden');
         if (btn) { btn.disabled = false; btn.innerText = '✅ ยืนยันส่งข้อมูล'; }
-        showToast('ไม่มีแถวที่ตรงกับ Supplier ใน PIC_Master กรุณาตั้งค่าหน้า "ความรับผิดชอบ PIC" ก่อน');
+        showToast('ไม่มีแถวที่ตรงกับ Supplier ใน PIC_Master');
         _isSaving503 = false;
         return;
       }
 
       const rows = filteredData.map(function(r) {
         return {
-          date:      r.arrival_date || '',
-          vendor:    r.vendor       || '',
-          pic:       r.pic_name     || '',
-          po_no:     r.po_no        || '',
-          part_no:   r.part_no      || '',
-          no:        r.no           || '',
-          qty:       r.undelivered_qty || r.order_qty || 0,
-          time_slot: '',
-          origin:    'import',
+          date: r.arrival_date||'', vendor: r.vendor||'', pic: r.pic_name||'',
+          po_no: r.po_no||'', part_no: r.part_no||'', no: r.no||'',
+          qty: r.undelivered_qty || r.order_qty || 0,
+          time_slot: '', origin: 'import',
         };
       });
 
@@ -6031,21 +6030,36 @@
         for (let i = 0; i < rows.length; i += batchSize) {
           const batch = rows.slice(i, i + batchSize);
           const savingText = document.getElementById('upload503-saving-text');
-          if (savingText) savingText.innerText = 'กำลังบันทึก... ' + Math.min(i + batchSize, rows.length) + ' / ' + rows.length + ' รายการ';
+          if (savingText) savingText.innerText = 'กำลังบันทึก... ' + Math.min(i+batchSize, rows.length) + ' / ' + rows.length + ' รายการ';
           const res = await callAPI('savePlanParts', { rows: JSON.stringify(batch) });
           if (res && res.success) { totalSaved += res.saved||0; totalUpdated += res.updated||0; }
         }
+
+        // แสดงผลสำเร็จ
         document.getElementById('upload503-saving').classList.add('hidden');
         document.getElementById('upload503-done').classList.remove('hidden');
         const doneText = document.getElementById('upload503-done-text');
         let msg = 'บันทึกสำเร็จ ' + totalSaved + ' รายการ';
         if (totalUpdated > 0) msg += ', อัพเดต ' + totalUpdated + ' รายการ';
-        if (skipped > 0) msg += ' (ตัดออก ' + skipped + ' แถวที่ไม่มีใน PIC_Master)';
+        if (skipped > 0) msg += ' (ตัด ' + skipped + ' แถวที่ไม่มีใน PIC_Master)';
         if (doneText) doneText.innerText = msg;
-        const dz = document.getElementById('upload503-dropzone');
-        if (dz) dz.classList.add('hidden');
-        const fnEl = document.getElementById('upload503-filename');
-        if (fnEl) fnEl.classList.add('hidden');
+
+        // reset ให้อัพโหลดใหม่ได้ทันที
+        upload503Data = [];
+        setTimeout(function() {
+          document.getElementById('upload503-done')?.classList.add('hidden');
+          document.getElementById('upload503-preview')?.classList.add('hidden');
+          document.getElementById('upload503-week-banner')?.classList.add('hidden');
+          const dz = document.getElementById('upload503-dropzone');
+          if (dz) dz.classList.remove('hidden');
+          const fnEl = document.getElementById('upload503-filename');
+          if (fnEl) { fnEl.classList.add('hidden'); fnEl.innerText = ''; }
+          const inp = document.getElementById('upload503-input');
+          if (inp) inp.value = '';
+          if (btn) { btn.disabled = false; btn.innerText = '✅ ยืนยันส่งข้อมูล'; }
+        }, 3000);
+
+        fetchAll();
       } catch(err) {
         document.getElementById('upload503-saving').classList.add('hidden');
         document.getElementById('upload503-preview').classList.remove('hidden');
@@ -6055,6 +6069,7 @@
         _isSaving503 = false;
       }
     }
+
 
     function reset503Upload() {
       upload503Data = [];
