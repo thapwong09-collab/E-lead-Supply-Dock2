@@ -1357,14 +1357,7 @@
             </div>
             <div>
               <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เหตุผล *</label>
-              <select id="unp-reason" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer">
-                <option value="">-- เลือกเหตุผล --</option>
-                <option value="ส่งเพิ่มเติม">ส่งเพิ่มเติม</option>
-                <option value="ส่งแทนรอบก่อน">ส่งแทนรอบก่อน</option>
-                <option value="เร่งด่วน/ฉุกเฉิน">เร่งด่วน / ฉุกเฉิน</option>
-                <option value="ซัพแจ้งผิดพลาด">ซัพแจ้งผิดพลาด</option>
-                <option value="อื่นๆ">อื่นๆ</option>
-              </select>
+              <input type="text" id="unp-reason" placeholder="ระบุเหตุผล เช่น ส่งเพิ่มเติม, เร่งด่วน..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
             </div>
             <div>
               <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">หมายเหตุ</label>
@@ -1693,14 +1686,7 @@
             <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">จำนวน (QTY)</label>
               <input type="number" id="unp2-qty" placeholder="0" min="0" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm"></div>
             <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เหตุผล *</label>
-              <select id="unp2-reason" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer">
-                <option value="">-- เลือกเหตุผล --</option>
-                <option value="ส่งเพิ่มเติม">ส่งเพิ่มเติม</option>
-                <option value="ส่งแทนรอบก่อน">ส่งแทนรอบก่อน</option>
-                <option value="เร่งด่วน/ฉุกเฉิน">เร่งด่วน / ฉุกเฉิน</option>
-                <option value="ซัพแจ้งผิดพลาด">ซัพแจ้งผิดพลาด</option>
-                <option value="อื่นๆ">อื่นๆ</option>
-              </select></div>
+              <input type="text" id="unp2-reason" placeholder="ระบุเหตุผล เช่น ส่งเพิ่มเติม, เร่งด่วน..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm"></div>
             <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">หมายเหตุ</label>
               <input type="text" id="unp2-remark" placeholder="รายละเอียดเพิ่มเติม..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm"></div>
           </div>
@@ -4784,7 +4770,7 @@
       // โหลดทุกอย่างก่อนแสดงผลเสมอ
       const promises = [
         callAPI('getVehicles').then(function(res){
-          if (res && res.success) _vehicleData = res.data || [];
+          if (res && res.success) _vehicleData = (res.data || []).filter(function(v){ return String(v.license_plate||'').trim() !== ''; });
         }).catch(function(){}),
         callAPI('getPicMaster').then(function(res){
           if (res && res.success && res.picMaster) allPicMaster = res.picMaster;
