@@ -380,6 +380,9 @@
                   <th class="px-3 py-3 text-center">Arrival Date</th>
                   <th class="px-3 py-3 text-center">AM/PM</th>
                   <th class="px-3 py-3 text-center">สถานะรับของ</th>
+                  <th class="px-3 py-3 text-center">ERP</th>
+                  <th class="px-3 py-3">Note Staff</th>
+                  <th class="px-3 py-3 text-center">✏️</th>
                 </tr>
               </thead>
               <tbody id="weekly-table-body" class="divide-y divide-slate-50"></tbody>
@@ -388,6 +391,44 @@
         </div>
 
       </div><!-- end page-weekly -->
+
+      <!-- Modal: Note + ERP Status -->
+      <div id="part-note-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl">
+          <div class="font-black text-slate-700 mb-1">✏️ บันทึก Note & ERP Status</div>
+          <div id="part-note-part-label" class="text-xs text-violet-600 font-bold mb-4"></div>
+          <div class="space-y-4">
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-2">สถานะ ERP</label>
+              <div class="flex gap-2">
+                <button type="button" id="erp-btn-pending" onclick="setErpStatus('Pending ERP')"
+                  class="flex-1 border-2 border-amber-300 bg-amber-50 text-amber-700 py-2.5 rounded-xl font-bold text-xs cursor-pointer">
+                  ⏳ Pending ERP
+                </button>
+                <button type="button" id="erp-btn-done" onclick="setErpStatus('Done')"
+                  class="flex-1 border-2 border-slate-200 bg-slate-50 text-slate-500 py-2.5 rounded-xl font-bold text-xs cursor-pointer">
+                  ✅ Done
+                </button>
+                <button type="button" id="erp-btn-none" onclick="setErpStatus('')"
+                  class="flex-1 border-2 border-slate-200 bg-slate-50 text-slate-400 py-2.5 rounded-xl font-bold text-xs cursor-pointer">
+                  — ไม่ระบุ
+                </button>
+              </div>
+            </div>
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">หมายเหตุ (Staff)</label>
+              <textarea id="part-note-text" rows="3" placeholder="กรอกหมายเหตุ เช่น รอ GR จาก ERP, Hold ชั่วคราว..."
+                class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm resize-none"></textarea>
+            </div>
+          </div>
+          <input type="hidden" id="part-note-id">
+          <input type="hidden" id="part-note-erp">
+          <div class="flex gap-3 mt-4">
+            <button type="button" onclick="closePartNoteModal()" class="flex-1 bg-slate-100 text-slate-500 py-3 rounded-xl font-bold text-sm cursor-pointer">ยกเลิก</button>
+            <button type="button" onclick="savePartNote()" class="flex-1 bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">💾 บันทึก</button>
+          </div>
+        </div>
+      </div>
 
 
       <!-- Tab: เปรียบเทียบรายเดือน -->
@@ -3428,31 +3469,47 @@
       // Collect qty data
       const qtyInputs = document.querySelectorAll('#pcm-parts-tbody .qty-input');
       const receivedData = [];
-      qtyInputs.forEach((inp, i) => {
+      qtyInputs.forEach(function(inp) {
         receivedData.push({
-          part_id: inp.dataset.partId,
+          part_id:      inp.dataset.partId,
           qty_received: parseInt(inp.value) || 0,
-          qty_plan: parseInt(inp.dataset.plan) || 0
+          qty_plan:     parseInt(inp.dataset.plan) || 0
         });
       });
 
       const managerName = hasUnplanned ? document.getElementById('pcm-manager-name').value.trim() : '';
-      const remark = hasUnplanned ? document.getElementById('pcm-remark').value.trim() : '';
+      const remark      = hasUnplanned ? document.getElementById('pcm-remark').value.trim() : '';
 
-      // 1. Confirm parts in sheet
-      await callAPI('confirmParts', {
-        date: getThaiDate(),
-        queueNumber: pcmQueueNum,
-        receivedData: JSON.stringify(receivedData),
-        approvedBy: managerName,
-        remark
-      });
+      const btn = document.getElementById('pcm-confirm-btn');
+      if (btn) { btn.disabled = true; btn.innerText = '⏳ กำลังบันทึก...'; }
 
-      // 2. Update queue status to loading
-      updateStatus(pcmQueueNum, 'loading', pcmFactory);
+      try {
+        // 1. Confirm parts in sheet
+        const res = await callAPI('confirmParts', {
+          date:         getThaiDate(),
+          queueNumber:  pcmQueueNum,
+          receivedData: JSON.stringify(receivedData),
+          approvedBy:   managerName,
+          remark
+        });
 
-      closePartsModal();
-      showToast('เรียกเข้าพื้นที่เรียบร้อย ✅');
+        if (!res || !res.success) {
+          showToast('บันทึกไม่สำเร็จ: ' + (res?.message || 'กรุณาลองใหม่'), 'error');
+          if (btn) { btn.disabled = false; btn.innerText = '✅ ยืนยันรับของ'; }
+          return;
+        }
+
+        // 2. Update queue status to loading (ย้ายไปโซน loading)
+        if (pcmQueueNum) updateStatus(pcmQueueNum, 'loading', pcmFactory);
+
+        closePartsModal();
+        await fetchAll();
+        showToast('✅ ยืนยันรับของสำเร็จ ' + (res.updated || 0) + ' รายการ');
+
+      } catch(e) {
+        showToast('Error: ' + e.message, 'error');
+        if (btn) { btn.disabled = false; btn.innerText = '✅ ยืนยันรับของ'; }
+      }
     }
 
     function closePartsModal() {
@@ -3765,7 +3822,8 @@
 
       if (qrBox) {
         qrBox.innerHTML = '';
-        if (record.status === 'loading' || record.status === 'completed') {
+        // แสดง QR เฉพาะเมื่อ guard scan เปิดอยู่
+        if (_sysSettings.guard_scan_enabled && (record.status === 'loading' || record.status === 'completed')) {
           if (qrContainer) qrContainer.classList.remove('hidden');
           if (qrInstruction) qrInstruction.innerText = record.status === 'loading' ? 'นำ QR Code สแกนที่ป้อม รปภ. (ขาเข้า)' : 'นำ QR Code สแกนที่ป้อม รปภ. (ขาออก)';
           if (typeof QRCode !== 'undefined') {
@@ -6367,9 +6425,8 @@
       if (!tbody) return;
 
       tbody.innerHTML = data.map(function(r) {
-        // สถานะรับของ
-        let statusHtml = '';
         const st = r.status || '';
+        let statusHtml = '';
         if (st === 'pending') {
           statusHtml = '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-1 rounded-full">⏳ รอรับของ</span>';
         } else if (st === 'completed') {
@@ -6383,19 +6440,92 @@
           statusHtml = '<span class="bg-slate-100 text-slate-500 font-black text-[9px] px-2 py-1 rounded-full">❌ ไม่ได้รับ</span>';
         }
 
+        // ERP Status badge
+        const erp = r.erp_status || '';
+        const erpHtml = erp === 'Pending ERP'
+          ? '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-1 rounded-full whitespace-nowrap">⏳ Pending</span>'
+          : erp === 'Done'
+            ? '<span class="bg-emerald-100 text-emerald-600 font-black text-[9px] px-2 py-1 rounded-full">✅ Done</span>'
+            : '<span class="text-slate-300 text-[9px]">—</span>';
+
+        const noteHtml = r.staff_note
+          ? '<span class="text-[10px] text-slate-600 max-w-[120px] block truncate" title="' + (r.staff_note||'').replace(/"/g,'') + '">' + r.staff_note + '</span>'
+          : '<span class="text-slate-300 text-[9px]">—</span>';
+
+        const rowId = String(r.id||'').replace(/'/g,'');
+        const rowPo = String(r.po_no||'').replace(/'/g,'');
+        const rowPt = String(r.part_no||'').replace(/'/g,'');
+        const rowErp  = erp;
+        const rowNote = String(r.staff_note||'').replace(/'/g,"\\'");
+
         return '<tr class="hover:bg-violet-50/30 transition-colors">' +
           '<td class="px-3 py-2 font-bold text-slate-700 text-xs">' + (r.pic||'-') + '</td>' +
           '<td class="px-3 py-2 text-slate-600 text-xs max-w-[140px] truncate">' + (r.vendor||'-') + '</td>' +
-          '<td class="px-3 py-2 text-center text-slate-500 text-xs">' + (r.no||'-') + '</td>' +
           '<td class="px-3 py-2 text-slate-600 text-xs">' + (r.po_no||'-') + '</td>' +
           '<td class="px-3 py-2 font-mono text-violet-700 font-bold text-xs">' + (r.part_no||'-') + '</td>' +
           '<td class="px-3 py-2 text-center font-black text-slate-700 text-xs">' + (r.qty_plan||0) + '</td>' +
           '<td class="px-3 py-2 text-center text-emerald-600 font-bold text-xs">' + (r.date||'-') + '</td>' +
           '<td class="px-3 py-2 text-center font-bold text-slate-600 text-xs">' + (r.time_slot||'-') + '</td>' +
           '<td class="px-3 py-2 text-center">' + statusHtml + '</td>' +
+          '<td class="px-3 py-2 text-center">' + erpHtml + '</td>' +
+          '<td class="px-3 py-2">' + noteHtml + '</td>' +
+          '<td class="px-3 py-2 text-center">' +
+            '<button type="button" onclick="openPartNoteModal(\'' + rowId + '\',\'' + rowPo + '\',\'' + rowPt + '\',\'' + rowErp + '\',\'' + rowNote + '\')" ' +
+            'class="text-violet-500 hover:text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 px-2 py-1 rounded-lg text-[9px] font-black cursor-pointer">✏️</button>' +
+          '</td>' +
         '</tr>';
       }).join('');
     }
+    // =====================================================
+    // PART NOTE MODAL (Staff Weekly Plan)
+    // =====================================================
+    window.openPartNoteModal = function(id, poNo, partNo, erpStatus, note) {
+      document.getElementById('part-note-id').value  = id;
+      document.getElementById('part-note-erp').value = erpStatus || '';
+      document.getElementById('part-note-text').value = note ? decodeURIComponent(note) : '';
+      document.getElementById('part-note-part-label').innerText = '📦 ' + poNo + ' · ' + partNo;
+      setErpStatus(erpStatus || '');
+      const modal = document.getElementById('part-note-modal');
+      modal.classList.remove('hidden'); modal.classList.add('flex');
+      setTimeout(function(){ document.getElementById('part-note-text')?.focus(); }, 100);
+    };
+
+    window.closePartNoteModal = function() {
+      const modal = document.getElementById('part-note-modal');
+      modal.classList.add('hidden'); modal.classList.remove('flex');
+    };
+
+    window.setErpStatus = function(status) {
+      document.getElementById('part-note-erp').value = status;
+      const btnPending = document.getElementById('erp-btn-pending');
+      const btnDone    = document.getElementById('erp-btn-done');
+      const btnNone    = document.getElementById('erp-btn-none');
+      const activeClass = 'flex-1 py-2.5 rounded-xl font-bold text-xs cursor-pointer border-2';
+      if (btnPending) btnPending.className = activeClass + (status==='Pending ERP' ? ' border-amber-400 bg-amber-100 text-amber-700' : ' border-slate-200 bg-slate-50 text-slate-400');
+      if (btnDone)    btnDone.className    = activeClass + (status==='Done'        ? ' border-emerald-400 bg-emerald-100 text-emerald-700' : ' border-slate-200 bg-slate-50 text-slate-400');
+      if (btnNone)    btnNone.className    = activeClass + (status===''            ? ' border-violet-300 bg-violet-50 text-violet-600' : ' border-slate-200 bg-slate-50 text-slate-400');
+    };
+
+    window.savePartNote = async function() {
+      const id        = document.getElementById('part-note-id')?.value || '';
+      const erpStatus = document.getElementById('part-note-erp')?.value || '';
+      const note      = document.getElementById('part-note-text')?.value?.trim() || '';
+      if (!id) { showToast('ไม่พบ ID', 'error'); return; }
+
+      try {
+        const res = await callAPI('updatePartNote', { id: id, erp_status: erpStatus, staff_note: note });
+        if (res && res.success) {
+          // อัพเดทใน allPartData ทันที
+          const item = allPartData.find(function(p){ return String(p.id||'') === id; });
+          if (item) { item.erp_status = erpStatus; item.staff_note = note; }
+          closePartNoteModal();
+          showToast('💾 บันทึกแล้ว');
+          // re-render table ถ้ายังอยู่หน้า weekly
+          const weeklyPage = document.getElementById('page-weekly');
+          if (weeklyPage && !weeklyPage.classList.contains('hidden')) loadWeeklyPlan();
+        } else { showToast('ไม่สำเร็จ: ' + (res?.message||''), 'error'); }
+      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+    };
     // =====================================================
     // =====================================================
     let _prPerfAllRows = [];
@@ -7278,9 +7408,17 @@
       }
       if (msgEl && s.maintenance_message) msgEl.innerText = s.maintenance_message;
 
-      // Guard Scan — ซ่อนปุ่ม Guard ใน Role Selection
+      // Guard Scan — ซ่อนปุ่ม Guard ใน Role Selection + ซ่อน QR section ในหน้า Supplier
       const guardBtn = document.querySelector('[onclick="enterGuardView()"]');
       if (guardBtn) guardBtn.style.display = s.guard_scan_enabled ? '' : 'none';
+
+      // ซ่อน QR container ในหน้า Supplier ถ้าปิด Guard scan
+      const supplierQR = document.getElementById('supplier-qr-container');
+      if (supplierQR) supplierQR.style.display = s.guard_scan_enabled ? '' : 'none';
+
+      // ซ่อน instruction "นำ QR สแกนที่ป้อม รปภ." ด้วย
+      const qrInstruction = document.getElementById('qr-instruction');
+      if (qrInstruction) qrInstruction.style.display = s.guard_scan_enabled ? '' : 'none';
 
       // Checkin — disable ปุ่มเช็คอิน + แสดงข้อความ
       const checkinBtn = document.getElementById('checkin-btn');
