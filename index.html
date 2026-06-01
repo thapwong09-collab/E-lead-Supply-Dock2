@@ -2074,23 +2074,13 @@
           </div>
 
           <!-- Unplanned Warning -->
-          <div id="pcm-unplanned-warning" class="hidden bg-rose-50 border-2 border-rose-200 rounded-2xl p-5 mb-4">
+          <div id="pcm-unplanned-warning" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4">
             <div class="flex items-start gap-3">
-              <span class="text-2xl">⚠️</span>
+              <span class="text-xl">⚠️</span>
               <div>
-                <div class="font-black text-rose-700 mb-1">พบพาร์ทที่ไม่อยู่ในแผน</div>
-                <div class="text-xs text-rose-600 mb-3">กรุณาแจ้งผู้จัดการก่อนดำเนินการต่อ แล้วกรอกข้อมูลด้านล่าง</div>
-                <div id="pcm-unplanned-list" class="text-xs text-rose-700 font-bold space-y-1 mb-4"></div>
-                <div class="space-y-3">
-                  <div>
-                    <label class="text-[10px] font-black text-rose-500 uppercase tracking-widest block mb-1">ชื่อผู้จัดการที่อนุมัติ *</label>
-                    <input type="text" id="pcm-manager-name" placeholder="กรอกชื่อผู้จัดการ" class="w-full border-2 border-rose-200 rounded-xl px-4 py-2.5 text-sm font-bold outline-none focus:border-rose-400 bg-white">
-                  </div>
-                  <div>
-                    <label class="text-[10px] font-black text-rose-500 uppercase tracking-widest block mb-1">เหตุผล / หมายเหตุ *</label>
-                    <textarea id="pcm-remark" rows="2" placeholder="ระบุเหตุผล..." class="w-full border-2 border-rose-200 rounded-xl px-4 py-2 text-sm font-medium outline-none focus:border-rose-400 bg-white resize-none"></textarea>
-                  </div>
-                </div>
+                <div class="font-black text-amber-700 text-sm mb-1">มี Qty เกินแผน</div>
+                <div id="pcm-unplanned-list" class="text-xs text-amber-600 font-bold space-y-0.5"></div>
+                <div class="text-[10px] text-amber-500 mt-1">สามารถกด Confirm ได้เลย ระบบจะบันทึกเป็น unplanned</div>
               </div>
             </div>
           </div>
@@ -3464,16 +3454,6 @@
     }
 
     async function submitPartsConfirm() {
-      const warn = document.getElementById('pcm-unplanned-warning');
-      const hasUnplanned = !warn.classList.contains('hidden');
-
-      if (hasUnplanned) {
-        const managerName = document.getElementById('pcm-manager-name').value.trim();
-        const remark = document.getElementById('pcm-remark').value.trim();
-        if (!managerName) { showToast('กรุณากรอกชื่อผู้จัดการที่อนุมัติ', 'error'); return; }
-        if (!remark) { showToast('กรุณากรอกเหตุผล / หมายเหตุ', 'error'); return; }
-      }
-
       // Collect qty data
       const qtyInputs = document.querySelectorAll('#pcm-parts-tbody .qty-input');
       const receivedData = [];
@@ -3485,9 +3465,6 @@
         });
       });
 
-      const managerName = hasUnplanned ? document.getElementById('pcm-manager-name').value.trim() : '';
-      const remark      = hasUnplanned ? document.getElementById('pcm-remark').value.trim() : '';
-
       const btn = document.getElementById('pcm-confirm-btn');
       if (btn) { btn.disabled = true; btn.innerText = '⏳ กำลังบันทึก...'; }
 
@@ -3497,8 +3474,8 @@
           date:         getThaiDate(),
           queueNumber:  pcmQueueNum,
           receivedData: JSON.stringify(receivedData),
-          approvedBy:   managerName,
-          remark
+          approvedBy:   '',
+          remark:       ''
         });
 
         if (!res || !res.success) {
@@ -3524,8 +3501,7 @@
       const modal = document.getElementById('parts-confirm-modal');
       if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
       pcmQueueNum = null; pcmFactory = null;
-      document.getElementById('pcm-manager-name').value = '';
-      document.getElementById('pcm-remark').value = '';
+      document.getElementById('pcm-unplanned-warning')?.classList.add('hidden');
     }
 
     // ==========================================
@@ -4237,28 +4213,17 @@
     }
 
     async function submitCompleteConfirm(qNum) {
-      const warn = document.getElementById('pcm-unplanned-warning');
-      const hasUnplanned = !warn.classList.contains('hidden');
-      if (hasUnplanned) {
-        const managerName = document.getElementById('pcm-manager-name').value.trim();
-        const remark = document.getElementById('pcm-remark').value.trim();
-        if (!managerName) { showToast('กรุณากรอกชื่อผู้จัดการที่อนุมัติ', 'error'); return; }
-        if (!remark) { showToast('กรุณากรอกเหตุผล / หมายเหตุ', 'error'); return; }
-      }
       const qtyInputs = document.querySelectorAll('#pcm-parts-tbody .qty-input');
       const receivedData = [];
       qtyInputs.forEach(function(inp) {
         const ids = inp.dataset.partId.split(',');
         const qtyRecv = parseInt(inp.value) || 0;
         const qtyPlan = parseInt(inp.dataset.plan) || 0;
-        // กระจาย qty_received ให้ทุก id ที่รวมกัน
         ids.forEach(function(id) {
           receivedData.push({ part_id: id, qty_received: qtyRecv, qty_plan: qtyPlan });
         });
       });
-      const managerName = hasUnplanned ? document.getElementById('pcm-manager-name').value.trim() : '';
-      const remark = hasUnplanned ? document.getElementById('pcm-remark').value.trim() : '';
-      await callAPI('confirmParts', { date: getThaiDate(), queueNumber: qNum, receivedData: JSON.stringify(receivedData), approvedBy: managerName, remark });
+      await callAPI('confirmParts', { date: getThaiDate(), queueNumber: qNum, receivedData: JSON.stringify(receivedData), approvedBy: '', remark: '' });
       updateStatus(qNum, 'completed');
       closePartsModal();
       showToast('บันทึกการรับของเสร็จสิ้น ✅');
