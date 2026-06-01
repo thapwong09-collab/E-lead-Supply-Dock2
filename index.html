@@ -3613,8 +3613,12 @@
         });
         return;
       }
+
+      // ตรวจสอบว่า browser รองรับ GPS ไหม
+      if (!navigator.geolocation) {
         if (btn) { btn.disabled = false; btn.innerText = 'รับหมายเลขคิว'; }
-        { showToast('เบราว์เซอร์นี้ไม่รองรับ GPS กรุณาใช้เบราว์เซอร์อื่น'); return; }
+        showToast('เบราว์เซอร์นี้ไม่รองรับ GPS กรุณาใช้เบราว์เซอร์อื่น', 'error');
+        return;
       }
 
       navigator.geolocation.getCurrentPosition(
