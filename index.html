@@ -2261,7 +2261,6 @@
 
     function refreshUI() {
       const today = getThaiDate();
-      const normalizeDate = function(d) { return String(d||'').replace(/^'/,''); };
 
       // ─── Staff ───────────────────────────────────────────
       if (isStaffLoggedIn) {
@@ -2269,7 +2268,8 @@
         const todayParts   = allPartData.filter(p => normalizeDate(p.date) === today);
         const newHashC = _quickHash(todayCheckin);
         const newHashP = _quickHash(todayParts);
-        if (newHashC !== _hashCheckin || newHashP !== _hashParts) {
+        // อัพเดทเสมอถ้า hash เปลี่ยน หรือยังไม่เคย render
+        if (newHashC !== _hashCheckin || newHashP !== _hashParts || _hashCheckin === '') {
           _hashCheckin = newHashC;
           _hashParts   = newHashP;
           updateStaffUI();
@@ -2384,9 +2384,13 @@
           initManagerView();
         } else {
           isStaffLoggedIn = true;
+          // reset hash เพื่อบังคับ render ใหม่เมื่อ login
+          _hashCheckin = ''; _hashParts = '';
           hideAll();
           document.getElementById('staff-view').classList.remove('hidden');
           showStaffTab('queue');
+          // โหลดข้อมูลทันที ไม่รอ interval
+          fetchAll();
         }
       } else {
         if (err) { err.classList.remove('hidden'); setTimeout(() => err.classList.add('hidden'), 2000); }
