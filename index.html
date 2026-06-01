@@ -7996,6 +7996,8 @@
     }
 
     function isDeadlinePassed() {
+      // ถ้าปิด lock → deadline ไม่เคยผ่าน
+      if (!_sysSettings.weekly_plan_lock) return false;
       const now = new Date();
       if (now.getDay() !== 1) return false;
       const cutoff = new Date(now);
@@ -8004,6 +8006,8 @@
     }
 
     function isConfirmAllowed(arrivalDate) {
+      // ถ้าปิด lock → Confirm ได้เสมอ
+      if (!_sysSettings.weekly_plan_lock) return true;
       if (!isDeadlinePassed()) return true;
       if (!arrivalDate) return false;
       const arrival = new Date(arrivalDate);
