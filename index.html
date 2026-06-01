@@ -153,6 +153,8 @@
               <input type="text" id="supplier-license" placeholder="ระบุทะเบียนรถ (เช่น 1กข 1234)" class="w-full px-5 py-4 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500 bg-slate-50 mt-1 font-medium">
             </div>
             <button type="button" onclick="supplierCheckin()" id="checkin-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-2xl shadow-lg transition-all text-lg cursor-pointer">รับหมายเลขคิว</button>
+            <div id="checkin-disabled-msg" class="hidden bg-rose-50 border border-rose-200 rounded-2xl p-4 text-center text-rose-600 font-bold text-sm mt-2">⚠️ ระบบปิดรับเช็คอินชั่วคราว กรุณาติดต่อ Staff</div>
+            <div id="checkin-gps-note" class="hidden text-center text-slate-400 text-xs mt-2">📍 ระบบตรวจสอบตำแหน่ง GPS ภายในรัศมี 5 กม.</div>
           </div>
         </div>
 
@@ -313,7 +315,8 @@
       <div id="page-weekly" class="max-w-7xl mx-auto p-4 hidden space-y-4 fade-in">
 
         <!-- Deadline Banner -->
-        <div id="weekly-deadline-banner" class="bg-white rounded-2xl px-5 py-3 shadow-sm border-2 border-amber-200 flex items-center justify-between gap-3">
+        <!-- Deadline banner ซ่อนใน Staff view (แสดงเฉพาะ PIC) -->
+        <div id="weekly-deadline-banner" class="hidden bg-white rounded-2xl px-5 py-3 shadow-sm border-2 border-amber-200 flex items-center justify-between gap-3">
           <div id="weekly-deadline-text" class="font-black text-sm text-amber-600"></div>
           <div class="text-[10px] text-slate-400 font-bold">สัปดาห์: <span id="weekly-range-text"></span></div>
         </div>
@@ -847,10 +850,28 @@
       <!-- ================= PIC Tab: Upload 503 ================= -->
       <div id="pic-page-upload503" class="hidden max-w-6xl mx-auto p-4 space-y-5 fade-in">
 
+        <!-- Mode Toggle: ปกติ vs ย้อนหลัง -->
+        <div class="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <div id="upload503-mode-label" class="font-black text-slate-700 text-base">📤 อัพโหลดไฟล์ APMR 503</div>
+            <div id="upload503-mode-desc" class="text-xs text-slate-400 mt-0.5">กรองอัตโนมัติตามสัปดาห์ที่เหมาะสม</div>
+          </div>
+          <div class="flex items-center gap-3">
+            <!-- Range picker ซ่อนไว้ แสดงเฉพาะโหมดย้อนหลัง -->
+            <div id="upload503-retro-range" class="hidden flex items-center gap-2">
+              <input type="date" id="upload503-retro-from" class="border-2 border-amber-200 rounded-xl px-3 py-1.5 bg-amber-50 outline-none focus:border-amber-400 font-bold text-xs cursor-pointer">
+              <span class="text-slate-400 text-xs font-bold">—</span>
+              <input type="date" id="upload503-retro-to" class="border-2 border-amber-200 rounded-xl px-3 py-1.5 bg-amber-50 outline-none focus:border-amber-400 font-bold text-xs cursor-pointer">
+            </div>
+            <button type="button" id="upload503-retro-btn" onclick="toggleRetroMode()"
+              class="bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-700 px-4 py-2 rounded-xl font-bold text-xs cursor-pointer transition-colors">
+              🕐 โหมดย้อนหลัง
+            </button>
+          </div>
+        </div>
+
         <!-- Zone อัพโหลด -->
         <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-          <div class="font-black text-slate-700 text-base mb-1">📤 อัพโหลดไฟล์ APMR 503</div>
-          <div class="text-xs text-slate-400 mb-5">รองรับไฟล์ .xls และ .xlsx — ระบบจะแยกรายการตาม PIC อัตโนมัติ</div>
           <label id="upload503-dropzone"
             class="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-violet-300 rounded-2xl p-10 cursor-pointer bg-violet-50 hover:bg-violet-100 transition-colors text-center">
             <div class="text-4xl">📂</div>
@@ -2687,7 +2708,7 @@
 
     function previewPaste() {
       const raw = document.getElementById('pic-paste-area').value.trim();
-      if (!raw) { alert('กรุณาวางข้อมูลก่อน'); return; }
+      if (!raw) { showToast('กรุณาวางข้อมูลก่อน', 'error'); return; }
       const { rows } = parsePasteData(raw);
       if (rows.length === 0) { showToast('ไม่พบข้อมูลที่สามารถอ่านได้ กรุณาตรวจสอบรูปแบบข้อมูล'); return; }
 
@@ -3063,7 +3084,7 @@
       const rows = getPICTableData();
       if (rows.length === 0) { showToast('ยังไม่มีรายการพาร์ท'); return; }
       const invalid = rows.filter(r => !r.vendor || !r.part_no || !r.qty);
-      if (invalid.length > 0) return alert(`กรุณากรอก Vendor Name, Part No. และ QTY ให้ครบ (${invalid.length} แถวที่ยังขาด)`);
+      if (invalid.length > 0) { showToast(`กรุณากรอก Vendor Name, Part No. และ QTY ให้ครบ (${invalid.length} แถวที่ยังขาด)`, 'error'); return; }
 
       // Auto-merge ก่อน save
       mergeDuplicatePICRows();
@@ -3076,27 +3097,32 @@
       if (btn) { btn.disabled = false; btn.innerText = '💾 บันทึกแผน'; }
 
       if (result && result.success) {
-        // Auto-sync PIC+Vendor → PIC_Master Sheet ทันที (ไม่รอ debounce)
+        // Auto-sync PIC+Vendor → PIC_Master Sheet ทันที (batch)
         const savedRows = getPICTableData();
         const newPairs = savedRows
           .map(r => ({ pic: String(r.pic||'').trim(), vendor: String(r.vendor||'').trim() }))
           .filter(r => r.pic && r.vendor);
-        // flush ทันทีไม่รอ debounce
         if (newPairs.length > 0) {
-          (async () => {
-            for (const item of newPairs) {
-              const exists = allPicMaster.some(m =>
-                String(m.pic_name||'').toLowerCase() === item.pic.toLowerCase() &&
-                String(m.supplier||'').toLowerCase() === item.vendor.toLowerCase()
-              );
-              if (!exists) {
-                const res = await callAPI('savePicMasterEntry', { picName: item.pic, supplier: item.vendor });
-                if (res && res.success && !res.skipped) {
-                  allPicMaster.push({ pic_name: item.pic, supplier: item.vendor, created_at: new Date().toISOString() });
-                }
-              }
+          // จัดกลุ่มตาม PIC แล้วส่ง batch ทีเดียว
+          const byPic = {};
+          newPairs.forEach(function(item) {
+            const exists = allPicMaster.some(function(m) {
+              return String(m.pic_name||'').toLowerCase() === item.pic.toLowerCase() &&
+                     String(m.supplier||'').toLowerCase() === item.vendor.toLowerCase();
+            });
+            if (!exists) {
+              if (!byPic[item.pic]) byPic[item.pic] = [];
+              byPic[item.pic].push(item.vendor);
             }
-          })();
+          });
+          Object.keys(byPic).forEach(async function(pic) {
+            const res = await callAPI('savePicMasterBatch', { picName: pic, suppliers: byPic[pic] });
+            if (res && res.success) {
+              byPic[pic].forEach(function(vendor) {
+                allPicMaster.push({ pic_name: pic, supplier: vendor, created_at: new Date().toISOString() });
+              });
+            }
+          });
         }
         showToast('บันทึกแผนเรียบร้อย ✅');
         // Clear table
@@ -3107,7 +3133,7 @@
         loadTodayPICParts();
         fetchAll(); // sync ข้อมูลให้ Staff ด้วย
       } else {
-        alert('เกิดข้อผิดพลาด: ' + (result ? result.message : 'ไม่ทราบสาเหตุ'));
+        showToast('เกิดข้อผิดพลาด: ' + (result ? result.message : 'ไม่ทราบสาเหตุ', 'error'));
       }
     }
 
@@ -3246,7 +3272,7 @@
         loadTodayPICParts();
         showToast('แก้ไขพาร์ทเรียบร้อย ✅');
       } else {
-        alert('เกิดข้อผิดพลาด: ' + (res?.message || ''));
+        showToast('เกิดข้อผิดพลาด: ' + (res?.message || '', 'error'));
       }
     }
 
@@ -3259,7 +3285,7 @@
         loadTodayPICParts();
         showToast('ลบพาร์ทเรียบร้อย ✅');
       } else {
-        alert('เกิดข้อผิดพลาด: ' + (res?.message || ''));
+        showToast('เกิดข้อผิดพลาด: ' + (res?.message || '', 'error'));
       }
     }
 
@@ -3395,8 +3421,8 @@
       if (hasUnplanned) {
         const managerName = document.getElementById('pcm-manager-name').value.trim();
         const remark = document.getElementById('pcm-remark').value.trim();
-        if (!managerName) { alert('กรุณากรอกชื่อผู้จัดการที่อนุมัติ'); return; }
-        if (!remark) { alert('กรุณากรอกเหตุผล / หมายเหตุ'); return; }
+        if (!managerName) { showToast('กรุณากรอกชื่อผู้จัดการที่อนุมัติ', 'error'); return; }
+        if (!remark) { showToast('กรุณากรอกเหตุผล / หมายเหตุ', 'error'); return; }
       }
 
       // Collect qty data
@@ -4150,8 +4176,8 @@
       if (hasUnplanned) {
         const managerName = document.getElementById('pcm-manager-name').value.trim();
         const remark = document.getElementById('pcm-remark').value.trim();
-        if (!managerName) { alert('กรุณากรอกชื่อผู้จัดการที่อนุมัติ'); return; }
-        if (!remark) { alert('กรุณากรอกเหตุผล / หมายเหตุ'); return; }
+        if (!managerName) { showToast('กรุณากรอกชื่อผู้จัดการที่อนุมัติ', 'error'); return; }
+        if (!remark) { showToast('กรุณากรอกเหตุผล / หมายเหตุ', 'error'); return; }
       }
       const qtyInputs = document.querySelectorAll('#pcm-parts-tbody .qty-input');
       const receivedData = [];
@@ -5181,7 +5207,7 @@
       const data = buildPicStructure(allPicMaster);
       const picName = data.pics[pi]?.name || '';
       if (!picName) return;
-      if (!confirm(`ลบ PIC "${picName}" และ Supplier ทั้งหมดออก?`)) return;
+      if (!confirm('ลบ PIC "' + picName + '" และ Supplier ทั้งหมดออก?')) return;
       showToast('⏳ กำลังลบ...');
       const res = await callAPI('deletePicMasterAll', { picName });
       if (res && res.success) {
@@ -5189,7 +5215,7 @@
         renderPicMasterCards(_pmCurrentFilter);
         showToast('ลบ PIC "' + picName + '" แล้ว');
       } else {
-        alert('เกิดข้อผิดพลาด: ' + (res?.message || ''));
+        showToast('เกิดข้อผิดพลาด: ' + (res?.message || '', 'error'));
       }
     }
 
@@ -5366,7 +5392,7 @@
         renderPicMasterCards(_pmCurrentFilter);
         showToast('ลบ "' + supName + '" ออกแล้ว');
       } else {
-        alert('เกิดข้อผิดพลาด: ' + (res?.message || ''));
+        showToast('เกิดข้อผิดพลาด: ' + (res?.message || '', 'error'));
       }
     }
 
@@ -5694,6 +5720,16 @@
             return;
           }
 
+          // กรองตามสัปดาห์ทันที — เก็บเฉพาะที่จะใช้จริงเท่านั้น
+          const range503 = getTargetWeekRange();
+          const totalRaw = upload503Data.length;
+          upload503Data = upload503Data.filter(function(r) {
+            if (!r.arrival_date) return false; // ไม่มีวันตัดทิ้ง
+            return r.arrival_date >= range503.from && r.arrival_date <= range503.to;
+          });
+          const filteredOut = totalRaw - upload503Data.length;
+          console.log('[503] ทั้งหมด ' + totalRaw + ' แถว, กรองเหลือ ' + upload503Data.length + ' แถว (ตัด ' + filteredOut + ' แถวนอกช่วง ' + range503.from + ' — ' + range503.to + ')');
+
           show503Preview();
 
         } catch(err) {
@@ -5704,27 +5740,77 @@
       reader.readAsArrayBuffer(file);
     }
 
-    // คำนวณช่วงสัปดาห์ที่ควรกรอง
+    // =====================================================
+    // UPLOAD 503 — RETRO MODE (ชั่วคราวใน session เท่านั้น)
+    // =====================================================
+    let _retroMode = false; // reset ทุกครั้งที่ reload
+
+    window.toggleRetroMode = function() {
+      _retroMode = !_retroMode;
+      const btn      = document.getElementById('upload503-retro-btn');
+      const range    = document.getElementById('upload503-retro-range');
+      const label    = document.getElementById('upload503-mode-label');
+      const desc     = document.getElementById('upload503-mode-desc');
+      const dropzone = document.getElementById('upload503-dropzone');
+
+      if (_retroMode) {
+        // เปิดโหมดย้อนหลัง — ตั้ง default range เป็นเดือนที่แล้ว
+        const now  = new Date();
+        const from = new Date(now.getFullYear(), now.getMonth()-1, 1);
+        const to   = new Date(now.getFullYear(), now.getMonth(),   0);
+        const fmt  = function(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+        document.getElementById('upload503-retro-from').value = fmt(from);
+        document.getElementById('upload503-retro-to').value   = fmt(to);
+
+        if (btn)   { btn.className = 'bg-amber-500 text-white px-4 py-2 rounded-xl font-bold text-xs cursor-pointer'; btn.innerText = '✕ ปิดโหมดย้อนหลัง'; }
+        if (range) range.classList.remove('hidden');
+        if (label) label.innerText = '🕐 อัพโหลดข้อมูลย้อนหลัง (ชั่วคราว)';
+        if (desc)  desc.innerText  = 'เลือกช่วงวันที่ต้องการ — ปิดอัตโนมัติเมื่อ refresh';
+        if (dropzone) { dropzone.className = dropzone.className.replace('border-violet-300 bg-violet-50 hover:bg-violet-100','border-amber-300 bg-amber-50 hover:bg-amber-100'); }
+        showToast('🕐 โหมดย้อนหลัง — เปิดชั่วคราว จะปิดเมื่อ refresh');
+      } else {
+        // ปิดโหมดย้อนหลัง
+        if (btn)   { btn.className = 'bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-700 px-4 py-2 rounded-xl font-bold text-xs cursor-pointer transition-colors'; btn.innerText = '🕐 โหมดย้อนหลัง'; }
+        if (range) range.classList.add('hidden');
+        if (label) label.innerText = '📤 อัพโหลดไฟล์ APMR 503';
+        if (desc)  desc.innerText  = 'กรองอัตโนมัติตามสัปดาห์ที่เหมาะสม';
+        if (dropzone) { dropzone.className = dropzone.className.replace('border-amber-300 bg-amber-50 hover:bg-amber-100','border-violet-300 bg-violet-50 hover:bg-violet-100'); }
+        showToast('กลับสู่โหมดปกติ');
+      }
+      // clear ไฟล์เดิม
+      const inp = document.getElementById('upload503-input');
+      if (inp) inp.value = '';
+      upload503Data = [];
+      document.getElementById('upload503-preview')?.classList.add('hidden');
+      document.getElementById('upload503-week-banner')?.classList.add('hidden');
+    };
+
     function getTargetWeekRange() {
+      // โหมดย้อนหลัง — ใช้ช่วงที่ผู้ใช้เลือก (ชั่วคราวใน session)
+      if (_retroMode) {
+        const from = (document.getElementById('upload503-retro-from')||{}).value || '';
+        const to   = (document.getElementById('upload503-retro-to')||{}).value   || '';
+        if (from && to) return { from: from, to: to };
+      }
+
+      // โหมดปกติ — กรองตาม logic สัปดาห์
       const now   = new Date();
-      const day   = now.getDay(); // 0=อาทิตย์, 1=จันทร์ ... 6=เสาร์
+      const day   = now.getDay();
       const h     = now.getHours();
       const min   = now.getMinutes();
       const isMonday = day === 1;
       const isBeforeDeadline = isMonday && (h < 8 || (h === 8 && min < 30));
 
-      // หาวันจันทร์ของสัปดาห์นี้
       const thisMonday = new Date(now);
       const daysToMon  = (day === 0) ? -6 : 1 - day;
       thisMonday.setDate(now.getDate() + daysToMon);
       thisMonday.setHours(0,0,0,0);
 
-      // ถ้า จันทร์ก่อน 08:30 → สัปดาห์นี้ ไม่งั้น → สัปดาห์ถัดไป
       const targetMonday = new Date(thisMonday);
       if (!isBeforeDeadline) targetMonday.setDate(thisMonday.getDate() + 7);
 
       const targetSaturday = new Date(targetMonday);
-      targetSaturday.setDate(targetMonday.getDate() + 5); // จันทร์ + 5 = เสาร์
+      targetSaturday.setDate(targetMonday.getDate() + 5);
 
       const fmt = function(d) {
         return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
@@ -5823,12 +5909,6 @@
       document.getElementById('upload503-preview').classList.add('hidden');
       document.getElementById('upload503-saving').classList.remove('hidden');
 
-      // ── กรองตามช่วงสัปดาห์ก่อน ──
-      const range = getTargetWeekRange();
-      const weekFiltered = upload503Data.filter(function(r) {
-        return r.arrival_date && r.arrival_date >= range.from && r.arrival_date <= range.to;
-      });
-
       // ── กรองเฉพาะแถวที่ Supplier ตรงกับ PIC_Master ──
       const vendorToPic = {};
       allPicMaster.forEach(function(m) {
@@ -5841,9 +5921,9 @@
 
       const hasPicMaster = Object.keys(vendorToPic).length > 0;
 
-      let filteredData = weekFiltered;
+      let filteredData = upload503Data;
       if (hasPicMaster) {
-        filteredData = weekFiltered.filter(function(r) {
+        filteredData = upload503Data.filter(function(r) {
           const vendor = String(r.vendor||'').trim().toLowerCase();
           return !!vendorToPic[vendor];
         }).map(function(r) {
@@ -7193,17 +7273,27 @@
       if (overlay) {
         const showMaintenance = s.maintenance_mode && !isStaffLoggedIn;
         overlay.classList.toggle('hidden', !showMaintenance);
-        overlay.style.display = showMaintenance ? 'flex' : '';
+        if (showMaintenance) overlay.style.display = 'flex';
+        else overlay.style.display = '';
       }
       if (msgEl && s.maintenance_message) msgEl.innerText = s.maintenance_message;
 
-      // Checkin button
+      // Guard Scan — ซ่อนปุ่ม Guard ใน Role Selection
+      const guardBtn = document.querySelector('[onclick="enterGuardView()"]');
+      if (guardBtn) guardBtn.style.display = s.guard_scan_enabled ? '' : 'none';
+
+      // Checkin — disable ปุ่มเช็คอิน + แสดงข้อความ
       const checkinBtn = document.getElementById('checkin-btn');
       if (checkinBtn) {
-        checkinBtn.disabled = !s.checkin_enabled;
-        checkinBtn.title    = s.checkin_enabled ? '' : 'ระบบปิดรับเช็คอินชั่วคราว';
+        checkinBtn.disabled     = !s.checkin_enabled;
         checkinBtn.style.opacity = s.checkin_enabled ? '1' : '0.4';
       }
+      const checkinDisabledMsg = document.getElementById('checkin-disabled-msg');
+      if (checkinDisabledMsg) checkinDisabledMsg.classList.toggle('hidden', !!s.checkin_enabled);
+
+      // GPS — แสดง/ซ่อน note GPS ใต้ปุ่มเช็คอิน
+      const gpsNote = document.getElementById('checkin-gps-note');
+      if (gpsNote) gpsNote.classList.toggle('hidden', !s.gps_check_enabled);
     }
 
     async function initSettingsPage() {
