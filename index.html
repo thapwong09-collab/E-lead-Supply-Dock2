@@ -3038,21 +3038,21 @@
 
     function checkPICAccessWindow() {
       const now  = getThaiNow();
-      const day  = now.getDay();   // 1 = จันทร์
+      const day  = now.getDay();
       const hour = now.getHours();
       const min  = now.getMinutes();
       const { mon, fri } = getCurrentWeekRange();
-      const isMonday      = day === 1;
-      const pastDeadline  = (hour > 8) || (hour === 8 && min >= 30);
-      const nextMon       = new Date(fri.getTime() + 86400000 * 3);
+      const isMonday = day === 1;
+      const nextMon  = new Date(fri.getTime() + 86400000 * 3);
 
-      // สัปดาห์นี้กรอกได้ถ้า: วันจันทร์ AND ก่อน 08:30
+      // ถ้าปิด lock → อนุญาตทุกวัน ทุกเวลา
+      if (!_sysSettings.weekly_plan_lock) {
+        return { pastDeadline: false, isMonday, currentWeekAllowed: true, mon, fri, nextMon, minAllowedDate: mon };
+      }
+
+      const pastDeadline       = (hour > 8) || (hour === 8 && min >= 30);
       const currentWeekAllowed = isMonday && !pastDeadline;
-
-      // minAllowedDate:
-      //   - วันจันทร์ก่อน 08:30 → กรอกได้ตั้งแต่วันจันทร์นี้
-      //   - อื่นๆ              → กรอกได้ตั้งแต่จันทร์หน้า
-      const minAllowedDate = currentWeekAllowed ? mon : nextMon;
+      const minAllowedDate     = currentWeekAllowed ? mon : nextMon;
 
       return { pastDeadline, isMonday, currentWeekAllowed, mon, fri, nextMon, minAllowedDate };
     }
@@ -5789,19 +5789,18 @@
             return;
           }
 
-          // กรองตามสัปดาห์ทันที — ยกเว้นถ้าอยู่ใน retro mode (กรองด้วย range ที่เลือกแล้ว)
+          // กรองตามช่วงวัน
           const range503 = getTargetWeekRange();
           const totalRaw = upload503Data.length;
-          if (!_retroMode) {
+          // กรองเสมอทั้ง mode ปกติและ retro (retro ใช้ range ที่เลือก)
+          if (range503.from && range503.to) {
             upload503Data = upload503Data.filter(function(r) {
               if (!r.arrival_date) return false;
               return r.arrival_date >= range503.from && r.arrival_date <= range503.to;
             });
           }
           const filteredOut = totalRaw - upload503Data.length;
-          if (filteredOut > 0) {
-            console.log('[503] ตัดออก ' + filteredOut + ' แถว (นอกช่วง ' + range503.from + ' — ' + range503.to + ')');
-          }
+          console.log('[503] range:', range503.from, '—', range503.to, '| ทั้งหมด:', totalRaw, '| เหลือ:', upload503Data.length, '| ตัดออก:', filteredOut);
 
           show503Preview();
 
@@ -5914,24 +5913,25 @@
 
     function show503Preview() {
       const range      = getTargetWeekRange();
-      const weekData   = get503WeekFiltered();   // กรองตามสัปดาห์แล้ว
-      const allData503 = upload503Data;           // ทั้งหมดในไฟล์
+      const weekData   = get503WeekFiltered();
+      const allData503 = upload503Data;
 
-      // สร้าง label สัปดาห์
       const fmtDate = function(d) {
         const parts = d.split('-');
         return parseInt(parts[2]) + '/' + parseInt(parts[1]) + '/' + (parseInt(parts[0])+543);
       };
       const weekLabel  = fmtDate(range.from) + ' — ' + fmtDate(range.to);
       const outOfRange = allData503.length - weekData.length;
+      const modeLabel  = _retroMode ? '🕐 โหมดย้อนหลัง' : '📅';
 
-      // แสดง banner สัปดาห์
       const bannerEl = document.getElementById('upload503-week-banner');
       if (bannerEl) {
-        bannerEl.innerHTML = '📅 กรองเฉพาะ <strong>' + weekLabel + '</strong> — ' +
+        bannerEl.innerHTML = modeLabel + ' กรองเฉพาะ <strong>' + weekLabel + '</strong> — ' +
           weekData.length + ' แถว' +
           (outOfRange > 0 ? ' <span class="text-amber-500">(ตัด ' + outOfRange + ' แถวที่นอกช่วงออก)</span>' : ' ✅');
         bannerEl.classList.remove('hidden');
+        bannerEl.className = 'mx-6 mt-4 rounded-xl px-4 py-3 text-xs font-bold ' +
+          (_retroMode ? 'bg-amber-50 border border-amber-200 text-amber-700' : 'bg-blue-50 border border-blue-200 text-blue-700');
       }
 
       const data    = weekData;   // ← ใช้ข้อมูลที่กรองแล้ว
