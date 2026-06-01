@@ -2190,11 +2190,15 @@
       try { return JSON.stringify(obj); } catch(e) { return ''; }
     }
     function fetchAll() {
-      if (typeof _isSaving503 !== 'undefined' && _isSaving503) return; // หยุดระหว่าง save
+      if (typeof _isSaving503 !== 'undefined' && _isSaving503) return;
       callAPI('readAllData').then(res => {
         if (res && res.success) {
           _fetchFailCount = 0;
           allData = res.data || [];
+          // DEBUG — ลบออกได้ทีหลัง
+          console.log('[fetchAll] allData:', allData.length, 'rows, today:', getThaiDate());
+          const todayRows = allData.filter(r => normalizeDate(r.date) === getThaiDate());
+          console.log('[fetchAll] today rows:', todayRows.length, todayRows.map(r => ({q: r.queue_number, name: r.company_name, status: r.status, date: r.date})));
           if (res.plans) globalPlanData = res.plans; // legacy — ไม่ใช้แล้ว
           if (res.parts) {
             allPartData = res.parts || [];
