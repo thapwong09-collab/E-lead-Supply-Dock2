@@ -5827,13 +5827,17 @@
       const dropzone = document.getElementById('upload503-dropzone');
 
       if (_retroMode) {
-        // เปิดโหมดย้อนหลัง — ตั้ง default range เป็นเดือนที่แล้ว
+        // default range = สัปดาห์ถัดไป (จันทร์-เสาร์หน้า)
         const now  = new Date();
-        const from = new Date(now.getFullYear(), now.getMonth()-1, 1);
-        const to   = new Date(now.getFullYear(), now.getMonth(),   0);
-        const fmt  = function(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
-        document.getElementById('upload503-retro-from').value = fmt(from);
-        document.getElementById('upload503-retro-to').value   = fmt(to);
+        const day  = now.getDay();
+        const daysToNextMon = day === 0 ? 1 : 8 - day;
+        const nextMon = new Date(now);
+        nextMon.setDate(now.getDate() + daysToNextMon);
+        const nextSat = new Date(nextMon);
+        nextSat.setDate(nextMon.getDate() + 5);
+        const fmt = function(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+        document.getElementById('upload503-retro-from').value = fmt(nextMon);
+        document.getElementById('upload503-retro-to').value   = fmt(nextSat);
 
         if (btn)   { btn.className = 'bg-amber-500 text-white px-4 py-2 rounded-xl font-bold text-xs cursor-pointer'; btn.innerText = '✕ ปิดโหมดย้อนหลัง'; }
         if (range) range.classList.remove('hidden');
