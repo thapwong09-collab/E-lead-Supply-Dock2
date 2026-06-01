@@ -2261,12 +2261,12 @@
 
     function refreshUI() {
       const today = getThaiDate();
+      const normalizeDate = function(d) { return String(d||'').replace(/^'/,''); };
 
       // ─── Staff ───────────────────────────────────────────
       if (isStaffLoggedIn) {
-        // เปรียบเทียบ checkin + parts ของวันนี้เท่านั้น (เร็วกว่า hash ทั้งหมด)
-        const todayCheckin = allData.filter(r => r.date === today);
-        const todayParts   = allPartData.filter(p => String(p.date||'') === today);
+        const todayCheckin = allData.filter(r => normalizeDate(r.date) === today);
+        const todayParts   = allPartData.filter(p => normalizeDate(p.date) === today);
         const newHashC = _quickHash(todayCheckin);
         const newHashP = _quickHash(todayParts);
         if (newHashC !== _hashCheckin || newHashP !== _hashParts) {
@@ -2281,7 +2281,7 @@
         const planPage = document.getElementById('pic-page-plan');
         if (planPage && !planPage.classList.contains('hidden')) {
           // saved list — เปรียบเทียบ parts วันนี้
-          const todayParts = allPartData.filter(p => String(p.date||'') === today);
+          const todayParts = allPartData.filter(p => normalizeDate(p.date) === today);
           const newHashP   = _quickHash(todayParts);
           if (newHashP !== _hashParts) {
             _hashParts = newHashP;
@@ -2312,7 +2312,7 @@
       // ─── Supplier ─────────────────────────────────────────
       if (currentSupplierRecord) {
         const match = allData.find(r =>
-          String(r.queue_number) === String(currentSupplierRecord.queue_number) && r.date === today
+          String(r.queue_number) === String(currentSupplierRecord.queue_number) && normalizeDate(r.date) === today
         );
         if (match) {
           const newHashS = _quickHash(match);
@@ -3805,7 +3805,7 @@
       const st = document.getElementById('current-status-text');
       const icon = document.getElementById('status-icon');
       const today = getThaiDate();
-      const inFrontCount = allData.filter(r => r.date === today && r.status === 'waiting' && parseInt(r.queue_number) < parseInt(record.queue_number)).length;
+      const inFrontCount = allData.filter(r => normalizeDate(r.date) === today && r.status === 'waiting' && parseInt(r.queue_number) < parseInt(record.queue_number)).length;
       const remainingContainer = document.getElementById('remaining-queues-container');
       const qrContainer = document.getElementById('supplier-qr-container');
       const qrBox = document.getElementById('supplier-qrcode');
@@ -3860,7 +3860,7 @@
     function updateStatus(qNum, nextStatus, factory = null) {
       if (nextStatus === 'cancelled' && !confirm('ต้องการยกเลิกคิวนี้?')) return;
       const today = getThaiDate();
-      const recordIdx = allData.findIndex(r => String(r.queue_number) === String(qNum) && r.date === today && r.status !== 'cancelled');
+      const recordIdx = allData.findIndex(r => String(r.queue_number) === String(qNum) && normalizeDate(r.date) === today && r.status !== 'cancelled');
       if (recordIdx === -1) return;
       const record = allData[recordIdx];
       const updateId = `${record.date}-${record.queue_number}`;
@@ -4003,7 +4003,7 @@
       // Banner
       const banner = document.getElementById('plan-summary-banner');
       // อ่านจาก PartDetail (allPartData) แทน WeeklyPlan
-      const todayParts = allPartData.filter(p => String(p.date||'').trim() === today);
+      const todayParts = allPartData.filter(p => normalizeDate(p.date) === today);
 
       if (todayParts.length > 0 && banner) {
         banner.classList.remove('hidden');
@@ -4014,7 +4014,7 @@
           { name: String(p.vendor||'').trim(), time: String(p.time_slot||'').trim() }
         ])).values()];
 
-        const arrivedToday    = allData.filter(r => r.date === today && r.status !== 'cancelled');
+        const arrivedToday    = allData.filter(r => normalizeDate(r.date) === today && r.status !== 'cancelled');
         const arrivedCompanies = arrivedToday.map(r => String(r.company_name).trim().toLowerCase());
 
         let arrivedCount = 0;
@@ -4042,7 +4042,7 @@
         }
       } else if (banner) { banner.classList.add('hidden'); }
 
-      const myData = allData.filter(r => r.date === today);
+      const myData = allData.filter(r => normalizeDate(r.date) === today);
       const waitList = myData.filter(r => r.status === 'waiting');
       const loadList = myData.filter(r => r.status === 'loading');
       const compList = myData.filter(r => r.status === 'completed' || r.status === 'exited');
@@ -5605,6 +5605,9 @@
       const nd = new Date(utc + (3600000 * 7));
       return `${nd.getFullYear()}-${String(nd.getMonth()+1).padStart(2,'0')}-${String(nd.getDate()).padStart(2,'0')}`;
     }
+
+    // ลบ apostrophe นำหน้าที่ GAS อาจใส่ให้ text cell
+    function normalizeDate(d) { return String(d||'').replace(/^'/,'').trim(); }
 
     function formatThaiTime(iso) {
       if (!iso || iso === '-') return '-';
