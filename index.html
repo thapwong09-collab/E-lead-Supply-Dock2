@@ -2250,9 +2250,6 @@
           _fetchFailCount = 0;
           allData = res.data || [];
           // DEBUG — ลบออกได้ทีหลัง
-          console.log('[fetchAll] allData:', allData.length, 'rows, today:', getThaiDate());
-          const todayRows = allData.filter(r => normalizeDate(r.date) === getThaiDate());
-          console.log('[fetchAll] today rows:', todayRows.length, todayRows.map(r => ({q: r.queue_number, name: r.company_name, status: r.status, date: r.date})));
           if (res.plans) globalPlanData = res.plans; // legacy — ไม่ใช้แล้ว
           if (res.parts) {
             allPartData = res.parts || [];
@@ -3943,9 +3940,9 @@
       const match = parts.find(p => {
         const pv = normalizeVendor(String(p.vendor||'').toLowerCase().trim());
         if (pv === normCN) return true;
-        if (pv.length >= 4 && normCN.includes(pv)) return true;
-        if (normCN.length >= 4 && pv.includes(normCN)) return true;
-        return vendorScore(pv, normCN) >= 60;
+        if (pv.length >= 5 && normCN.includes(pv)) return true;
+        if (normCN.length >= 5 && pv.includes(normCN)) return true;
+        return vendorScore(pv, normCN) >= 80;
       });
       if (!match) return 'ไม่มีในแผน';
 
@@ -3999,31 +3996,18 @@
     }
 
     function getPartsForSupplier(companyName, date) {
-      if (!allPartData || allPartData.length === 0) {
-        console.log('[Parts] allPartData ว่างเปล่า');
-        return [];
-      }
-      console.log('[Parts] หา:', companyName, 'วันที่:', date, '| มีทั้งหมด:', allPartData.length, 'รายการ');
-      const compLower = (companyName||'').toLowerCase().trim();
-      return allPartData.filter(p => {
-        // match วันที่
-        const pDate = String(p.date || '').trim();
+      if (!allPartData || allPartData.length === 0) return [];
+      const compLower = normalizeVendor((companyName||'').toLowerCase().trim());
+      return allPartData.filter(function(p) {
+        const pDate = normalizeDate(String(p.date||'').trim());
         if (pDate && date && pDate !== date) return false;
-        // ชื่อ vendor จาก sheet (Backend ส่งมาเป็น field ชื่อ 'vendor')
-        const pVendor = String(p.vendor || p.supplier || p.company_name || '').toLowerCase().trim();
+        const pVendor = normalizeVendor(String(p.vendor||p.supplier||p.company_name||'').toLowerCase().trim());
         if (!pVendor) return false;
-        // exact match
         if (pVendor === compLower) return true;
-        // contains match (ทั้งสองทาง)
-        if (pVendor.includes(compLower) || compLower.includes(pVendor)) return true;
-        // normalize แล้ว contains
-        const normP = normalizeVendor(pVendor);
-        const normC = normalizeVendor(compLower);
-        if (normP && normC && (normP.includes(normC) || normC.includes(normP))) return true;
-        // fuzzy score
-        const score = vendorScore(pVendor, compLower);
-        console.log('[Parts] vendor:', pVendor, 'vs', compLower, '| score:', score);
-        return score >= 50;
+        // substring match เฉพาะถ้ายาวพอ
+        if (pVendor.length >= 5 && compLower.includes(pVendor)) return true;
+        if (compLower.length >= 5 && pVendor.includes(compLower)) return true;
+        return vendorScore(pVendor, compLower) >= 80;
       });
     }
 
@@ -4075,11 +4059,16 @@
         let arrivedCount = 0;
         const pendingList = [];
         plannedVendors.forEach(function(v) {
-          const normV = normalizeVendor(v.name);
+          const normV = normalizeVendor(v.name).toLowerCase();
           const came  = arrivedCompanies.some(function(a){
-            if (a === v.name.toLowerCase()) return true;
-            if (a.includes(normV) || normV.includes(normalizeVendor(a))) return true;
-            return vendorScore(a, v.name) >= 60;
+            const normA = normalizeVendor(a).toLowerCase();
+            // exact match
+            if (normA === normV) return true;
+            // substring match เฉพาะถ้ายาวพอ (≥5 ตัว) ป้องกัน false positive
+            if (normV.length >= 5 && normA.includes(normV)) return true;
+            if (normA.length >= 5 && normV.includes(normA)) return true;
+            // fuzzy เฉพาะ score สูงมาก
+            return vendorScore(normA, normV) >= 80;
           });
           if (came) arrivedCount++;
           else pendingList.push(v.name + (v.time ? ' (' + v.time + ')' : ''));
