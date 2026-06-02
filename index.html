@@ -572,6 +572,52 @@
           </div>
         </div>
 
+        <!-- KPI Row Local/Overseas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Local -->
+          <div class="bg-emerald-50 rounded-2xl border border-emerald-100 p-5">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-lg">🇹🇭</span>
+              <div class="font-black text-emerald-700 text-sm uppercase tracking-wide">Local</div>
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+              <div class="text-center">
+                <div class="text-2xl font-black text-emerald-700" id="pd-local-suppliers">—</div>
+                <div class="text-[9px] font-black text-emerald-500 mt-0.5">ซัพพลายเออร์</div>
+              </div>
+              <div class="text-center border-x border-emerald-100">
+                <div class="text-2xl font-black text-emerald-700" id="pd-local-parts">—</div>
+                <div class="text-[9px] font-black text-emerald-500 mt-0.5">พาร์ท (แผน)</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-black text-emerald-700" id="pd-local-received">—</div>
+                <div class="text-[9px] font-black text-emerald-500 mt-0.5">รับแล้ว</div>
+              </div>
+            </div>
+          </div>
+          <!-- Overseas -->
+          <div class="bg-blue-50 rounded-2xl border border-blue-100 p-5">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-lg">🌏</span>
+              <div class="font-black text-blue-700 text-sm uppercase tracking-wide">Overseas</div>
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+              <div class="text-center">
+                <div class="text-2xl font-black text-blue-700" id="pd-overseas-suppliers">—</div>
+                <div class="text-[9px] font-black text-blue-500 mt-0.5">ซัพพลายเออร์</div>
+              </div>
+              <div class="text-center border-x border-blue-100">
+                <div class="text-2xl font-black text-blue-700" id="pd-overseas-parts">—</div>
+                <div class="text-[9px] font-black text-blue-500 mt-0.5">พาร์ท (แผน)</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-black text-blue-700" id="pd-overseas-received">—</div>
+                <div class="text-[9px] font-black text-blue-500 mt-0.5">รับแล้ว</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- KPI Row 2 — Fill Rate + Combo สองด้าน -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
@@ -4007,15 +4053,35 @@
     }
 
     // ดึง Parts ของ Supplier โดย match ชื่อแบบ fuzzy
+    // lookup type จาก Supplier Master — return 'overseas' | 'local' | ''
+    function getSupplierType(companyName) {
+      if (!companyName || !_supplierMasterList.length) return '';
+      const normName = companyName.toLowerCase().trim();
+      const found = _supplierMasterList.find(function(s) {
+        const sName = (typeof s === 'object' ? s.name : s) || '';
+        return sName.toLowerCase().trim() === normName ||
+               sName.toLowerCase().includes(normName) ||
+               normName.includes(sName.toLowerCase());
+      });
+      if (!found) return '';
+      return typeof found === 'object' ? (found.type || 'local') : 'local';
+    }
+
+    function getSupplierTypeBadge(companyName) {
+      const type = getSupplierType(companyName);
+      if (type === 'overseas') return '<span class="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">🌏 Overseas</span>';
+      if (type === 'local')    return '<span class="text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">🇹🇭 Local</span>';
+      return '';
+    }
+
     function getPartCountBadge(companyName) {
       const today = getThaiDate();
       const parts = getPartsForSupplier(companyName, today);
-      if (parts.length === 0) return '<span class="text-[9px] font-bold text-slate-300 bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">ไม่มีแผนพาร์ท</span>';
+      const typeBadge = getSupplierTypeBadge(companyName);
+      if (parts.length === 0) return typeBadge + (typeBadge ? ' ' : '') + '<span class="text-[9px] font-bold text-slate-300 bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">ไม่มีแผนพาร์ท</span>';
       const confirmed = parts.filter(function(p){ return p.status === 'completed' || p.status === 'short'; }).length;
-      const hasImport = parts.some(function(p){ return p.origin === 'import'; });
       const color = confirmed === parts.length ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 'text-violet-600 bg-violet-50 border-violet-100';
-      const importBadge = hasImport ? '<span class="text-[9px] font-bold text-orange-600 bg-orange-50 border-orange-100 px-2 py-0.5 rounded-lg border">✈️ Import</span>' : '';
-      return '<span class="text-[9px] font-bold ' + color + ' px-2 py-0.5 rounded-lg border">📦 ' + confirmed + '/' + parts.length + '</span>' + importBadge;
+      return typeBadge + (typeBadge ? ' ' : '') + '<span class="text-[9px] font-bold ' + color + ' px-2 py-0.5 rounded-lg border">📦 ' + confirmed + '/' + parts.length + '</span>';
     }
 
     function getPartsForSupplier(companyName, date) {
@@ -4647,6 +4713,41 @@
 
       const now = new Date().toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'});
       set('pd-last-update', 'อัพเดตล่าสุด ' + now);
+
+      // ── Local / Overseas KPI ──
+      // สร้าง map vendor → type จาก _supplierMasterList
+      const typeMap = {};
+      _supplierMasterList.forEach(function(s) {
+        const name = ((typeof s === 'object' ? s.name : s) || '').toLowerCase().trim();
+        const type = typeof s === 'object' ? (s.type || 'local') : 'local';
+        if (name) typeMap[name] = type;
+      });
+
+      function getTypeForVendor(vendor) {
+        const v = (vendor||'').toLowerCase().trim();
+        if (typeMap[v]) return typeMap[v];
+        // fuzzy fallback
+        const keys = Object.keys(typeMap);
+        const match = keys.find(function(k){ return k.length>=4 && (v.includes(k)||k.includes(v)); });
+        return match ? typeMap[match] : 'local';
+      }
+
+      // แยก checkin ตาม type
+      const localCheckins    = checkinData.filter(function(r){ return getTypeForVendor(r.company_name) === 'local'; });
+      const overseasCheckins = checkinData.filter(function(r){ return getTypeForVendor(r.company_name) === 'overseas'; });
+      const localVendors     = new Set(localCheckins.map(function(r){ return (r.company_name||'').toLowerCase(); }));
+      const overseasVendors  = new Set(overseasCheckins.map(function(r){ return (r.company_name||'').toLowerCase(); }));
+
+      // Parts ตาม type
+      const localParts    = partsData.filter(function(p){ return getTypeForVendor(p.vendor) === 'local'; });
+      const overseasParts = partsData.filter(function(p){ return getTypeForVendor(p.vendor) === 'overseas'; });
+
+      set('pd-local-suppliers',   localVendors.size    || '—');
+      set('pd-local-parts',       localParts.length    || '—');
+      set('pd-local-received',    localParts.filter(function(p){ return p.status==='completed'||p.status==='short'; }).length || '—');
+      set('pd-overseas-suppliers', overseasVendors.size   || '—');
+      set('pd-overseas-parts',     overseasParts.length   || '—');
+      set('pd-overseas-received',  overseasParts.filter(function(p){ return p.status==='completed'||p.status==='short'; }).length || '—');
     }
 
 
