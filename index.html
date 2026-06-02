@@ -333,7 +333,7 @@
         <div class="bg-white rounded-2xl p-4 shadow-sm border flex flex-wrap gap-3 items-end justify-between">
           <div class="flex flex-wrap gap-3 items-end">
             <div>
-              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">วันจันทร์ของสัปดาห์</label>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Arrival Date</label>
               <input type="date" id="weekly-date" onchange="loadWeeklyPlan()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer">
             </div>
             <div>
@@ -1402,6 +1402,9 @@
                   <th class="px-4 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortConfirmed('qty_plan')">Qty Plan <span id="sort-icon-qty_plan"></span></th>
                   <th class="px-4 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortConfirmed('date')">Arrival Date <span id="sort-icon-date"></span></th>
                   <th class="px-4 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortConfirmed('time_slot')">AM/PM <span id="sort-icon-time_slot"></span></th>
+                  <th class="px-4 py-3 text-center">สถานะรับ</th>
+                  <th class="px-4 py-3 text-center">ERP</th>
+                  <th class="px-4 py-3">Note Staff</th>
                 </tr>
               </thead>
               <tbody id="myparts-confirmed-table" class="divide-y divide-slate-50"></tbody>
@@ -8216,36 +8219,55 @@
     let _confirmedAllData = [];
 
     function renderConfirmedTable(data) {
-      _confirmedAllData = data;
+      // Sync status, erp_status, staff_note จาก allPartData ล่าสุด
+      _confirmedAllData = data.map(function(r) {
+        const live = allPartData.find(function(p){ return String(p.id||'') === String(r.id||''); });
+        if (live) return Object.assign({}, r, { status: live.status, erp_status: live.erp_status||'', staff_note: live.staff_note||'' });
+        return r;
+      });
+
       const tbody = document.getElementById('myparts-confirmed-table');
       const sub   = document.getElementById('myparts-confirmed-sub');
       if (!tbody) return;
 
-      // populate filter dropdowns
-      const picSel = document.getElementById('confirmed-pic-filter');
-      const venSel = document.getElementById('confirmed-vendor-filter');
+      // rebuild filter dropdowns ทุกครั้ง
+      const picSel  = document.getElementById('confirmed-pic-filter');
+      const venSel  = document.getElementById('confirmed-vendor-filter');
       const dateSel = document.getElementById('confirmed-date-filter');
-      if (picSel && picSel.options.length <= 1) {
-        [...new Set(data.map(function(r){return r.pic||'';}))].sort().forEach(function(p){ if(p) picSel.add(new Option(p,p)); });
-      }
-      if (venSel && venSel.options.length <= 1) {
-        [...new Set(data.map(function(r){return r.vendor||'';}))].sort().forEach(function(v){ if(v) venSel.add(new Option(v,v)); });
-      }
-      if (dateSel && dateSel.options.length <= 1) {
-        [...new Set(data.map(function(r){return r.date||'';}))].sort().forEach(function(d){ if(d) dateSel.add(new Option(d,d)); });
-      }
+      const curPic  = picSel?.value  || '';
+      const curVen  = venSel?.value  || '';
+      const curDate = dateSel?.value || '';
+      if (picSel)  { picSel.innerHTML  = '<option value="">ทั้งหมด</option>';  [...new Set(_confirmedAllData.map(function(r){return r.pic||'';}))].sort().forEach(function(p){ if(p) picSel.add(new Option(p,p)); }); picSel.value = curPic; }
+      if (venSel)  { venSel.innerHTML  = '<option value="">ทั้งหมด</option>';  [...new Set(_confirmedAllData.map(function(r){return r.vendor||'';}))].sort().forEach(function(v){ if(v) venSel.add(new Option(v,v)); }); venSel.value = curVen; }
+      if (dateSel) { dateSel.innerHTML = '<option value="">ทั้งหมด</option>';  [...new Set(_confirmedAllData.map(function(r){return r.date||'';}))].sort().forEach(function(d){ if(d) dateSel.add(new Option(d,d)); }); dateSel.value = curDate; }
 
-      data.sort(function(a,b){
+      _confirmedAllData.sort(function(a,b){
         if ((a.pic||'') !== (b.pic||'')) return (a.pic||'').localeCompare(b.pic||'');
         return (a.date||'').localeCompare(b.date||'');
       });
 
-      _renderConfirmedRows(data, tbody, sub);
+      _renderConfirmedRows(_confirmedAllData, tbody, sub);
       document.getElementById('myparts-confirmed-section').classList.remove('hidden');
     }
 
     function _renderConfirmedRows(data, tbody, sub) {
       tbody.innerHTML = data.map(function(r) {
+        const st = r.status || '';
+        const stBadge = st==='completed'
+          ? '<span class="bg-emerald-100 text-emerald-600 font-black text-[9px] px-2 py-0.5 rounded-full whitespace-nowrap">✅ รับแล้ว</span>'
+          : st==='short'
+            ? '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-0.5 rounded-full">⚠️ ไม่ครบ</span>'
+            : st==='missing'
+              ? '<span class="bg-rose-100 text-rose-500 font-black text-[9px] px-2 py-0.5 rounded-full">❌ ไม่ได้รับ</span>'
+              : '<span class="bg-slate-100 text-slate-400 font-black text-[9px] px-2 py-0.5 rounded-full">⏳ รอรับ</span>';
+        const erpBadge = r.erp_status==='Pending ERP'
+          ? '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-0.5 rounded-full whitespace-nowrap">⏳ Pending</span>'
+          : r.erp_status==='Done'
+            ? '<span class="bg-emerald-100 text-emerald-600 font-black text-[9px] px-2 py-0.5 rounded-full">✅ Done</span>'
+            : '<span class="text-slate-300 text-[9px]">—</span>';
+        const noteHtml = r.staff_note
+          ? '<span class="text-[10px] text-slate-600 max-w-[120px] block truncate" title="'+String(r.staff_note||'').replace(/"/g,'')+'">'+r.staff_note+'</span>'
+          : '<span class="text-slate-300 text-[9px]">—</span>';
         return '<tr class="hover:bg-slate-50">' +
           '<td class="px-4 py-2 font-bold text-slate-700 text-xs">' + (r.pic||'-') + '</td>' +
           '<td class="px-4 py-2 text-slate-600 text-xs max-w-[150px] truncate">' + (r.vendor||'-') + '</td>' +
@@ -8255,8 +8277,11 @@
           '<td class="px-4 py-2 text-center font-black text-slate-700 text-xs">' + (r.qty_plan||0) + '</td>' +
           '<td class="px-4 py-2 text-center text-emerald-600 font-bold text-xs">' + (r.date||'-') + '</td>' +
           '<td class="px-4 py-2 text-center font-bold text-slate-600 text-xs">' + (r.time_slot||'-') + '</td>' +
+          '<td class="px-4 py-2 text-center">' + stBadge + '</td>' +
+          '<td class="px-4 py-2 text-center">' + erpBadge + '</td>' +
+          '<td class="px-4 py-2">' + noteHtml + '</td>' +
         '</tr>';
-      }).join('') || '<tr><td colspan="8" class="text-center py-4 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
+      }).join('') || '<tr><td colspan="11" class="text-center py-4 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
       if (sub) sub.innerText = data.length + ' รายการ · ' + new Set(data.map(function(r){return r.pic;})).size + ' PIC';
     }
 
