@@ -4036,55 +4036,14 @@
     }
 
     function updateStaffUI() {
-      const today = getThaiDate();
+      const today  = getThaiDate();
+      const myData = allData.filter(function(r){ return normalizeDate(r.date) === today; });
 
-      // Banner
-      const banner = document.getElementById('plan-summary-banner');
-      // อ่านจาก PartDetail (allPartData) แทน WeeklyPlan
-      const todayParts = allPartData.filter(p => normalizeDate(p.date) === today);
+      const waitList = myData.filter(function(r){ return r.status === 'waiting'; });
+      const loadList = myData.filter(function(r){ return r.status === 'loading'; });
+      const compList = myData.filter(function(r){ return r.status === 'completed' || r.status === 'exited'; });
 
-      if (todayParts.length > 0 && banner) {
-        banner.classList.remove('hidden');
-
-        // group vendor unique ตามวันนี้
-        const plannedVendors = [...new Map(todayParts.map(p => [
-          String(p.vendor||'').toLowerCase().trim(),
-          { name: String(p.vendor||'').trim(), time: String(p.time_slot||'').trim() }
-        ])).values()];
-
-        const arrivedToday    = allData.filter(r => normalizeDate(r.date) === today && r.status !== 'cancelled');
-        const arrivedCompanies = arrivedToday.map(r => String(r.company_name).trim().toLowerCase());
-
-        let arrivedCount = 0;
-        const pendingList = [];
-        plannedVendors.forEach(v => {
-          const normV = normalizeVendor(v.name);
-          const came  = arrivedCompanies.some(a => {
-            if (a === v.name.toLowerCase()) return true;
-            if (a.includes(normV) || normV.includes(normalizeVendor(a))) return true;
-            return vendorScore(a, v.name) >= 60;
-          });
-          if (came) { arrivedCount++; }
-          else { pendingList.push(v.name + (v.time ? ' (' + v.time + ')' : '')); }
-        });
-
-        const pTotal   = document.getElementById('plan-total');
-        const pArrived = document.getElementById('plan-arrived');
-        const pPending = document.getElementById('plan-pending-list');
-        if (pTotal)   pTotal.innerText   = plannedVendors.length;
-        if (pArrived) pArrived.innerText = arrivedCount;
-        if (pPending) {
-          pPending.innerHTML = pendingList.length > 0
-            ? pendingList.map(c => `<span class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-rose-200 shadow-sm">${c}</span>`).join('')
-            : `<span class="text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">✅ มาครบตามแผนแล้ว</span>`;
-        }
-      } else if (banner) { banner.classList.add('hidden'); }
-
-      const myData = allData.filter(r => normalizeDate(r.date) === today);
-      const waitList = myData.filter(r => r.status === 'waiting');
-      const loadList = myData.filter(r => r.status === 'loading');
-      const compList = myData.filter(r => r.status === 'completed' || r.status === 'exited');
-
+      // ── counts ──
       const cWait = document.getElementById('count-waiting');
       const cLoad = document.getElementById('count-loading');
       const cComp = document.getElementById('count-completed');
@@ -4092,59 +4051,79 @@
       if (cLoad) cLoad.innerText = loadList.length;
       if (cComp) cComp.innerText = compList.length;
 
-      // Waiting card — ปุ่มเรียกเข้าพื้นที่ → เปิด Factory Modal
-      const renderWaitCard = (r) => `
-        <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 fade-in relative pt-10 text-left">
-          <button type="button" onclick="updateStatus('${r.queue_number}', 'cancelled')" class="absolute top-2 left-1/2 -translate-x-1/2 text-slate-300 hover:text-rose-500 transition-colors p-1 cursor-pointer" title="ยกเลิก">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-          </button>
-          <div class="flex justify-between items-center mb-1">
-             <div class="flex items-center gap-2">
-                 <span class="font-black text-xl text-indigo-600">#${r.queue_number}</span>
-                 ${getPlanBadge(getEffectivePlanStatus(r))}
-             </div>
-             <span class="text-[9px] font-black text-slate-300 uppercase">${formatThaiTime(r.checkin_time)}</span>
-          </div>
-          <div class="text-sm font-bold text-slate-500 mb-1 truncate">${r.company_name}</div>
-          <div class="flex items-center gap-2 mb-4">
-            <div class="text-[10px] font-bold text-slate-700 bg-yellow-100 inline-block px-2 py-1 rounded-md border border-yellow-200">ทะเบียน: ${r.license_plate || '-'}</div>
-            ${getPartCountBadge(r.company_name)}
-          </div>
-          <button type="button" onclick="callQueueWithFactory('${r.queue_number}', '${r.company_name.replace(/'/g, "\\'")}')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white active:scale-95 shadow-lg py-2.5 rounded-2xl text-[10px] font-black tracking-widest transition-all uppercase cursor-pointer">
-              🏭 เรียกเข้าพื้นที่ (เลือกโรงงาน)
-          </button>
-        </div>`;
+      // ── banner แผนงานวันนี้ ──
+      const banner     = document.getElementById('plan-summary-banner');
+      const todayParts = allPartData.filter(function(p){ return normalizeDate(p.date) === today; });
+      if (todayParts.length > 0 && banner) {
+        banner.classList.remove('hidden');
+        const plannedVendors = [...new Map(todayParts.map(function(p){
+          return [String(p.vendor||'').toLowerCase().trim(), { name: String(p.vendor||'').trim(), time: String(p.time_slot||'').trim() }];
+        })).values()];
+        const arrivedCompanies = myData.filter(function(r){ return r.status !== 'cancelled'; })
+          .map(function(r){ return String(r.company_name).trim().toLowerCase(); });
+        let arrivedCount = 0;
+        const pendingList = [];
+        plannedVendors.forEach(function(v) {
+          const normV = normalizeVendor(v.name);
+          const came  = arrivedCompanies.some(function(a){
+            if (a === v.name.toLowerCase()) return true;
+            if (a.includes(normV) || normV.includes(normalizeVendor(a))) return true;
+            return vendorScore(a, v.name) >= 60;
+          });
+          if (came) arrivedCount++;
+          else pendingList.push(v.name + (v.time ? ' (' + v.time + ')' : ''));
+        });
+        const pTotal   = document.getElementById('plan-total');
+        const pArrived = document.getElementById('plan-arrived');
+        const pPending = document.getElementById('plan-pending-list');
+        if (pTotal)   pTotal.innerText   = plannedVendors.length;
+        if (pArrived) pArrived.innerText = arrivedCount;
+        if (pPending) {
+          pPending.innerHTML = pendingList.length > 0
+            ? pendingList.map(function(c){ return '<span class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-rose-200 shadow-sm">'+c+'</span>'; }).join('')
+            : '<span class="text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">✅ มาครบตามแผนแล้ว</span>';
+        }
+      } else if (banner) {
+        banner.classList.add('hidden');
+      }
 
-      // Loading card — ปุ่ม Complete เปิด Parts Confirm Modal
-      const renderLoadCard = (r) => `
-        <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 fade-in relative pt-10 text-left">
-          <button type="button" onclick="updateStatus('${r.queue_number}', 'cancelled')" class="absolute top-2 left-1/2 -translate-x-1/2 text-slate-300 hover:text-rose-500 transition-colors p-1 cursor-pointer" title="ยกเลิก">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-          </button>
-          <div class="flex justify-between items-center mb-1">
-             <div class="flex items-center gap-2">
-                 <span class="font-black text-xl text-indigo-600">#${r.queue_number}</span>
-                 ${getPlanBadge(getEffectivePlanStatus(r))}
-             </div>
-             <span class="text-[9px] font-black text-slate-300 uppercase">${formatThaiTime(r.loading_time)}</span>
-          </div>
-          <div class="text-sm font-bold text-slate-500 mb-1 truncate">${r.company_name}</div>
-          <div class="flex items-center gap-2 mb-1">
-            <div class="text-[10px] font-bold text-slate-700 bg-yellow-100 inline-block px-2 py-1 rounded-md border border-yellow-200">ทะเบียน: ${r.license_plate || '-'}</div>
-            ${r.factory ? `<div class="text-[10px] font-black text-indigo-700 bg-indigo-50 inline-block px-2 py-1 rounded-md border border-indigo-200">🏭 ${r.factory}</div>` : ''}
-          </div>
-          <div class="mb-2">${getPartCountBadge(r.company_name)}</div>
-          ${getPartMiniList(r.company_name, r.date)}
-          <button type="button" onclick="openCompletePartsModal('${r.queue_number}', '${r.company_name.replace(/'/g, "\\'")}')" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-2xl text-[10px] font-black active:scale-95 transition-all uppercase shadow-lg cursor-pointer">
-              📦 ยืนยันรับพาร์ทและเสร็จสิ้น
-          </button>
-        </div>`;
+      // ── render queue cards ──
+      const renderWaitCard = function(r) {
+        return '<div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 fade-in relative pt-10 text-left">' +
+          '<button type="button" onclick="updateStatus(\'' + r.queue_number + '\', \'cancelled\')" class="absolute top-2 left-1/2 -translate-x-1/2 text-slate-300 hover:text-rose-500 transition-colors p-1 cursor-pointer" title="ยกเลิก">' +
+          '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>' +
+          '<div class="flex justify-between items-center mb-1">' +
+          '<div class="flex items-center gap-2"><span class="font-black text-xl text-indigo-600">#' + r.queue_number + '</span>' + getPlanBadge(getEffectivePlanStatus(r)) + '</div>' +
+          '<span class="text-[9px] font-black text-slate-300 uppercase">' + formatThaiTime(r.checkin_time) + '</span></div>' +
+          '<div class="text-sm font-bold text-slate-500 mb-1 truncate">' + r.company_name + '</div>' +
+          '<div class="flex items-center gap-2 mb-4">' +
+          '<div class="text-[10px] font-bold text-slate-700 bg-yellow-100 inline-block px-2 py-1 rounded-md border border-yellow-200">ทะเบียน: ' + (r.license_plate||'-') + '</div></div>' +
+          '<div class="mb-2">' + getPartCountBadge(r.company_name) + '</div>' +
+          getPartMiniList(r.company_name, r.date) +
+          '<button type="button" onclick="openFactoryModal(\'' + r.queue_number + '\')" class="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-2xl text-[10px] font-black active:scale-95 transition-all uppercase shadow-lg cursor-pointer">📦 เรียกเข้าพื้นที่</button>' +
+          '</div>';
+      };
+
+      const renderLoadCard = function(r) {
+        return '<div class="bg-white p-5 rounded-3xl shadow-sm border border-blue-100 fade-in text-left border-l-4 border-l-blue-500">' +
+          '<div class="flex justify-between items-center mb-1">' +
+          '<div class="flex items-center gap-2"><span class="font-black text-xl text-blue-600">#' + r.queue_number + '</span>' + getPlanBadge(getEffectivePlanStatus(r)) + '</div>' +
+          '<span class="text-[9px] font-black text-slate-300 uppercase">' + formatThaiTime(r.loading_time) + '</span></div>' +
+          '<div class="text-sm font-bold text-slate-500 mb-1 truncate">' + r.company_name + '</div>' +
+          '<div class="flex items-center gap-2 mb-1">' +
+          '<div class="text-[10px] font-bold text-slate-700 bg-yellow-100 inline-block px-2 py-1 rounded-md border border-yellow-200">ทะเบียน: ' + (r.license_plate||'-') + '</div>' +
+          (r.factory ? '<div class="text-[10px] font-black text-indigo-700 bg-indigo-50 inline-block px-2 py-1 rounded-md border border-indigo-200">🏭 ' + r.factory + '</div>' : '') +
+          '</div>' +
+          '<div class="mb-2">' + getPartCountBadge(r.company_name) + '</div>' +
+          getPartMiniList(r.company_name, r.date) +
+          '<button type="button" onclick="openCompletePartsModal(\'' + r.queue_number + '\', \'' + r.company_name.replace(/'/g,"\\'") + '\')" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-2xl text-[10px] font-black active:scale-95 transition-all uppercase shadow-lg cursor-pointer">📦 ยืนยันรับพาร์ทและเสร็จสิ้น</button>' +
+          '</div>';
+      };
 
       const lWait = document.getElementById('list-waiting');
       const lLoad = document.getElementById('list-loading');
       const lComp = document.getElementById('list-completed');
 
-      // Force render เสมอ — ไม่ใช้ key comparison เพราะ template literal อาจ diff ไม่ตรง
       if (lWait) lWait.innerHTML = waitList.length
         ? waitList.map(renderWaitCard).join('')
         : '<div class="text-center py-10 text-[9px] text-slate-300 font-bold uppercase tracking-widest">ไม่มีคิว</div>';
@@ -4152,51 +4131,49 @@
       if (lLoad) lLoad.innerHTML = loadList.length
         ? loadList.map(renderLoadCard).join('')
         : '<div class="text-center py-10 text-[9px] text-slate-300 font-bold uppercase tracking-widest">ไม่มีคิว</div>';
-      const compKey = compList.map(r=>r.queue_number+r.status).join('|');
-      if (lComp && (lComp.dataset.key !== compKey)) {
-        lComp.dataset.key = compKey;
-        lComp.innerHTML = compList.length ? compList.slice().reverse().map(r => {
-        const statusBadge = r.status === 'exited'
-          ? `<span class="text-[8px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">ออกแล้ว</span>`
-          : `<span class="text-[8px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200 pulse-dot">รอสแกนออก</span>`;
-        return `
-        <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 opacity-80 fade-in text-left">
-          <div class="flex justify-between items-center mb-1">
-             <div class="flex items-center gap-2"><span class="font-black text-slate-400">#${r.queue_number}</span></div>
-             ${statusBadge}
-          </div>
-          <div class="text-sm font-bold text-slate-600 mb-1">${r.company_name}</div>
-          <div class="text-[9px] font-bold text-slate-500 mb-1">ทะเบียน: <span class="text-slate-700">${r.license_plate || '-'}</span></div>
-          ${r.factory ? `<div class="text-[9px] font-black text-indigo-600 mb-2">🏭 ${r.factory}</div>` : '<div class="mb-2"></div>'}
-          <div class="grid grid-cols-2 gap-1 text-[8px] font-bold text-slate-400 border-t pt-2">
-            <div>เช็คอิน: <span class="text-slate-800">${formatThaiTime(r.checkin_time)}</span></div>
-            <div>เริ่มเข้า: <span class="text-blue-500">${formatThaiTime(r.loading_time)}</span></div>
-            <div class="col-span-2 text-right">จบงาน: <span class="text-emerald-500 text-[10px] font-black">${formatThaiTime(r.completed_time)}</span></div>
-          </div>
-        </div>`;
-      }).join('') : '<div class="text-center py-10 text-[9px] text-slate-300 font-bold tracking-widest uppercase">ไม่มีประวัติ</div>';
+
+      if (lComp) {
+        lComp.innerHTML = compList.length
+          ? compList.slice().reverse().map(function(r) {
+              const statusBadge = r.status === 'exited'
+                ? '<span class="text-[8px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">ออกแล้ว</span>'
+                : '<span class="text-[8px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200 pulse-dot">รอสแกนออก</span>';
+              return '<div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 opacity-80 fade-in text-left">' +
+                '<div class="flex justify-between items-center mb-1"><div class="flex items-center gap-2"><span class="font-black text-slate-400">#' + r.queue_number + '</span></div>' + statusBadge + '</div>' +
+                '<div class="text-sm font-bold text-slate-600 mb-1">' + r.company_name + '</div>' +
+                '<div class="text-[9px] font-bold text-slate-500 mb-1">ทะเบียน: <span class="text-slate-700">' + (r.license_plate||'-') + '</span></div>' +
+                (r.factory ? '<div class="text-[9px] font-black text-indigo-600 mb-2">🏭 ' + r.factory + '</div>' : '<div class="mb-2"></div>') +
+                '<div class="grid grid-cols-2 gap-1 text-[8px] font-bold text-slate-400 border-t pt-2">' +
+                '<div>เช็คอิน: <span class="text-slate-800">' + formatThaiTime(r.checkin_time) + '</span></div>' +
+                '<div>เริ่มเข้า: <span class="text-blue-500">' + formatThaiTime(r.loading_time) + '</span></div>' +
+                '<div class="col-span-2 text-right">จบงาน: <span class="text-emerald-500 text-[10px] font-black">' + formatThaiTime(r.completed_time) + '</span></div>' +
+                '</div></div>';
+            }).join('')
+          : '<div class="text-center py-10 text-[9px] text-slate-300 font-bold uppercase tracking-widest">ไม่มีประวัติ</div>';
       }
 
+      // ── stats ──
       const stTotal   = document.getElementById('stat-today-total');
       const stDone    = document.getElementById('stat-today-done');
       const stWait    = document.getElementById('stat-today-wait');
       const stPlanned = document.getElementById('stat-today-planned');
       const stMatch   = document.getElementById('stat-today-match');
-      const _setIfChanged = (el, val) => { if (el && el.innerText !== String(val)) el.innerText = val; };
+      const _set = function(el, val){ if (el && el.innerText !== String(val)) el.innerText = val; };
 
-      const todayActual  = myData.filter(r => r.status !== 'cancelled').length;
+      const todayActual  = myData.filter(function(r){ return r.status !== 'cancelled'; }).length;
       const todayPlanned = allPartData.filter(function(p){
-        return p.date === getThaiDate() && (p.status === 'pending' || p.status === 'completed' || p.status === 'short' || p.status === 'missing');
+        return normalizeDate(p.date) === today && (p.status === 'pending' || p.status === 'completed' || p.status === 'short' || p.status === 'missing');
       });
-      const plannedCount  = new Set(todayPlanned.map(function(p){ return p.vendor||''; }).filter(Boolean)).size;
-      const matchPct      = plannedCount > 0 ? Math.round(todayActual/plannedCount*100) : '—';
+      const plannedCount = new Set(todayPlanned.map(function(p){ return p.vendor||''; }).filter(Boolean)).size;
+      const matchPct     = plannedCount > 0 ? Math.round(todayActual/plannedCount*100)+'%' : '—';
 
-      _setIfChanged(stTotal,   todayActual);
-      _setIfChanged(stDone,    compList.length);
-      _setIfChanged(stWait,    waitList.length + loadList.length);
-      _setIfChanged(stPlanned, plannedCount || '—');
-      _setIfChanged(stMatch,   matchPct);
+      _set(stTotal,   todayActual);
+      _set(stDone,    compList.length);
+      _set(stWait,    waitList.length + loadList.length);
+      _set(stPlanned, plannedCount || '—');
+      _set(stMatch,   matchPct);
     }
+
 
     // Complete flow — เปิด Parts Modal สำหรับ loading → completed
     async function openCompletePartsModal(qNum, company) {
