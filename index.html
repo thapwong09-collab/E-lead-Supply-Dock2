@@ -379,14 +379,14 @@
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
               <thead class="bg-slate-50">
-                <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                  <th class="px-3 py-3">PIC</th>
-                  <th class="px-3 py-3">Supplier</th>
-                  <th class="px-3 py-3">PO No.</th>
-                  <th class="px-3 py-3">Part No.</th>
-                  <th class="px-3 py-3 text-center">Qty Plan รวม</th>
-                  <th class="px-3 py-3 text-center">Arrival Date</th>
-                  <th class="px-3 py-3 text-center">AM/PM</th>
+                <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest select-none">
+                  <th class="px-3 py-3 cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('staff','pic')">PIC <span id="ws-icon-pic"></span></th>
+                  <th class="px-3 py-3 cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('staff','vendor')">Supplier <span id="ws-icon-vendor"></span></th>
+                  <th class="px-3 py-3 cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('staff','po_no')">PO No. <span id="ws-icon-po_no"></span></th>
+                  <th class="px-3 py-3 cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('staff','part_no')">Part No. <span id="ws-icon-part_no"></span></th>
+                  <th class="px-3 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('staff','qty_plan')">Qty Plan <span id="ws-icon-qty_plan"></span></th>
+                  <th class="px-3 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('staff','date')">Arrival Date <span id="ws-icon-date"></span></th>
+                  <th class="px-3 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('staff','time_slot')">AM/PM <span id="ws-icon-time_slot"></span></th>
                   <th class="px-3 py-3 text-center">สถานะรับของ</th>
                   <th class="px-3 py-3 text-center">ERP</th>
                   <th class="px-3 py-3">Note Staff</th>
@@ -1807,7 +1807,7 @@
       <div id="planning-page-weekly" class="hidden max-w-6xl mx-auto p-4 space-y-4 fade-in">
         <div class="bg-white rounded-2xl p-4 shadow-sm border flex flex-wrap gap-3 items-end justify-between">
           <div class="flex flex-wrap gap-3 items-end">
-            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">วันจันทร์ของสัปดาห์</label>
+            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Arrival Date</label>
               <input type="date" id="planning-weekly-date" onchange="loadPlanningWeekly()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none font-bold text-sm cursor-pointer"></div>
             <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PIC</label>
               <select id="planning-weekly-pic" onchange="loadPlanningWeekly()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none font-bold text-sm cursor-pointer min-w-[160px]"><option value="">ทั้งหมด</option></select></div>
@@ -1821,10 +1821,14 @@
           <div class="overflow-x-auto">
             <table class="w-full text-xs">
               <thead class="bg-slate-50 border-b border-slate-100">
-                <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                  <th class="px-4 py-3">PIC</th><th class="px-4 py-3">Supplier</th><th class="px-4 py-3">PO No.</th>
-                  <th class="px-4 py-3">Part No.</th><th class="px-4 py-3 text-center">QTY แผน</th>
-                  <th class="px-4 py-3 text-center">Arrival Date</th><th class="px-4 py-3 text-center">AM/PM</th>
+                <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest select-none">
+                  <th class="px-4 py-3 cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('planning','pic')">PIC <span id="wp-icon-pic"></span></th>
+                  <th class="px-4 py-3 cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('planning','vendor')">Supplier <span id="wp-icon-vendor"></span></th>
+                  <th class="px-4 py-3 cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('planning','po_no')">PO No. <span id="wp-icon-po_no"></span></th>
+                  <th class="px-4 py-3 cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('planning','part_no')">Part No. <span id="wp-icon-part_no"></span></th>
+                  <th class="px-4 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('planning','qty_plan')">QTY แผน <span id="wp-icon-qty_plan"></span></th>
+                  <th class="px-4 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('planning','date')">Arrival Date <span id="wp-icon-date"></span></th>
+                  <th class="px-4 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('planning','time_slot')">AM/PM <span id="wp-icon-time_slot"></span></th>
                   <th class="px-4 py-3 text-center">สถานะรับ</th>
                   <th class="px-4 py-3 text-center">ERP</th>
                   <th class="px-4 py-3">Note Staff</th>
@@ -6478,43 +6482,69 @@
     }
 
     function renderWeeklyTable(data) {
+      _weeklySort.staff.data  = data;
+      _weeklySort.staff.field = 'date';
+      _weeklySort.staff.asc   = true;
+      _renderStaffWeeklyRows(data);
+    }
+
+    // =====================================================
+    // SORT — Staff & Planning Weekly Table
+    // =====================================================
+    let _weeklySort = {
+      staff:    { field: 'date', asc: true, data: [] },
+      planning: { field: 'date', asc: true, data: [] },
+    };
+
+    window.sortWeeklyTable = function(table, field) {
+      const s = _weeklySort[table];
+      if (!s) return;
+      if (s.field === field) s.asc = !s.asc;
+      else { s.field = field; s.asc = true; }
+
+      const prefix = table === 'staff' ? 'ws' : 'wp';
+      ['pic','vendor','po_no','part_no','qty_plan','date','time_slot'].forEach(function(f) {
+        const el = document.getElementById(prefix + '-icon-' + f);
+        if (el) el.innerText = f === field ? (s.asc ? ' ↑' : ' ↓') : '';
+      });
+
+      const sorted = s.data.slice().sort(function(a, b) {
+        const av = String(a[field]||'').trim(), bv = String(b[field]||'').trim();
+        if (field === 'qty_plan' || field === 'no') {
+          return s.asc ? (parseFloat(av)||0)-(parseFloat(bv)||0) : (parseFloat(bv)||0)-(parseFloat(av)||0);
+        }
+        return s.asc ? av.localeCompare(bv,'th') : bv.localeCompare(av,'th');
+      });
+
+      if (table === 'staff') {
+        _renderStaffWeeklyRows(sorted);
+      } else {
+        _renderPlanningWeeklyRows(sorted);
+      }
+    };
+
+    function _renderStaffWeeklyRows(data) {
       const tbody = document.getElementById('weekly-table-body');
       if (!tbody) return;
-
+      _weeklySort.staff.data = data;
       tbody.innerHTML = data.map(function(r) {
         const st = r.status || '';
         let statusHtml = '';
-        if (st === 'pending') {
-          statusHtml = '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-1 rounded-full">⏳ รอรับของ</span>';
-        } else if (st === 'completed') {
+        if (st === 'pending') statusHtml = '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-1 rounded-full">⏳ รอรับของ</span>';
+        else if (st === 'completed') {
           const onTime = r.confirmed_time && r.date && new Date(r.confirmed_time) <= new Date(r.date + 'T23:59:59');
-          statusHtml = onTime
-            ? '<span class="bg-emerald-100 text-emerald-600 font-black text-[9px] px-2 py-1 rounded-full">✅ ครบ/ตรงเวลา</span>'
-            : '<span class="bg-blue-100 text-blue-600 font-black text-[9px] px-2 py-1 rounded-full">✅ ครบ/ไม่ตรงเวลา</span>';
-        } else if (st === 'short') {
-          statusHtml = '<span class="bg-rose-100 text-rose-600 font-black text-[9px] px-2 py-1 rounded-full">⚠️ ได้รับไม่ครบ</span>';
-        } else if (st === 'missing') {
-          statusHtml = '<span class="bg-slate-100 text-slate-500 font-black text-[9px] px-2 py-1 rounded-full">❌ ไม่ได้รับ</span>';
-        }
-
-        // ERP Status badge
-        const erp = r.erp_status || '';
-        const erpHtml = erp === 'Pending ERP'
-          ? '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-1 rounded-full whitespace-nowrap">⏳ Pending</span>'
-          : erp === 'Done'
-            ? '<span class="bg-emerald-100 text-emerald-600 font-black text-[9px] px-2 py-1 rounded-full">✅ Done</span>'
-            : '<span class="text-slate-300 text-[9px]">—</span>';
-
-        const noteHtml = r.staff_note
-          ? '<span class="text-[10px] text-slate-600 max-w-[120px] block truncate" title="' + (r.staff_note||'').replace(/"/g,'') + '">' + r.staff_note + '</span>'
+          statusHtml = onTime ? '<span class="bg-emerald-100 text-emerald-600 font-black text-[9px] px-2 py-1 rounded-full">✅ ครบ/ตรงเวลา</span>' : '<span class="bg-blue-100 text-blue-600 font-black text-[9px] px-2 py-1 rounded-full">✅ ครบ/ไม่ตรงเวลา</span>';
+        } else if (st === 'short') statusHtml = '<span class="bg-rose-100 text-rose-600 font-black text-[9px] px-2 py-1 rounded-full">⚠️ ได้รับไม่ครบ</span>';
+        else if (st === 'missing') statusHtml = '<span class="bg-slate-100 text-slate-500 font-black text-[9px] px-2 py-1 rounded-full">❌ ไม่ได้รับ</span>';
+        const erp = r.erp_status||'';
+        const erpHtml = erp==='Pending ERP' ? '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-1 rounded-full whitespace-nowrap">⏳ Pending</span>'
+          : erp==='Done' ? '<span class="bg-emerald-100 text-emerald-600 font-black text-[9px] px-2 py-1 rounded-full">✅ Done</span>'
           : '<span class="text-slate-300 text-[9px]">—</span>';
-
+        const noteHtml = r.staff_note ? '<span class="text-[10px] text-slate-600 max-w-[120px] block truncate" title="'+String(r.staff_note||'').replace(/"/g,'')+'">'+r.staff_note+'</span>' : '<span class="text-slate-300 text-[9px]">—</span>';
         const rowId = String(r.id||'').replace(/'/g,'');
         const rowPo = String(r.po_no||'').replace(/'/g,'');
         const rowPt = String(r.part_no||'').replace(/'/g,'');
-        const rowErp  = erp;
-        const rowNote = String(r.staff_note||'').replace(/'/g,"\\'");
-
+        const rowNote = encodeURIComponent(r.staff_note||'');
         return '<tr class="hover:bg-violet-50/30 transition-colors">' +
           '<td class="px-3 py-2 font-bold text-slate-700 text-xs">' + (r.pic||'-') + '</td>' +
           '<td class="px-3 py-2 text-slate-600 text-xs max-w-[140px] truncate">' + (r.vendor||'-') + '</td>' +
@@ -6526,15 +6556,39 @@
           '<td class="px-3 py-2 text-center">' + statusHtml + '</td>' +
           '<td class="px-3 py-2 text-center">' + erpHtml + '</td>' +
           '<td class="px-3 py-2">' + noteHtml + '</td>' +
-          '<td class="px-3 py-2 text-center">' +
-            '<button type="button" onclick="openPartNoteModal(\'' + rowId + '\',\'' + rowPo + '\',\'' + rowPt + '\',\'' + rowErp + '\',\'' + rowNote + '\')" ' +
-            'class="text-violet-500 hover:text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 px-2 py-1 rounded-lg text-[9px] font-black cursor-pointer">✏️</button>' +
-          '</td>' +
+          '<td class="px-3 py-2 text-center"><button type="button" onclick="openPartNoteModal(\''+rowId+'\',\''+rowPo+'\',\''+rowPt+'\',\''+(r.erp_status||'')+'\',\''+rowNote+'\')" class="text-violet-500 hover:text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 px-2 py-1 rounded-lg text-[9px] font-black cursor-pointer">✏️</button></td>' +
         '</tr>';
-      }).join('');
+      }).join('') || '<tr><td colspan="11" class="text-center py-6 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
+    }
+
+    function _renderPlanningWeeklyRows(data) {
+      const tbody = document.getElementById('planning-weekly-body');
+      if (!tbody) return;
+      _weeklySort.planning.data = data;
+      tbody.innerHTML = data.map(function(r) {
+        const hasUrgent = _urgentAll.some(function(u){ return u.po_no===r.po_no && u.part_no===r.part_no && u.status==='pending'; });
+        const stBadge = r.status==='completed' ? '<span class="bg-emerald-100 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-full">✅ รับแล้ว</span>'
+          : r.status==='short' ? '<span class="bg-amber-100 text-amber-600 text-[9px] font-black px-2 py-0.5 rounded-full">⚠️ ไม่ครบ</span>'
+          : '<span class="bg-slate-100 text-slate-500 text-[9px] font-black px-2 py-0.5 rounded-full">⏳ รอรับ</span>';
+        const erpBadge = r.erp_status==='Pending ERP' ? '<span class="bg-amber-100 text-amber-600 text-[9px] font-black px-2 py-0.5 rounded-full whitespace-nowrap">⏳ Pending</span>'
+          : r.erp_status==='Done' ? '<span class="bg-emerald-100 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-full">✅ Done</span>'
+          : '<span class="text-slate-300 text-[9px]">—</span>';
+        const noteHtml = r.staff_note ? '<span class="text-[10px] text-slate-600 max-w-[120px] block truncate" title="'+String(r.staff_note||'').replace(/"/g,'')+'">'+r.staff_note+'</span>' : '<span class="text-slate-300 text-[9px]">—</span>';
+        return '<tr class="hover:bg-orange-50/20 ' + (hasUrgent?'bg-rose-50':'') + '">' +
+          '<td class="px-4 py-2 font-bold text-slate-700">' + (r.pic||'—') + '</td>' +
+          '<td class="px-4 py-2 text-slate-600 max-w-[130px] truncate">' + (r.vendor||'—') + '</td>' +
+          '<td class="px-4 py-2 text-slate-600">' + (r.po_no||'—') + '</td>' +
+          '<td class="px-4 py-2 font-mono text-violet-700 font-bold">' + (r.part_no||'—') + (hasUrgent?' <span class="text-rose-500">⚡</span>':'') + '</td>' +
+          '<td class="px-4 py-2 text-center font-black text-slate-700">' + (r.qty_plan||0) + '</td>' +
+          '<td class="px-4 py-2 text-center text-emerald-600 font-bold">' + (r.date||'—') + '</td>' +
+          '<td class="px-4 py-2 text-center font-bold text-slate-600">' + (r.time_slot||'—') + '</td>' +
+          '<td class="px-4 py-2 text-center">' + stBadge + '</td>' +
+          '<td class="px-4 py-2 text-center">' + erpBadge + '</td>' +
+          '<td class="px-4 py-2">' + noteHtml + '</td>' +
+        '</tr>';
+      }).join('') || '<tr><td colspan="10" class="text-center py-6 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
     }
     // =====================================================
-    // SORT — Weekly Plan Confirmed Table
     // =====================================================
     let _confirmedSortField = 'date';
     let _confirmedSortAsc   = true;
@@ -6557,46 +6611,43 @@
     function renderConfirmedMyParts() {
       const tbody = document.getElementById('myparts-confirmed-table');
       if (!tbody) return;
+
+      // ใช้ _confirmedAllData เป็น source เดียว (sync กับ filterConfirmedTable)
+      const src = _confirmedAllData.length > 0 ? _confirmedAllData : myPartsData.filter(function(r){ return r.status !== 'draft'; });
       const picFilter  = (document.getElementById('confirmed-pic-filter')||{}).value || '';
       const supFilter  = (document.getElementById('confirmed-vendor-filter')||{}).value || '';
-      const dateFilter = (document.getElementById('confirmed-date-filter')||{}).value || '';
+      const dateFilter = normalizeDate((document.getElementById('confirmed-date-filter')||{}).value || '');
 
-      let data = myPartsData.filter(function(r) {
-        if (r.status === 'draft') return false;
-        if (picFilter  && !String(r.pic||'').includes(picFilter)) return false;
-        if (supFilter  && !String(r.vendor||'').toLowerCase().includes(supFilter.toLowerCase())) return false;
-        if (dateFilter && r.date !== dateFilter) return false;
+      let data = src.filter(function(r) {
+        if (picFilter  && String(r.pic||'').trim()    !== picFilter) return false;
+        if (supFilter  && String(r.vendor||'').trim() !== supFilter) return false;
+        if (dateFilter && normalizeDate(r.date)       !== dateFilter) return false;
         return true;
       });
 
       // Sort
       const f = _confirmedSortField;
       data.sort(function(a, b) {
-        const av = String(a[f]||''), bv = String(b[f]||'');
-        // Numeric sort สำหรับ qty และ no
+        const av = String(a[f]||'').trim(), bv = String(b[f]||'').trim();
         if (f === 'qty_plan' || f === 'no') {
-          const an = parseFloat(av)||0, bn = parseFloat(bv)||0;
-          return _confirmedSortAsc ? an-bn : bn-an;
+          return _confirmedSortAsc ? (parseFloat(av)||0)-(parseFloat(bv)||0) : (parseFloat(bv)||0)-(parseFloat(av)||0);
         }
-        return _confirmedSortAsc ? av.localeCompare(bv, 'th') : bv.localeCompare(av, 'th');
+        return _confirmedSortAsc ? av.localeCompare(bv,'th') : bv.localeCompare(av,'th');
+      });
+
+      // sync sort icons
+      ['pic','vendor','no','po_no','part_no','qty_plan','date','time_slot'].forEach(function(fld) {
+        const el = document.getElementById('sort-icon-' + fld);
+        if (el) el.innerText = fld === f ? (_confirmedSortAsc ? ' ↑' : ' ↓') : '';
       });
 
       if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-300 text-xs font-bold">ยังไม่มีข้อมูล</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" class="text-center py-8 text-slate-300 text-xs font-bold">ไม่มีข้อมูล</td></tr>';
         return;
       }
-      tbody.innerHTML = data.map(function(r) {
-        return '<tr class="hover:bg-violet-50/20 text-xs">' +
-          '<td class="px-4 py-2 font-bold text-slate-700">' + (r.pic||'-') + '</td>' +
-          '<td class="px-4 py-2 text-slate-600 max-w-[140px] truncate">' + (r.vendor||'-') + '</td>' +
-          '<td class="px-4 py-2 text-center text-slate-500">' + (r.no||'-') + '</td>' +
-          '<td class="px-4 py-2 text-slate-600">' + (r.po_no||'-') + '</td>' +
-          '<td class="px-4 py-2 font-mono text-violet-700 font-bold">' + (r.part_no||'-') + '</td>' +
-          '<td class="px-4 py-2 text-center font-black text-slate-700">' + (r.qty_plan||0) + '</td>' +
-          '<td class="px-4 py-2 text-center text-emerald-600 font-bold">' + (r.date||'-') + '</td>' +
-          '<td class="px-4 py-2 text-center text-slate-500 font-bold">' + (r.time_slot||'-') + '</td>' +
-        '</tr>';
-      }).join('');
+      // delegate to shared render
+      const sub = document.getElementById('myparts-confirmed-sub');
+      _renderConfirmedRows(data, tbody, sub);
     }
     // =====================================================
     // =====================================================
@@ -7477,34 +7528,10 @@
         if (rows.length === 0) { document.getElementById('planning-weekly-empty')?.classList.remove('hidden'); return; }
         const tbody = document.getElementById('planning-weekly-body');
         if (tbody) {
-          tbody.innerHTML = rows.map(function(r) {
-            const stBadge = r.status==='completed'
-              ? '<span class="bg-emerald-100 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-full">✅ รับแล้ว</span>'
-              : r.status==='short'
-                ? '<span class="bg-amber-100 text-amber-600 text-[9px] font-black px-2 py-0.5 rounded-full">⚠️ ไม่ครบ</span>'
-                : '<span class="bg-slate-100 text-slate-500 text-[9px] font-black px-2 py-0.5 rounded-full">⏳ รอรับ</span>';
-            const hasUrgent = _urgentAll.some(function(u){ return u.po_no===r.po_no && u.part_no===r.part_no && u.status==='pending'; });
-            const erpBadge = r.erp_status==='Pending ERP'
-              ? '<span class="bg-amber-100 text-amber-600 text-[9px] font-black px-2 py-0.5 rounded-full whitespace-nowrap">⏳ Pending</span>'
-              : r.erp_status==='Done'
-                ? '<span class="bg-emerald-100 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-full">✅ Done</span>'
-                : '<span class="text-slate-300 text-[9px]">—</span>';
-            const noteHtml = r.staff_note
-              ? '<span class="text-[10px] text-slate-600 max-w-[120px] block truncate" title="' + String(r.staff_note).replace(/"/g,'') + '">' + r.staff_note + '</span>'
-              : '<span class="text-slate-300 text-[9px]">—</span>';
-            return '<tr class="hover:bg-orange-50/20 ' + (hasUrgent ? 'bg-rose-50' : '') + '">' +
-              '<td class="px-4 py-2 font-bold text-slate-700">' + (r.pic||'—') + '</td>' +
-              '<td class="px-4 py-2 text-slate-600 max-w-[130px] truncate">' + (r.vendor||'—') + '</td>' +
-              '<td class="px-4 py-2 text-slate-600">' + (r.po_no||'—') + '</td>' +
-              '<td class="px-4 py-2 font-mono text-violet-700 font-bold">' + (r.part_no||'—') + (hasUrgent?' <span class="text-rose-500">⚡</span>':'') + '</td>' +
-              '<td class="px-4 py-2 text-center font-black text-slate-700">' + (r.qty_plan||0) + '</td>' +
-              '<td class="px-4 py-2 text-center text-emerald-600 font-bold">' + (r.date||'—') + '</td>' +
-              '<td class="px-4 py-2 text-center font-bold text-slate-600">' + (r.time_slot||'—') + '</td>' +
-              '<td class="px-4 py-2 text-center">' + stBadge + '</td>' +
-              '<td class="px-4 py-2 text-center">' + erpBadge + '</td>' +
-              '<td class="px-4 py-2">' + noteHtml + '</td>' +
-            '</tr>';
-          }).join('');
+          _weeklySort.planning.data  = rows;
+          _weeklySort.planning.field = 'date';
+          _weeklySort.planning.asc   = true;
+          _renderPlanningWeeklyRows(rows);
         }
         const badge = document.getElementById('planning-weekly-badge');
         if (badge) { badge.innerText = rows.length + ' รายการ'; badge.classList.remove('hidden'); }
@@ -8288,11 +8315,18 @@
     function filterConfirmedTable() {
       const pic    = (document.getElementById('confirmed-pic-filter')||{}).value||'';
       const vendor = (document.getElementById('confirmed-vendor-filter')||{}).value||'';
-      const date   = (document.getElementById('confirmed-date-filter')||{}).value||'';
+      const date   = normalizeDate((document.getElementById('confirmed-date-filter')||{}).value||'');
       let filtered = _confirmedAllData;
-      if (pic)    filtered = filtered.filter(function(r){ return (r.pic||'')    === pic; });
-      if (vendor) filtered = filtered.filter(function(r){ return (r.vendor||'') === vendor; });
-      if (date)   filtered = filtered.filter(function(r){ return (r.date||'')   === date; });
+      if (pic)    filtered = filtered.filter(function(r){ return String(r.pic||'').trim()    === pic; });
+      if (vendor) filtered = filtered.filter(function(r){ return String(r.vendor||'').trim() === vendor; });
+      if (date)   filtered = filtered.filter(function(r){ return normalizeDate(r.date)       === date; });
+      // apply current sort
+      const f = _confirmedSortField;
+      filtered.sort(function(a,b){
+        const av = String(a[f]||'').trim(), bv = String(b[f]||'').trim();
+        if (f==='qty_plan'||f==='no') return _confirmedSortAsc?(parseFloat(av)||0)-(parseFloat(bv)||0):(parseFloat(bv)||0)-(parseFloat(av)||0);
+        return _confirmedSortAsc?av.localeCompare(bv,'th'):bv.localeCompare(av,'th');
+      });
       const tbody = document.getElementById('myparts-confirmed-table');
       const sub   = document.getElementById('myparts-confirmed-sub');
       if (tbody && sub) _renderConfirmedRows(filtered, tbody, sub);
