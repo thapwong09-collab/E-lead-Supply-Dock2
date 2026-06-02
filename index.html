@@ -4144,18 +4144,14 @@
       const lLoad = document.getElementById('list-loading');
       const lComp = document.getElementById('list-completed');
 
-      // ใช้ data key แทน innerHTML comparison — เร็วกว่าและแม่นยำกว่า
-      const waitKey = waitList.map(r => r.queue_number + r.status + r.plan_status).join('|');
-      const loadKey = loadList.map(r => r.queue_number + r.status).join('|');
+      // Force render เสมอ — ไม่ใช้ key comparison เพราะ template literal อาจ diff ไม่ตรง
+      if (lWait) lWait.innerHTML = waitList.length
+        ? waitList.map(renderWaitCard).join('')
+        : '<div class="text-center py-10 text-[9px] text-slate-300 font-bold uppercase tracking-widest">ไม่มีคิว</div>';
 
-      if (lWait && lWait.dataset.key !== waitKey) {
-        lWait.dataset.key = waitKey;
-        lWait.innerHTML = waitList.length ? waitList.map(renderWaitCard).join('') : '<div class="text-center py-10 text-[9px] text-slate-300 font-bold uppercase tracking-widest">ไม่มีคิว</div>';
-      }
-      if (lLoad && lLoad.dataset.key !== loadKey) {
-        lLoad.dataset.key = loadKey;
-        lLoad.innerHTML = loadList.length ? loadList.map(renderLoadCard).join('') : '<div class="text-center py-10 text-[9px] text-slate-300 font-bold uppercase tracking-widest">ไม่มีคิว</div>';
-      }
+      if (lLoad) lLoad.innerHTML = loadList.length
+        ? loadList.map(renderLoadCard).join('')
+        : '<div class="text-center py-10 text-[9px] text-slate-300 font-bold uppercase tracking-widest">ไม่มีคิว</div>';
       const compKey = compList.map(r=>r.queue_number+r.status).join('|');
       if (lComp && (lComp.dataset.key !== compKey)) {
         lComp.dataset.key = compKey;
