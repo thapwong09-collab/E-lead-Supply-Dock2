@@ -563,7 +563,7 @@
                 <span class="text-amber-700 text-lg">📋</span>
               </div>
               <div>
-                <div class="text-[10px] font-black text-amber-600 uppercase tracking-wide">นอกแผน</div>
+                <div class="text-[10px] font-black text-amber-600 uppercase tracking-wide">ไม่มีในแผน</div>
                 <div id="pd-unplanned" class="text-3xl font-black text-amber-700 mt-0.5 leading-none">—</div>
                 <div id="pd-unplanned-pct" class="text-xs font-black text-amber-500 mt-1">—</div>
               </div>
@@ -1065,7 +1065,7 @@
             <div class="bg-amber-50 rounded-2xl border border-amber-100 p-5 flex items-start gap-4">
               <div class="w-10 h-10 bg-amber-200 rounded-xl flex items-center justify-center flex-shrink-0"><span class="text-lg">📋</span></div>
               <div>
-                <div class="text-[10px] font-black text-amber-600 uppercase tracking-wide">นอกแผน</div>
+                <div class="text-[10px] font-black text-amber-600 uppercase tracking-wide">ไม่มีในแผน</div>
                 <div id="pr-unplanned" class="text-3xl font-black text-amber-700 mt-0.5 leading-none">—</div>
                 <div id="pr-unplanned-pct" class="text-xs font-black text-amber-500 mt-1">—</div>
               </div>
@@ -3929,17 +3929,18 @@
     // ==========================================
     // คำนวณ plan_status จาก PartDetail (แทน WeeklyPlan)
     function getPlanStatusFromParts(companyName, date) {
-      const parts = allPartData.filter(p => String(p.date||'').trim() === date);
-      if (parts.length === 0) return 'นอกแผน';
+      const parts = allPartData.filter(p => String(p.date||'').trim() === date && p.status !== 'draft' && p.status !== 'cancelled');
+      if (parts.length === 0) return 'ไม่มีในแผน';
 
+      const normCN = normalizeVendor(companyName.toLowerCase().trim());
       const match = parts.find(p => {
-        const pv = String(p.vendor||'').toLowerCase().trim();
-        const cn = companyName.toLowerCase().trim();
-        if (pv === cn) return true;
-        if (pv.includes(normalizeVendor(cn)) || normalizeVendor(cn).includes(normalizeVendor(pv))) return true;
-        return vendorScore(pv, cn) >= 60;
+        const pv = normalizeVendor(String(p.vendor||'').toLowerCase().trim());
+        if (pv === normCN) return true;
+        if (pv.length >= 4 && normCN.includes(pv)) return true;
+        if (normCN.length >= 4 && pv.includes(normCN)) return true;
+        return vendorScore(pv, normCN) >= 60;
       });
-      if (!match) return 'นอกแผน';
+      if (!match) return 'ไม่มีในแผน';
 
       const slot = String(match.time_slot||'').toUpperCase().trim();
       const now  = new Date();
@@ -3948,45 +3949,34 @@
       const tf   = bkk.getHours() + (bkk.getMinutes() / 60);
 
       if (slot.includes('PICK')) return 'Pickup';
-      if (slot === 'AM') {
-        return tf > 11.5 ? 'AM - ล่าช้า' : 'AM - ตรงเวลา';
-      }
+      if (slot === 'AM') return tf > 11.5 ? 'AM - ล่าช้า' : 'AM - ตรงเวลา';
       if (slot === 'PM') {
         if (tf < 13.25)  return 'PM - มาก่อนเวลา';
         if (tf > 17.33)  return 'PM - ล่าช้า';
         return 'PM - ตรงเวลา';
       }
-      return 'นอกแผน';
+      return 'ตามแผน'; // มีในแผนแต่ไม่ระบุ slot
     }
 
     const getPlanBadge = (planStatus) => {
       if (!planStatus) return '';
-      if (planStatus.includes('ตรงเวลา')) return `<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded shadow-sm text-[9px] font-bold border border-emerald-200 whitespace-nowrap">${planStatus}</span>`;
-      if (planStatus.includes('ล่าช้า')) return `<span class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded shadow-sm text-[9px] font-bold border border-rose-200 whitespace-nowrap">${planStatus}</span>`;
+      if (planStatus.includes('ตรงเวลา'))   return `<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded shadow-sm text-[9px] font-bold border border-emerald-200 whitespace-nowrap">${planStatus}</span>`;
+      if (planStatus.includes('ล่าช้า'))    return `<span class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded shadow-sm text-[9px] font-bold border border-rose-200 whitespace-nowrap">${planStatus}</span>`;
       if (planStatus.includes('ก่อนเวลา')) return `<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded shadow-sm text-[9px] font-bold border border-amber-200 whitespace-nowrap">${planStatus}</span>`;
-      if (planStatus.includes('Pickup')) return `<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded shadow-sm text-[9px] font-bold border border-blue-200 whitespace-nowrap">${planStatus}</span>`;
+      if (planStatus.includes('Pickup'))    return `<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded shadow-sm text-[9px] font-bold border border-blue-200 whitespace-nowrap">${planStatus}</span>`;
+      if (planStatus === 'ตามแผน')          return `<span class="bg-violet-100 text-violet-700 px-2 py-0.5 rounded shadow-sm text-[9px] font-bold border border-violet-200 whitespace-nowrap">${planStatus}</span>`;
+      if (planStatus === 'ไม่มีในแผน')      return `<span class="bg-amber-100 text-amber-600 px-2 py-0.5 rounded shadow-sm text-[9px] font-bold border border-amber-200 whitespace-nowrap">⚠️ ${planStatus}</span>`;
       return `<span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded shadow-sm text-[9px] font-bold border border-slate-200 whitespace-nowrap">${planStatus}</span>`;
     };
 
-    function getPartCountBadge(companyName) {
-      const today = getThaiDate();
-      const parts = getPartsForSupplier(companyName, today);
-      if (parts.length === 0) return `<span class="text-[9px] font-bold text-slate-300 bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">ไม่มีแผนพาร์ท</span>`;
-      const confirmed = parts.filter(p => p.status === 'completed' || p.status === 'short').length;
-      const hasImport = parts.some(p => p.origin === 'import');
-      const color = confirmed === parts.length ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 'text-violet-600 bg-violet-50 border-violet-100';
-      const importBadge = hasImport ? `<span class="text-[9px] font-bold text-orange-600 bg-orange-50 border-orange-100 px-2 py-0.5 rounded-lg border">✈️ Import</span>` : '';
-      return `<span class="text-[9px] font-bold ${color} px-2 py-0.5 rounded-lg border">📦 ${confirmed}/${parts.length}</span>${importBadge}`;
-    }
-
-    // คำนวณ plan_status realtime จาก allPartData (override ค่าจาก sheet ถ้าเดิมเป็น นอกแผน)
+    // คำนวณ plan_status realtime จาก allPartData
     function getEffectivePlanStatus(r) {
       const stored = r.plan_status || '';
-      // ถ้ามีค่าจาก sheet และไม่ใช่ นอกแผน ใช้ค่าเดิม
-      if (stored && stored !== 'นอกแผน') return stored;
+      // ถ้ามีค่าจาก sheet และไม่ใช่ค่า default เก่า ใช้ค่าเดิม
+      const oldDefaults = ['นอกแผน', ''];
+      if (stored && !oldDefaults.includes(stored)) return stored;
       // recalculate จาก PartDetail
-      const recalc = getPlanStatusFromParts(r.company_name, r.date);
-      return recalc || stored || 'นอกแผน';
+      return getPlanStatusFromParts(r.company_name, normalizeDate(r.date));
     }
 
     // ดึง Parts ของ Supplier โดย match ชื่อแบบ fuzzy
@@ -4357,7 +4347,7 @@
         const st = r.plan_status || '';
         if (st.includes('ตรงเวลา') || st.includes('มาก่อนเวลา')) supStats[name].ontime++;
         else if (st.includes('ล่าช้า')) supStats[name].late++;
-        else if (st.includes('นอกแผน')) supStats[name].unplanned++;
+        else if (st==='ไม่มีในแผน'||st==='นอกแผน') supStats[name].unplanned++;
       });
       const sorted = Object.entries(supStats).sort((a,b) => b[1].total - a[1].total);
       const tbody = document.getElementById('kpi-all-suppliers-table');
@@ -4384,7 +4374,7 @@
         kpiPieChart = new Chart(ctx, { type:'doughnut', data:{ labels:['ไม่มีข้อมูล'], datasets:[{ data:[1], backgroundColor:['#f1f5f9'] }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } } } });
         return;
       }
-      kpiPieChart = new Chart(ctx, { type:'doughnut', data:{ labels:['ตรงเวลา/ก่อนเวลา','ล่าช้า','นอกแผน','Pickup'], datasets:[{ data:[ontime,late,unplanned,pickup], backgroundColor:['#10b981','#f43f5e','#f59e0b','#3b82f6'], borderWidth:0, hoverOffset:4 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ font:{ family:'Prompt' } } } }, cutout:'70%' } });
+      kpiPieChart = new Chart(ctx, { type:'doughnut', data:{ labels:['ตรงเวลา/ก่อนเวลา','ล่าช้า','ไม่มีในแผน','Pickup'], datasets:[{ data:[ontime,late,unplanned,pickup], backgroundColor:['#10b981','#f43f5e','#f59e0b','#3b82f6'], borderWidth:0, hoverOffset:4 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ font:{ family:'Prompt' } } } }, cutout:'70%' } });
     }
 
     function updateDailyHistoryList() {
@@ -4417,7 +4407,7 @@
             else if (ps.includes('ตรงเวลา')) timeBadge = '<span class="bg-emerald-50 text-emerald-600 font-black text-[9px] px-2 py-0.5 rounded-full">ตรงเวลา</span>';
             else if (ps.includes('ล่าช้า')) timeBadge = '<span class="bg-rose-50 text-rose-500 font-black text-[9px] px-2 py-0.5 rounded-full">ล่าช้า</span>';
             else if (ps.includes('มาก่อน')) timeBadge = '<span class="bg-blue-50 text-blue-500 font-black text-[9px] px-2 py-0.5 rounded-full">มาก่อน</span>';
-            else if (ps.includes('นอกแผน')) timeBadge = '<span class="bg-amber-50 text-amber-500 font-black text-[9px] px-2 py-0.5 rounded-full">นอกแผน</span>';
+            else if (ps==='ไม่มีในแผน'||ps==='นอกแผน') timeBadge = '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-0.5 rounded-full">⚠️ ไม่มีในแผน</span>';
             else timeBadge = '<span class="bg-emerald-50 text-emerald-600 font-black text-[9px] px-2 py-0.5 rounded-full">เสร็จสิ้น</span>';
             const relParts = allPartData.filter(function(p){ return p.date===dateStr && String(p.vendor||'').toLowerCase()===String(r.company_name||'').toLowerCase(); });
             let partBadge = '—';
@@ -4599,7 +4589,7 @@
       const done     = checkinData.filter(function(r){ return r.status==='completed'||r.status==='exited'; }).length;
       const ontime   = checkinData.filter(function(r){ return String(r.plan_status||'').includes('ตรงเวลา'); }).length;
       const late     = checkinData.filter(function(r){ return String(r.plan_status||'').includes('ล่าช้า'); }).length;
-      const unplann  = checkinData.filter(function(r){ return String(r.plan_status||'').includes('นอกแผน'); }).length;
+      const unplann  = checkinData.filter(function(r){ const ps=String(r.plan_status||''); return ps==='ไม่มีในแผน'||ps==='นอกแผน'; }).length;
       const pickup   = partsData.filter(function(p){ return String(p.time_slot||'').toLowerCase()==='pick up'; }).length;
       set('pd-ontime',      ontime);
       set('pd-ontime-pct',  done > 0 ? Math.round(ontime/done*100)+'%' : '—');
@@ -6768,7 +6758,7 @@
       const done   = fci.filter(function(r){ return r.status==='completed'||r.status==='exited'; }).length;
       const ontime = fci.filter(function(r){ return String(r.plan_status||'').includes('ตรงเวลา'); }).length;
       const late   = fci.filter(function(r){ return String(r.plan_status||'').includes('ล่าช้า'); }).length;
-      const unpl   = fci.filter(function(r){ return String(r.plan_status||'').includes('นอกแผน'); }).length;
+      const unpl   = fci.filter(function(r){ const ps=String(r.plan_status||''); return ps==='ไม่มีในแผน'||ps==='นอกแผน'; }).length;
 
       set('pr-visits', visits);
       set('pr-ontime', ontime); set('pr-ontime-pct', done>0?Math.round(ontime/done*100)+'%':'—');
