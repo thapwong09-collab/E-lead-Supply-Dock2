@@ -2192,10 +2192,12 @@
     let allPicMaster = []; // PIC_Master จาก Sheet
 
     // Hash สำหรับเปรียบเทียบข้อมูล — ป้องกัน render ซ้ำเมื่อข้อมูลไม่เปลี่ยน
-    let _hashCheckin  = '';
-    let _hashParts    = '';
-    let _hashPicMaster= '';
-    let _hashSupplier = '';
+    let _hashCheckin       = '';
+    let _hashParts         = '';   // Staff weekly parts hash
+    let _hashPartsPIC      = '';   // PIC parts hash
+    let _hashPartsPlanning = '';   // Planning parts hash
+    let _hashPicMaster     = '';
+    let _hashSupplier      = '';
 
     function _quickHash(obj) {
       // hash แบบเร็ว — JSON string แต่ตัดช่องว่างออก
@@ -2285,11 +2287,8 @@
           _hashCheckin = newHashC;
           _hashParts   = newHashP;
           updateStaffUI();
-          // auto re-render Weekly Plan ถ้ากำลังดูอยู่
           const weeklyPage = document.getElementById('page-weekly');
-          if (weeklyPage && !weeklyPage.classList.contains('hidden')) {
-            loadWeeklyPlan();
-          }
+          if (weeklyPage && !weeklyPage.classList.contains('hidden')) loadWeeklyPlan();
         }
       }
 
@@ -2299,17 +2298,12 @@
         const planPage = document.getElementById('pic-page-plan');
         if (planPage && !planPage.classList.contains('hidden')) {
           const todayParts = allPartData.filter(p => normalizeDate(p.date) === today);
-          const newHashP   = _quickHash(todayParts);
-          if (newHashP !== _hashParts) {
-            _hashParts = newHashP;
-            loadTodayPICParts();
-          }
+          const newH = _quickHash(todayParts);
+          if (newH !== _hashPartsPIC) { _hashPartsPIC = newH; loadTodayPICParts(); }
         }
-        // PIC Weekly Plan — auto re-render
         const picWeeklyPage = document.getElementById('pic-page-myparts');
-        if (picWeeklyPage && !picWeeklyPage.classList.contains('hidden') && allPartsHash !== _hashParts) {
-          _hashParts = allPartsHash;
-          // re-render confirmed table ถ้า _confirmedAllData มีข้อมูล
+        if (picWeeklyPage && !picWeeklyPage.classList.contains('hidden') && allPartsHash !== _hashPartsPIC) {
+          _hashPartsPIC = allPartsHash;
           if (_confirmedAllData.length > 0) renderConfirmedTable(_confirmedAllData);
         }
         const activeTab = ['responsibility','pic-master'].find(t => {
@@ -2317,19 +2311,11 @@
           return el && !el.classList.contains('hidden');
         });
         if (activeTab === 'responsibility') {
-          const newHashP = _quickHash(allPartData);
-          if (newHashP !== _hashParts) {
-            _hashParts = newHashP;
-            _populatePicRespFilter();
-            updatePicResponsibility();
-          }
+          if (allPartsHash !== _hashPartsPIC) { _hashPartsPIC = allPartsHash; _populatePicRespFilter(); updatePicResponsibility(); }
         }
         if (activeTab === 'pic-master') {
           const newHashM = _quickHash(allPicMaster);
-          if (newHashM !== _hashPicMaster) {
-            _hashPicMaster = newHashM;
-            updatePicMaster();
-          }
+          if (newHashM !== _hashPicMaster) { _hashPicMaster = newHashM; updatePicMaster(); }
         }
       }
 
@@ -2338,10 +2324,7 @@
         const planningWeeklyPage = document.getElementById('planning-weekly-table-wrap');
         if (planningWeeklyPage && !planningWeeklyPage.classList.contains('hidden')) {
           const newHashP = _quickHash(allPartData);
-          if (newHashP !== _hashParts) {
-            _hashParts = newHashP;
-            loadPlanningWeekly();
-          }
+          if (newHashP !== _hashPartsPlanning) { _hashPartsPlanning = newHashP; loadPlanningWeekly(); }
         }
       }
 
@@ -2420,8 +2403,8 @@
           initManagerView();
         } else {
           isStaffLoggedIn = true;
-          // reset hash เพื่อบังคับ render ใหม่เมื่อ login
-          _hashCheckin = ''; _hashParts = '';
+          // reset hash ทั้งหมดเพื่อบังคับ render ใหม่
+          _hashCheckin = ''; _hashParts = ''; _hashPartsPIC = ''; _hashPartsPlanning = '';
           hideAll();
           document.getElementById('staff-view').classList.remove('hidden');
           showStaffTab('queue');
@@ -4053,6 +4036,8 @@
         return normalizeDate(p.date) === today &&
                p.status !== 'draft' && p.status !== 'cancelled';
       });
+      console.log('[banner] today:', today, '| allPartData:', allPartData.length, '| todayParts:', todayParts.length, todayParts.slice(0,3).map(function(p){ return {date:p.date, vendor:p.vendor, status:p.status}; }));
+      console.log('[banner] allData today:', myData.length, myData.map(function(r){ return {q:r.queue_number, name:r.company_name, status:r.status, date:r.date}; }));
       if (todayParts.length > 0 && banner) {
         banner.classList.remove('hidden');
         const plannedVendors = [...new Map(todayParts.map(function(p){
