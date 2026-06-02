@@ -385,6 +385,7 @@
                   <th class="px-3 py-3 cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('staff','po_no')">PO No. <span id="ws-icon-po_no"></span></th>
                   <th class="px-3 py-3 cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('staff','part_no')">Part No. <span id="ws-icon-part_no"></span></th>
                   <th class="px-3 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('staff','qty_plan')">Qty Plan <span id="ws-icon-qty_plan"></span></th>
+                  <th class="px-3 py-3 text-center">รับจริง</th>
                   <th class="px-3 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('staff','date')">Arrival Date <span id="ws-icon-date"></span></th>
                   <th class="px-3 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('staff','time_slot')">AM/PM <span id="ws-icon-time_slot"></span></th>
                   <th class="px-3 py-3 text-center">สถานะรับของ</th>
@@ -1790,6 +1791,7 @@
                   <th class="px-4 py-3 cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('planning','po_no')">PO No. <span id="wp-icon-po_no"></span></th>
                   <th class="px-4 py-3 cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('planning','part_no')">Part No. <span id="wp-icon-part_no"></span></th>
                   <th class="px-4 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('planning','qty_plan')">QTY แผน <span id="wp-icon-qty_plan"></span></th>
+                  <th class="px-4 py-3 text-center">รับจริง</th>
                   <th class="px-4 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('planning','date')">Arrival Date <span id="wp-icon-date"></span></th>
                   <th class="px-4 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('planning','time_slot')">AM/PM <span id="wp-icon-time_slot"></span></th>
                   <th class="px-4 py-3 text-center">สถานะรับ</th>
@@ -4047,7 +4049,10 @@
 
       // ── banner แผนงานวันนี้ ──
       const banner     = document.getElementById('plan-summary-banner');
-      const todayParts = allPartData.filter(function(p){ return normalizeDate(p.date) === today; });
+      const todayParts = allPartData.filter(function(p){
+        return normalizeDate(p.date) === today &&
+               p.status !== 'draft' && p.status !== 'cancelled';
+      });
       if (todayParts.length > 0 && banner) {
         banner.classList.remove('hidden');
         const plannedVendors = [...new Map(todayParts.map(function(p){
@@ -4956,7 +4961,7 @@
                         <div class="flex items-center gap-2 mb-1 flex-wrap">
                           <span class="font-bold text-slate-700 text-sm truncate">${v}</span>
                           ${hasCheckin ? '<span class="text-[9px] bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded font-black flex-shrink-0">เช็คอินแล้ว ✅</span>' : '<span class="text-[9px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded font-black flex-shrink-0">ยังไม่มา</span>'}
-                          <button type="button" onclick="toggleSupplierTypeFromCard('${v.replace(/'/g,"\\'")}', this)"
+                          <button type="button" onclick="toggleSupplierTypeFromCard(this)"
                             data-supplier="${v.replace(/"/g,'&quot;')}"
                             class="text-[9px] font-black px-2 py-0.5 rounded-full border cursor-pointer transition-all ${getSupplierType(v)==='overseas' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}">
                             ${getSupplierType(v)==='overseas' ? '🌏 Overseas' : '🇹🇭 Local'}
@@ -5327,17 +5332,19 @@
     // reset search เมื่อเปิด modal ใหม่
     // reset search เมื่อเปิด modal
 
-    window.toggleSupplierTypeFromCard = async function(supplierName, btn) {
+    window.toggleSupplierTypeFromCard = async function(btn) {
+      const supplierName = btn.dataset.supplier;
+      if (!supplierName) return;
       const curType = getSupplierType(supplierName);
       const newType = curType === 'local' ? 'overseas' : 'local';
 
-      // อัพเดท UI ทันที (optimistic)
+      // อัพเดท UI ทันที
       const isOverseas = newType === 'overseas';
       btn.innerText = isOverseas ? '🌏 Overseas' : '🇹🇭 Local';
       btn.className = 'text-[9px] font-black px-2 py-0.5 rounded-full border cursor-pointer transition-all ' +
         (isOverseas ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200');
 
-      // อัพเดทใน _supplierMasterList ทันที
+      // อัพเดทใน _supplierMasterList
       const idx = _supplierMasterList.findIndex(function(s) {
         const n = (typeof s === 'object' ? s.name : s) || '';
         return n.toLowerCase().trim() === supplierName.toLowerCase().trim();
@@ -5347,16 +5354,17 @@
         else _supplierMasterList[idx] = { name: supplierName, type: newType };
       }
 
-      // บันทึกลง Sheet
       try {
         const res = await callAPI('updateSupplierType', { name: supplierName, type: newType });
         if (!res || !res.success) {
-          showToast('บันทึกไม่สำเร็จ', 'error');
+          showToast('บันทึกไม่สำเร็จ: ' + (res?.message||''), 'error');
           // revert
-          btn.innerText = curType === 'overseas' ? '🌏 Overseas' : '🇹🇭 Local';
           if (idx >= 0 && typeof _supplierMasterList[idx] === 'object') _supplierMasterList[idx].type = curType;
+          btn.innerText = curType === 'overseas' ? '🌏 Overseas' : '🇹🇭 Local';
         } else {
           showToast((isOverseas ? '🌏 Overseas' : '🇹🇭 Local') + ' บันทึกแล้ว');
+          // reload _supplierMasterList เพื่อให้ sync
+          callAPI('getSupplierMaster').then(function(r){ if(r&&r.success) _supplierMasterList = r.suppliers||[]; });
         }
       } catch(e) { showToast('Error: ' + e.message, 'error'); }
     };
@@ -6663,14 +6671,17 @@
       if (!tbody) return;
       _weeklySort.staff.data = data;
       tbody.innerHTML = data.map(function(r) {
+
         const st = r.status || '';
+        const qP = parseFloat(r.qty_plan)||0;
+        const qR = parseFloat(r.qty_received)||0;
         let statusHtml = '';
-        if (st === 'pending') statusHtml = '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-1 rounded-full">⏳ รอรับของ</span>';
-        else if (st === 'completed') {
-          const onTime = r.confirmed_time && r.date && new Date(r.confirmed_time) <= new Date(r.date + 'T23:59:59');
-          statusHtml = onTime ? '<span class="bg-emerald-100 text-emerald-600 font-black text-[9px] px-2 py-1 rounded-full">✅ ครบ/ตรงเวลา</span>' : '<span class="bg-blue-100 text-blue-600 font-black text-[9px] px-2 py-1 rounded-full">✅ ครบ/ไม่ตรงเวลา</span>';
-        } else if (st === 'short') statusHtml = '<span class="bg-rose-100 text-rose-600 font-black text-[9px] px-2 py-1 rounded-full">⚠️ ได้รับไม่ครบ</span>';
+        if (st === 'pending') statusHtml = '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-1 rounded-full">⏳ รอรับ</span>';
+        else if (st === 'completed' && qR > qP && qP > 0) statusHtml = '<span class="bg-purple-100 text-purple-700 font-black text-[9px] px-2 py-1 rounded-full whitespace-nowrap">⬆️ รับเกิน</span>';
+        else if (st === 'completed') { const onTime = r.confirmed_time && r.date && new Date(r.confirmed_time) <= new Date(r.date + 'T23:59:59'); statusHtml = onTime ? '<span class="bg-emerald-100 text-emerald-600 font-black text-[9px] px-2 py-1 rounded-full whitespace-nowrap">✅ ครบ/ตรงเวลา</span>' : '<span class="bg-blue-100 text-blue-600 font-black text-[9px] px-2 py-1 rounded-full whitespace-nowrap">✅ ครบ/ช้า</span>'; }
+        else if (st === 'short')   statusHtml = '<span class="bg-rose-100 text-rose-600 font-black text-[9px] px-2 py-1 rounded-full">⚠️ ไม่ครบ</span>';
         else if (st === 'missing') statusHtml = '<span class="bg-slate-100 text-slate-500 font-black text-[9px] px-2 py-1 rounded-full">❌ ไม่ได้รับ</span>';
+        const qtyRecvHtml = st==='pending' ? '<span class="text-slate-300 text-[9px]">—</span>' : '<span class="font-black text-' + (qR > qP && qP > 0 ? 'purple' : qR < qP ? 'rose' : 'emerald') + '-600 text-xs">' + qR + '</span>';
         const erp = r.erp_status||'';
         const erpHtml = erp==='Pending ERP' ? '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-1 rounded-full whitespace-nowrap">⏳ Pending</span>'
           : erp==='Done' ? '<span class="bg-emerald-100 text-emerald-600 font-black text-[9px] px-2 py-1 rounded-full">✅ Done</span>'
@@ -6686,6 +6697,7 @@
           '<td class="px-3 py-2 text-slate-600 text-xs">' + (r.po_no||'-') + '</td>' +
           '<td class="px-3 py-2 font-mono text-violet-700 font-bold text-xs">' + (r.part_no||'-') + '</td>' +
           '<td class="px-3 py-2 text-center font-black text-slate-700 text-xs">' + (r.qty_plan||0) + '</td>' +
+          '<td class="px-3 py-2 text-center text-xs">' + qtyRecvHtml + '</td>' +
           '<td class="px-3 py-2 text-center text-emerald-600 font-bold text-xs">' + (r.date||'-') + '</td>' +
           '<td class="px-3 py-2 text-center font-bold text-slate-600 text-xs">' + (r.time_slot||'-') + '</td>' +
           '<td class="px-3 py-2 text-center">' + statusHtml + '</td>' +
@@ -6702,9 +6714,13 @@
       _weeklySort.planning.data = data;
       tbody.innerHTML = data.map(function(r) {
         const hasUrgent = _urgentAll.some(function(u){ return u.po_no===r.po_no && u.part_no===r.part_no && u.status==='pending'; });
-        const stBadge = r.status==='completed' ? '<span class="bg-emerald-100 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-full">✅ รับแล้ว</span>'
+        const _qP = parseFloat(r.qty_plan)||0; const _qR = parseFloat(r.qty_received)||0;
+        const stBadge = (r.status==='completed' && _qR > _qP && _qP > 0) ? '<span class="bg-purple-100 text-purple-700 text-[9px] font-black px-2 py-0.5 rounded-full whitespace-nowrap">⬆️ รับเกิน</span>'
+          : r.status==='completed' ? '<span class="bg-emerald-100 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-full">✅ รับแล้ว</span>'
           : r.status==='short' ? '<span class="bg-amber-100 text-amber-600 text-[9px] font-black px-2 py-0.5 rounded-full">⚠️ ไม่ครบ</span>'
+          : r.status==='missing' ? '<span class="bg-rose-100 text-rose-500 text-[9px] font-black px-2 py-0.5 rounded-full">❌ ไม่ได้รับ</span>'
           : '<span class="bg-slate-100 text-slate-500 text-[9px] font-black px-2 py-0.5 rounded-full">⏳ รอรับ</span>';
+        const plQtyHtml = r.status==='pending' ? '<span class="text-slate-300 text-[9px]">—</span>' : '<span class="font-black text-' + (_qR > _qP && _qP > 0 ? 'purple' : _qR < _qP ? 'rose' : 'emerald') + '-600">' + _qR + '</span>';
         const erpBadge = r.erp_status==='Pending ERP' ? '<span class="bg-amber-100 text-amber-600 text-[9px] font-black px-2 py-0.5 rounded-full whitespace-nowrap">⏳ Pending</span>'
           : r.erp_status==='Done' ? '<span class="bg-emerald-100 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-full">✅ Done</span>'
           : '<span class="text-slate-300 text-[9px]">—</span>';
@@ -6715,6 +6731,7 @@
           '<td class="px-4 py-2 text-slate-600">' + (r.po_no||'—') + '</td>' +
           '<td class="px-4 py-2 font-mono text-violet-700 font-bold">' + (r.part_no||'—') + (hasUrgent?' <span class="text-rose-500">⚡</span>':'') + '</td>' +
           '<td class="px-4 py-2 text-center font-black text-slate-700">' + (r.qty_plan||0) + '</td>' +
+          '<td class="px-4 py-2 text-center">' + plQtyHtml + '</td>' +
           '<td class="px-4 py-2 text-center text-emerald-600 font-bold">' + (r.date||'—') + '</td>' +
           '<td class="px-4 py-2 text-center font-bold text-slate-600">' + (r.time_slot||'—') + '</td>' +
           '<td class="px-4 py-2 text-center">' + stBadge + '</td>' +
