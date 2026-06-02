@@ -4141,7 +4141,9 @@
           ? compList.slice().reverse().map(function(r) {
               const statusBadge = r.status === 'exited'
                 ? '<span class="text-[8px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">ออกแล้ว</span>'
-                : '<span class="text-[8px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200 pulse-dot">รอสแกนออก</span>';
+                : _sysSettings.guard_scan_enabled
+                  ? '<span class="text-[8px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200 pulse-dot">รอสแกนออก</span>'
+                  : '<span class="text-[8px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">✅ เสร็จสิ้น</span>';
               return '<div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 opacity-80 fade-in text-left">' +
                 '<div class="flex justify-between items-center mb-1"><div class="flex items-center gap-2"><span class="font-black text-slate-400">#' + r.queue_number + '</span></div>' + statusBadge + '</div>' +
                 '<div class="text-sm font-bold text-slate-600 mb-1">' + r.company_name + '</div>' +
@@ -4466,7 +4468,7 @@
       }
       if (monthlyChart) monthlyChart.destroy();
       const labels = []; for (let i = 1; i <= days; i++) labels.push(i);
-      monthlyChart = new Chart(ctx, { type:'line', data:{ labels, datasets:[{ label:'คิว', data:counts, borderColor:'#4f46e5', borderWidth:3, pointRadius:0, fill:true, tension:0.4, backgroundColor:'rgba(79,70,229,0.05)' }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 } } } } });
+      monthlyChart = new Chart(ctx, { type:'line', data:{ labels, datasets:[{ label:'คิว', data:counts, borderColor:'#4f46e5', borderWidth:3, pointRadius:0, fill:true, tension:0.4, backgroundColor:'rgba(79,70,229,0.05)' }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks: { precision: 0 } } } } });
     }
 
     function updateDailyChart() {
@@ -4484,7 +4486,7 @@
         counts.push(allData.filter(r => r.date === dateStr && r.status !== 'cancelled').length);
       }
       if (dailyChart) dailyChart.destroy();
-      dailyChart = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{ label:'คิว', data:counts, backgroundColor:'#4f46e5', borderRadius:8 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 } } } } });
+      dailyChart = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{ label:'คิว', data:counts, backgroundColor:'#4f46e5', borderRadius:8 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks: { precision: 0 } } } } });
     }
 
     // ==========================================
@@ -4764,7 +4766,7 @@
             ]
           },
           options: { responsive: true, maintainAspectRatio: false,
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } }, grid: { color: '#f1f5f9' } }, x: { ticks: { font: { size: 9 } } } },
+            scales: { y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } }, grid: { color: '#f1f5f9' } }, x: { ticks: { font: { size: 9 } } } },
             plugins: { legend: { labels: { font: { size: 10 }, boxWidth: 12 } } }
           }
         });
@@ -4877,11 +4879,24 @@
     }
 
     function updatePicResponsibility() {
+      // โหลด _supplierMasterList ถ้ายังว่าง เพื่อให้ Local/Overseas badge ถูกต้อง
+      if (_supplierMasterList.length === 0) {
+        callAPI('getSupplierMaster').then(function(r){
+          if (r && r.success) {
+            _supplierMasterList = r.suppliers || [];
+            _renderPicResponsibility();
+          }
+        });
+        return;
+      }
+      _renderPicResponsibility();
+    }
+
+    function _renderPicResponsibility() {
       const dateEl = document.getElementById('pic-resp-date');
       const filterEl = document.getElementById('pic-resp-filter');
       const dateVal = dateEl?.value || getThaiDate();
       const picFilter = filterEl?.value || 'ALL';
-      // reset hash เพื่อให้ refreshUI ไม่ block
       _hashParts = '';
 
       // กรองข้อมูล
@@ -5316,9 +5331,15 @@
         const badge = isOverseas
           ? '<span class="bg-blue-100 text-blue-600 text-[9px] font-black px-2 py-0.5 rounded-full cursor-pointer hover:bg-blue-200" onclick="toggleSupplierType('+i+')">🌏 Overseas</span>'
           : '<span class="bg-emerald-100 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-full cursor-pointer hover:bg-emerald-200" onclick="toggleSupplierType('+i+')">🇹🇭 Local</span>';
-        return '<div class="flex items-center justify-between py-2 px-3 rounded-xl hover:bg-slate-50 group">' +
-          '<span class="text-sm font-bold text-slate-700">' + displayName + '</span>' +
-          '<div class="flex items-center gap-2">' + badge + '</div>' +
+        return '<div class="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-slate-50 group">' +
+          '<div class="flex items-center gap-2 flex-1 min-w-0">' +
+            '<span class="text-sm font-bold text-slate-700 truncate">' + displayName + '</span>' +
+            '<button type="button" onclick="toggleSupplierType(' + i + ')" ' +
+              'class="flex-shrink-0 text-[9px] font-black px-2 py-0.5 rounded-full border cursor-pointer transition-all hover:opacity-80 ' +
+              (isOverseas ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200') + '">' +
+              (isOverseas ? '🌏 Overseas' : '🇹🇭 Local') +
+            '</button>' +
+          '</div>' +
         '</div>';
       }).join('');
 
@@ -5370,30 +5391,34 @@
     };
 
     window.toggleSupplierType = async function(idx) {
-      const name    = typeof s === 'object' ? s.name : s;
-      const curType = typeof s === 'object' ? (s.type||'local') : 'local';
+      const item    = _supplierMasterList[idx];
+      if (!item) return;
+      const name    = typeof item === 'object' ? item.name : item;
+      const curType = typeof item === 'object' ? (item.type||'local') : 'local';
       const newType = curType === 'local' ? 'overseas' : 'local';
 
-      // Update UI ทันที (Optimistic)
-      if (typeof s === 'object') s.type = newType;
+      // อัพเดท UI ทันที
+      if (typeof item === 'object') item.type = newType;
       else _supplierMasterList[idx] = { name: name, type: newType };
       renderSupplierMasterList();
 
-      // Save ใน background
       try {
         const res = await callAPI('updateSupplierType', { name: name, type: newType });
         if (!res || !res.success) {
-          // Rollback
           if (typeof _supplierMasterList[idx] === 'object') _supplierMasterList[idx].type = curType;
+          else _supplierMasterList[idx] = { name: name, type: curType };
           renderSupplierMasterList();
-          showToast('ไม่สำเร็จ: ' + (res?.message||''));
+          showToast('ไม่สำเร็จ: ' + (res?.message||''), 'error');
+        } else {
+          showToast((newType==='overseas' ? '🌏 Overseas' : '🇹🇭 Local') + ' บันทึกแล้ว');
+          callAPI('getSupplierMaster').then(function(r){ if(r&&r.success) _supplierMasterList = r.suppliers||[]; });
         }
       } catch(e) {
         if (typeof _supplierMasterList[idx] === 'object') _supplierMasterList[idx].type = curType;
         renderSupplierMasterList();
-        showToast('Error: ' + e.message);
+        showToast('Error: ' + e.message, 'error');
       }
-    }
+    };
 
     async function saveNewSupplierMaster() {
       const input = document.getElementById('pm-new-supplier-name');
