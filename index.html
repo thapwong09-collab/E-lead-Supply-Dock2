@@ -229,6 +229,14 @@
 
       <!-- Tab: จัดการคิว -->
       <div id="page-queue" class="max-w-6xl mx-auto p-4 text-left">
+
+        <!-- วันที่วันนี้ -->
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="bg-violet-100 text-violet-700 px-4 py-2 rounded-2xl font-black text-sm" id="queue-today-date"></div>
+            <div id="queue-today-day" class="text-slate-400 font-bold text-xs"></div>
+          </div>
+        </div>
         <div id="plan-summary-banner" class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row gap-4 justify-between items-center hidden">
            <div class="flex items-center gap-4 w-full md:w-auto">
               <div class="bg-indigo-50 text-indigo-600 p-3 rounded-2xl text-xl flex-shrink-0">📅</div>
@@ -1385,15 +1393,15 @@
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
               <thead class="bg-slate-50">
-                <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                  <th class="px-4 py-3">PIC</th>
-                  <th class="px-4 py-3">Supplier</th>
-                  <th class="px-4 py-3 text-center">No.</th>
-                  <th class="px-4 py-3">PO No.</th>
-                  <th class="px-4 py-3">Part No.</th>
-                  <th class="px-4 py-3 text-center">Qty Plan</th>
-                  <th class="px-4 py-3 text-center">Arrival Date</th>
-                  <th class="px-4 py-3 text-center">AM/PM</th>
+                <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest select-none">
+                  <th class="px-4 py-3 cursor-pointer hover:bg-slate-100" onclick="sortConfirmed('pic')">PIC <span id="sort-icon-pic"></span></th>
+                  <th class="px-4 py-3 cursor-pointer hover:bg-slate-100" onclick="sortConfirmed('vendor')">Supplier <span id="sort-icon-vendor"></span></th>
+                  <th class="px-4 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortConfirmed('no')">No. <span id="sort-icon-no"></span></th>
+                  <th class="px-4 py-3 cursor-pointer hover:bg-slate-100" onclick="sortConfirmed('po_no')">PO No. <span id="sort-icon-po_no"></span></th>
+                  <th class="px-4 py-3 cursor-pointer hover:bg-slate-100" onclick="sortConfirmed('part_no')">Part No. <span id="sort-icon-part_no"></span></th>
+                  <th class="px-4 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortConfirmed('qty_plan')">Qty Plan <span id="sort-icon-qty_plan"></span></th>
+                  <th class="px-4 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortConfirmed('date')">Arrival Date <span id="sort-icon-date"></span></th>
+                  <th class="px-4 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortConfirmed('time_slot')">AM/PM <span id="sort-icon-time_slot"></span></th>
                 </tr>
               </thead>
               <tbody id="myparts-confirmed-table" class="divide-y divide-slate-50"></tbody>
@@ -1409,7 +1417,10 @@
                 <div id="myparts-modal-pic-name" class="font-black text-white text-base"></div>
                 <div id="myparts-modal-pic-sub" class="text-violet-200 text-[10px] mt-0.5"></div>
               </div>
-              <button type="button" onclick="closeMyPartsModal()" class="text-white/70 hover:text-white text-xl font-black cursor-pointer">✕</button>
+              <div class="flex items-center gap-3">
+                <button type="button" onclick="openAddPartRow()" class="bg-white/20 hover:bg-white/30 text-white text-xs font-black px-3 py-1.5 rounded-xl cursor-pointer">+ เพิ่ม Part</button>
+                <button type="button" onclick="closeMyPartsModal()" class="text-white/70 hover:text-white text-xl font-black cursor-pointer">✕</button>
+              </div>
             </div>
             <div id="myparts-modal-body" class="overflow-y-auto flex-1 p-4 space-y-3"></div>
             <div class="px-6 py-4 border-t bg-slate-50 rounded-b-2xl flex items-center justify-between gap-3">
@@ -1811,7 +1822,9 @@
                   <th class="px-4 py-3">PIC</th><th class="px-4 py-3">Supplier</th><th class="px-4 py-3">PO No.</th>
                   <th class="px-4 py-3">Part No.</th><th class="px-4 py-3 text-center">QTY แผน</th>
                   <th class="px-4 py-3 text-center">Arrival Date</th><th class="px-4 py-3 text-center">AM/PM</th>
-                  <th class="px-4 py-3 text-center">สถานะ</th>
+                  <th class="px-4 py-3 text-center">สถานะรับ</th>
+                  <th class="px-4 py-3 text-center">ERP</th>
+                  <th class="px-4 py-3">Note Staff</th>
                 </tr>
               </thead>
               <tbody id="planning-weekly-body" class="divide-y divide-slate-50"></tbody>
@@ -4292,7 +4305,16 @@
           updatePartsDashboard();
         }, 100);
       }
-      if (tab === 'trend') { onTrendModeChange('pd'); loadStaffTrend(); }
+      if (tab === 'queue') {
+        const dateEl = document.getElementById('queue-today-date');
+        const dayEl  = document.getElementById('queue-today-day');
+        const now = new Date();
+        const thaiDate = now.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+        const dayName  = now.toLocaleDateString('th-TH', { weekday: 'long' });
+        if (dateEl) dateEl.innerText = '📅 ' + thaiDate;
+        if (dayEl)  dayEl.innerText  = dayName;
+      }
+      if (tab === 'trend')    { onTrendModeChange('pd'); loadStaffTrend(); }
       if (tab === 'settings') initSettingsPage();
     }
 
@@ -6509,7 +6531,71 @@
       }).join('');
     }
     // =====================================================
-    // PART NOTE MODAL (Staff Weekly Plan)
+    // SORT — Weekly Plan Confirmed Table
+    // =====================================================
+    let _confirmedSortField = 'date';
+    let _confirmedSortAsc   = true;
+
+    window.sortConfirmed = function(field) {
+      if (_confirmedSortField === field) {
+        _confirmedSortAsc = !_confirmedSortAsc;
+      } else {
+        _confirmedSortField = field;
+        _confirmedSortAsc   = true;
+      }
+      // อัพเดท icon
+      ['pic','vendor','no','po_no','part_no','qty_plan','date','time_slot'].forEach(function(f) {
+        const el = document.getElementById('sort-icon-' + f);
+        if (el) el.innerText = f === field ? (_confirmedSortAsc ? ' ↑' : ' ↓') : '';
+      });
+      renderConfirmedMyParts();
+    };
+
+    function renderConfirmedMyParts() {
+      const tbody = document.getElementById('myparts-confirmed-table');
+      if (!tbody) return;
+      const picFilter  = (document.getElementById('confirmed-pic-filter')||{}).value || '';
+      const supFilter  = (document.getElementById('confirmed-vendor-filter')||{}).value || '';
+      const dateFilter = (document.getElementById('confirmed-date-filter')||{}).value || '';
+
+      let data = myPartsData.filter(function(r) {
+        if (r.status === 'draft') return false;
+        if (picFilter  && !String(r.pic||'').includes(picFilter)) return false;
+        if (supFilter  && !String(r.vendor||'').toLowerCase().includes(supFilter.toLowerCase())) return false;
+        if (dateFilter && r.date !== dateFilter) return false;
+        return true;
+      });
+
+      // Sort
+      const f = _confirmedSortField;
+      data.sort(function(a, b) {
+        const av = String(a[f]||''), bv = String(b[f]||'');
+        // Numeric sort สำหรับ qty และ no
+        if (f === 'qty_plan' || f === 'no') {
+          const an = parseFloat(av)||0, bn = parseFloat(bv)||0;
+          return _confirmedSortAsc ? an-bn : bn-an;
+        }
+        return _confirmedSortAsc ? av.localeCompare(bv, 'th') : bv.localeCompare(av, 'th');
+      });
+
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-300 text-xs font-bold">ยังไม่มีข้อมูล</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.map(function(r) {
+        return '<tr class="hover:bg-violet-50/20 text-xs">' +
+          '<td class="px-4 py-2 font-bold text-slate-700">' + (r.pic||'-') + '</td>' +
+          '<td class="px-4 py-2 text-slate-600 max-w-[140px] truncate">' + (r.vendor||'-') + '</td>' +
+          '<td class="px-4 py-2 text-center text-slate-500">' + (r.no||'-') + '</td>' +
+          '<td class="px-4 py-2 text-slate-600">' + (r.po_no||'-') + '</td>' +
+          '<td class="px-4 py-2 font-mono text-violet-700 font-bold">' + (r.part_no||'-') + '</td>' +
+          '<td class="px-4 py-2 text-center font-black text-slate-700">' + (r.qty_plan||0) + '</td>' +
+          '<td class="px-4 py-2 text-center text-emerald-600 font-bold">' + (r.date||'-') + '</td>' +
+          '<td class="px-4 py-2 text-center text-slate-500 font-bold">' + (r.time_slot||'-') + '</td>' +
+        '</tr>';
+      }).join('');
+    }
+    // =====================================================
     // =====================================================
     window.openPartNoteModal = function(id, poNo, partNo, erpStatus, note) {
       document.getElementById('part-note-id').value  = id;
@@ -7391,9 +7477,18 @@
           tbody.innerHTML = rows.map(function(r) {
             const stBadge = r.status==='completed'
               ? '<span class="bg-emerald-100 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-full">✅ รับแล้ว</span>'
-              : '<span class="bg-amber-100 text-amber-600 text-[9px] font-black px-2 py-0.5 rounded-full">⏳ รอรับ</span>';
-            // เช็คว่ามี Urgent ตรง PO+Part นี้ไหม
+              : r.status==='short'
+                ? '<span class="bg-amber-100 text-amber-600 text-[9px] font-black px-2 py-0.5 rounded-full">⚠️ ไม่ครบ</span>'
+                : '<span class="bg-slate-100 text-slate-500 text-[9px] font-black px-2 py-0.5 rounded-full">⏳ รอรับ</span>';
             const hasUrgent = _urgentAll.some(function(u){ return u.po_no===r.po_no && u.part_no===r.part_no && u.status==='pending'; });
+            const erpBadge = r.erp_status==='Pending ERP'
+              ? '<span class="bg-amber-100 text-amber-600 text-[9px] font-black px-2 py-0.5 rounded-full whitespace-nowrap">⏳ Pending</span>'
+              : r.erp_status==='Done'
+                ? '<span class="bg-emerald-100 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-full">✅ Done</span>'
+                : '<span class="text-slate-300 text-[9px]">—</span>';
+            const noteHtml = r.staff_note
+              ? '<span class="text-[10px] text-slate-600 max-w-[120px] block truncate" title="' + String(r.staff_note).replace(/"/g,'') + '">' + r.staff_note + '</span>'
+              : '<span class="text-slate-300 text-[9px]">—</span>';
             return '<tr class="hover:bg-orange-50/20 ' + (hasUrgent ? 'bg-rose-50' : '') + '">' +
               '<td class="px-4 py-2 font-bold text-slate-700">' + (r.pic||'—') + '</td>' +
               '<td class="px-4 py-2 text-slate-600 max-w-[130px] truncate">' + (r.vendor||'—') + '</td>' +
@@ -7403,6 +7498,8 @@
               '<td class="px-4 py-2 text-center text-emerald-600 font-bold">' + (r.date||'—') + '</td>' +
               '<td class="px-4 py-2 text-center font-bold text-slate-600">' + (r.time_slot||'—') + '</td>' +
               '<td class="px-4 py-2 text-center">' + stBadge + '</td>' +
+              '<td class="px-4 py-2 text-center">' + erpBadge + '</td>' +
+              '<td class="px-4 py-2">' + noteHtml + '</td>' +
             '</tr>';
           }).join('');
         }
@@ -8240,6 +8337,70 @@
       modal.classList.remove('hidden');
       modal.classList.add('flex');
     }
+
+    window.openAddPartRow = function() {
+      const body = document.getElementById('myparts-modal-body');
+      if (!body) return;
+      const newId = 'new_' + Date.now();
+      // หา Supplier list จาก PIC ปัจจุบัน
+      const picSups = allPicMaster
+        .filter(function(m){ return String(m.pic_name||'') === myPartsModal; })
+        .map(function(m){ return m.supplier||''; })
+        .filter(Boolean);
+      const supOptions = picSups.map(function(s){ return '<option value="'+s+'">'+s+'</option>'; }).join('');
+
+      const row = document.createElement('div');
+      row.className = 'border-2 border-violet-200 rounded-2xl p-4 bg-violet-50/30';
+      row.id = 'newpart_' + newId;
+      row.innerHTML = '<div class="text-[9px] font-black text-violet-600 uppercase mb-3">➕ เพิ่ม Part ใหม่</div>' +
+        '<div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">' +
+          '<div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">Supplier *</div>' +
+            '<select id="np_vendor_'+newId+'" class="w-full border border-slate-200 rounded-lg px-2 py-1.5 font-bold text-slate-700 outline-none focus:border-violet-400 text-xs cursor-pointer">' +
+            '<option value="">-- เลือก --</option>' + supOptions + '</select></div>' +
+          '<div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">PO No. *</div>' +
+            '<input type="text" id="np_po_'+newId+'" placeholder="PO-0000" class="w-full border border-slate-200 rounded-lg px-2 py-1.5 font-bold text-slate-700 outline-none focus:border-violet-400 text-xs"></div>' +
+          '<div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">Part No. *</div>' +
+            '<input type="text" id="np_part_'+newId+'" placeholder="PART-0000" class="w-full border border-slate-200 rounded-lg px-2 py-1.5 font-mono text-violet-700 font-bold outline-none focus:border-violet-400 text-xs"></div>' +
+          '<div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">QTY Plan *</div>' +
+            '<input type="number" id="np_qty_'+newId+'" placeholder="0" min="0" class="w-full border border-slate-200 rounded-lg px-2 py-1.5 font-bold text-slate-700 outline-none focus:border-violet-400 text-xs"></div>' +
+          '<div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">Arrival Date *</div>' +
+            '<input type="date" id="np_date_'+newId+'" class="w-full border border-slate-200 rounded-lg px-2 py-1.5 font-bold text-emerald-600 outline-none focus:border-violet-400 text-xs cursor-pointer"></div>' +
+          '<div><div class="text-[9px] text-slate-400 font-black uppercase mb-0.5">AM/PM</div>' +
+            '<select id="np_slot_'+newId+'" class="w-full border border-slate-200 rounded-lg px-2 py-1.5 font-bold text-slate-700 outline-none focus:border-violet-400 text-xs cursor-pointer">' +
+            '<option value="">--</option><option value="AM">AM</option><option value="PM">PM</option><option value="PICK UP">PICK UP</option></select></div>' +
+        '</div>' +
+        '<div class="flex gap-2 mt-3">' +
+          '<button type="button" onclick="saveNewPartRow(\''+newId+'\')" class="bg-violet-600 hover:bg-violet-700 text-white px-4 py-1.5 rounded-xl font-bold text-xs cursor-pointer">💾 บันทึก</button>' +
+          '<button type="button" onclick="document.getElementById(\'newpart_'+newId+'\').remove()" class="bg-slate-100 text-slate-500 px-4 py-1.5 rounded-xl font-bold text-xs cursor-pointer">ยกเลิก</button>' +
+        '</div>';
+      body.prepend(row);
+      document.getElementById('np_vendor_'+newId)?.focus();
+    };
+
+    window.saveNewPartRow = async function(newId) {
+      const vendor = (document.getElementById('np_vendor_'+newId)||{}).value?.trim() || '';
+      const po     = (document.getElementById('np_po_'+newId)||{}).value?.trim() || '';
+      const part   = (document.getElementById('np_part_'+newId)||{}).value?.trim() || '';
+      const qty    = parseFloat((document.getElementById('np_qty_'+newId)||{}).value||'0') || 0;
+      const date   = (document.getElementById('np_date_'+newId)||{}).value || '';
+      const slot   = (document.getElementById('np_slot_'+newId)||{}).value || '';
+      if (!vendor || !po || !part || !date) { showToast('กรุณากรอก Supplier, PO, Part No. และ Arrival Date', 'error'); return; }
+
+      const row = { date, vendor, pic: myPartsModal, po_no: po, part_no: part, no: '', qty: qty, time_slot: slot, origin: 'manual' };
+      try {
+        const res = await callAPI('savePlanParts', { rows: JSON.stringify([row]) });
+        if (res && res.success) {
+          showToast('เพิ่ม Part แล้ว');
+          document.getElementById('newpart_'+newId)?.remove();
+          // reload modal
+          const reloadRes = await callAPI('getPartsByDate', { date: date });
+          if (reloadRes && reloadRes.data) {
+            myPartsData = reloadRes.data.filter(function(r){ return r.pic === myPartsModal; });
+            openMyPartsModal(myPartsModal);
+          }
+        } else { showToast('ไม่สำเร็จ: '+(res?.message||''), 'error'); }
+      } catch(e) { showToast('Error: '+e.message, 'error'); }
+    };
 
     function toggleMpAccordion(vk) {
       const body = document.getElementById('mpacc_body_' + vk);
