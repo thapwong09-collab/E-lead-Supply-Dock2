@@ -3987,6 +3987,17 @@
     }
 
     // ดึง Parts ของ Supplier โดย match ชื่อแบบ fuzzy
+    function getPartCountBadge(companyName) {
+      const today = getThaiDate();
+      const parts = getPartsForSupplier(companyName, today);
+      if (parts.length === 0) return '<span class="text-[9px] font-bold text-slate-300 bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">ไม่มีแผนพาร์ท</span>';
+      const confirmed = parts.filter(function(p){ return p.status === 'completed' || p.status === 'short'; }).length;
+      const hasImport = parts.some(function(p){ return p.origin === 'import'; });
+      const color = confirmed === parts.length ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 'text-violet-600 bg-violet-50 border-violet-100';
+      const importBadge = hasImport ? '<span class="text-[9px] font-bold text-orange-600 bg-orange-50 border-orange-100 px-2 py-0.5 rounded-lg border">✈️ Import</span>' : '';
+      return '<span class="text-[9px] font-bold ' + color + ' px-2 py-0.5 rounded-lg border">📦 ' + confirmed + '/' + parts.length + '</span>' + importBadge;
+    }
+
     function getPartsForSupplier(companyName, date) {
       if (!allPartData || allPartData.length === 0) {
         console.log('[Parts] allPartData ว่างเปล่า');
