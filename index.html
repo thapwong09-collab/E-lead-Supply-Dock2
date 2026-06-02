@@ -2323,25 +2323,36 @@
         const todayParts   = allPartData.filter(p => normalizeDate(p.date) === today);
         const newHashC = _quickHash(todayCheckin);
         const newHashP = _quickHash(todayParts);
-        // อัพเดทเสมอถ้า hash เปลี่ยน หรือยังไม่เคย render
         if (newHashC !== _hashCheckin || newHashP !== _hashParts || _hashCheckin === '') {
           _hashCheckin = newHashC;
           _hashParts   = newHashP;
           updateStaffUI();
+          // auto re-render Weekly Plan ถ้ากำลังดูอยู่
+          const weeklyPage = document.getElementById('page-weekly');
+          if (weeklyPage && !weeklyPage.classList.contains('hidden')) {
+            loadWeeklyPlan();
+          }
         }
       }
 
       // ─── PIC ─────────────────────────────────────────────
       if (isPICLoggedIn) {
+        const allPartsHash = _quickHash(allPartData);
         const planPage = document.getElementById('pic-page-plan');
         if (planPage && !planPage.classList.contains('hidden')) {
-          // saved list — เปรียบเทียบ parts วันนี้
           const todayParts = allPartData.filter(p => normalizeDate(p.date) === today);
           const newHashP   = _quickHash(todayParts);
           if (newHashP !== _hashParts) {
             _hashParts = newHashP;
             loadTodayPICParts();
           }
+        }
+        // PIC Weekly Plan — auto re-render
+        const picWeeklyPage = document.getElementById('pic-page-myparts');
+        if (picWeeklyPage && !picWeeklyPage.classList.contains('hidden') && allPartsHash !== _hashParts) {
+          _hashParts = allPartsHash;
+          // re-render confirmed table ถ้า _confirmedAllData มีข้อมูล
+          if (_confirmedAllData.length > 0) renderConfirmedTable(_confirmedAllData);
         }
         const activeTab = ['responsibility','pic-master'].find(t => {
           const el = document.getElementById('pic-page-' + t);
@@ -2360,6 +2371,18 @@
           if (newHashM !== _hashPicMaster) {
             _hashPicMaster = newHashM;
             updatePicMaster();
+          }
+        }
+      }
+
+      // ─── Planning ─────────────────────────────────────────
+      if (isPlanningLoggedIn) {
+        const planningWeeklyPage = document.getElementById('planning-weekly-table-wrap');
+        if (planningWeeklyPage && !planningWeeklyPage.classList.contains('hidden')) {
+          const newHashP = _quickHash(allPartData);
+          if (newHashP !== _hashParts) {
+            _hashParts = newHashP;
+            loadPlanningWeekly();
           }
         }
       }
@@ -6406,16 +6429,16 @@
 
 
     async function loadWeeklyPlan() {
-      const startDate = (document.getElementById('weekly-date')||{}).value || getThaiDate();
+      const startDate    = (document.getElementById('weekly-date')||{}).value || getThaiDate();
       const picFilter    = (document.getElementById('weekly-pic-filter')||{}).value || '';
       const vendorFilter = (document.getElementById('weekly-vendor-filter')||{}).value || '';
 
-      document.getElementById('weekly-loading').classList.remove('hidden');
-      document.getElementById('weekly-empty').classList.add('hidden');
-      document.getElementById('weekly-table-wrap').classList.add('hidden');
-      document.getElementById('weekly-summary-badge').classList.add('hidden');
+      document.getElementById('weekly-loading')?.classList.remove('hidden');
+      document.getElementById('weekly-empty')?.classList.add('hidden');
+      document.getElementById('weekly-table-wrap')?.classList.add('hidden');
+      document.getElementById('weekly-summary-badge')?.classList.add('hidden');
 
-      // โหลด 6 วัน จันทร์-เสาร์
+      // สร้าง date range 6 วัน จันทร์-เสาร์
       const dates = [];
       const start = new Date(startDate);
       for (let i = 0; i < 6; i++) {
@@ -6424,62 +6447,58 @@
         dates.push(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'));
       }
 
-      try {
-        // โหลดทั้งสัปดาห์ครั้งเดียว
-        const weekRes = await callAPI('getPartsByWeek', { startDate: dates[0] });
-        document.getElementById('weekly-loading').classList.add('hidden');
+      // ใช้ allPartData แทน call API — real-time ทันที
+      let allRows = allPartData.filter(function(r) {
+        return dates.includes(normalizeDate(r.date));
+      });
 
-        const allRows = (weekRes && weekRes.data) ? weekRes.data : [];
-
-        // เฉพาะ pending และ completed (ที่ Confirm แล้ว)
-        let filtered = allRows.filter(function(r) {
-          return r.status === 'pending' || r.status === 'completed' || r.status === 'short' || r.status === 'missing';
-        });
-
-        // กรองตาม PIC และ Supplier
-        if (picFilter)    filtered = filtered.filter(function(r){ return (r.pic||'') === picFilter; });
-        if (vendorFilter) filtered = filtered.filter(function(r){ return (r.vendor||'') === vendorFilter; });
-
-        if (filtered.length === 0) {
-          document.getElementById('weekly-empty').classList.remove('hidden');
-          return;
-        }
-
-        // populate filter dropdowns
-        const pics    = [...new Set(allRows.filter(r=>r.status==='pending'||r.status==='completed').map(r=>r.pic||''))].sort();
-        const vendors = [...new Set(allRows.filter(r=>r.status==='pending'||r.status==='completed').map(r=>r.vendor||''))].sort();
-        const picSel  = document.getElementById('weekly-pic-filter');
-        const venSel  = document.getElementById('weekly-vendor-filter');
-        if (picSel && picSel.options.length <= 1) {
-          pics.forEach(function(p){ if(p) picSel.add(new Option(p,p)); });
-        }
-        if (venSel && venSel.options.length <= 1) {
-          vendors.forEach(function(v){ if(v) venSel.add(new Option(v,v)); });
-        }
-
-        // เรียงตาม date แล้ว pic
-        filtered.sort(function(a,b){
-          if ((a.date||'') !== (b.date||'')) return (a.date||'').localeCompare(b.date||'');
-          return (a.pic||'').localeCompare(b.pic||'');
-        });
-
-        renderWeeklyTable(filtered);
-
-        // อัพเดท range text
-        const rangeEl = document.getElementById('weekly-range-text');
-        if (rangeEl) rangeEl.innerText = dates[0] + ' ถึง ' + dates[5];
-
-        // badge
-        const badge = document.getElementById('weekly-summary-badge');
-        badge.innerText = filtered.length + ' รายการ · ' + new Set(filtered.map(r=>r.po_no)).size + ' PO';
-        badge.classList.remove('hidden');
-
-        document.getElementById('weekly-table-wrap').classList.remove('hidden');
-
-      } catch(err) {
-        document.getElementById('weekly-loading').classList.add('hidden');
-        showToast('โหลดไม่สำเร็จ: ' + err.message);
+      // ถ้า allPartData ว่าง หรือเป็นสัปดาห์ที่แตกต่างจากวันนี้ — fallback ไป API
+      if (allRows.length === 0) {
+        try {
+          const weekRes = await callAPI('getPartsByWeek', { startDate: dates[0] });
+          allRows = (weekRes && weekRes.data) ? weekRes.data : [];
+          // merge เข้า allPartData cache
+          const existIds = new Set(allPartData.map(function(p){ return p.id; }));
+          allRows.forEach(function(r){ if (!existIds.has(r.id)) allPartData.push(r); });
+        } catch(e) { allRows = []; }
       }
+
+      document.getElementById('weekly-loading')?.classList.add('hidden');
+
+      let filtered = allRows.filter(function(r) {
+        return r.status === 'pending' || r.status === 'completed' || r.status === 'short' || r.status === 'missing';
+      });
+      if (picFilter)    filtered = filtered.filter(function(r){ return (r.pic||'') === picFilter; });
+      if (vendorFilter) filtered = filtered.filter(function(r){ return (r.vendor||'') === vendorFilter; });
+
+      if (filtered.length === 0) {
+        document.getElementById('weekly-empty')?.classList.remove('hidden');
+        return;
+      }
+
+
+      // populate filter dropdowns (rebuild ทุกครั้ง)
+      const pics    = [...new Set(filtered.map(function(r){ return r.pic||''; }))].sort();
+      const vendors = [...new Set(filtered.map(function(r){ return r.vendor||''; }))].sort();
+      const picSel  = document.getElementById('weekly-pic-filter');
+      const venSel  = document.getElementById('weekly-vendor-filter');
+      const curPic  = picSel?.value||''; const curVen = venSel?.value||'';
+      if (picSel) { picSel.innerHTML = '<option value="">ทุก PIC</option>'; pics.forEach(function(p){ if(p) picSel.add(new Option(p,p)); }); picSel.value = curPic; }
+      if (venSel) { venSel.innerHTML = '<option value="">ทุก Supplier</option>'; vendors.forEach(function(v){ if(v) venSel.add(new Option(v,v)); }); venSel.value = curVen; }
+
+      filtered.sort(function(a,b){
+        if (normalizeDate(a.date) !== normalizeDate(b.date)) return normalizeDate(a.date).localeCompare(normalizeDate(b.date));
+        return (a.pic||'').localeCompare(b.pic||'');
+      });
+
+      renderWeeklyTable(filtered);
+
+      const rangeEl = document.getElementById('weekly-range-text');
+      if (rangeEl) rangeEl.innerText = dates[0] + ' ถึง ' + dates[5];
+
+      const badge = document.getElementById('weekly-summary-badge');
+      if (badge) { badge.innerText = filtered.length + ' รายการ · ' + new Set(filtered.map(function(r){ return r.po_no; })).size + ' PO'; badge.classList.remove('hidden'); }
+      document.getElementById('weekly-table-wrap')?.classList.remove('hidden');
     }
 
     function renderWeeklyTable(data) {
@@ -7521,26 +7540,44 @@
       document.getElementById('planning-weekly-loading')?.classList.remove('hidden');
       document.getElementById('planning-weekly-empty')?.classList.add('hidden');
       document.getElementById('planning-weekly-table-wrap')?.classList.add('hidden');
-      try {
-        const res = await callAPI('getPartsByWeek', { startDate: startDate });
-        document.getElementById('planning-weekly-loading')?.classList.add('hidden');
-        let rows = (res && res.data) ? res.data.filter(function(r){ return r.status==='pending'||r.status==='completed'; }) : [];
-        if (picFilter) rows = rows.filter(function(r){ return (r.pic||'') === picFilter; });
-        if (rows.length === 0) { document.getElementById('planning-weekly-empty')?.classList.remove('hidden'); return; }
-        const tbody = document.getElementById('planning-weekly-body');
-        if (tbody) {
-          _weeklySort.planning.data  = rows;
-          _weeklySort.planning.field = 'date';
-          _weeklySort.planning.asc   = true;
-          _renderPlanningWeeklyRows(rows);
-        }
-        const badge = document.getElementById('planning-weekly-badge');
-        if (badge) { badge.innerText = rows.length + ' รายการ'; badge.classList.remove('hidden'); }
-        document.getElementById('planning-weekly-table-wrap')?.classList.remove('hidden');
-      } catch(e) {
-        document.getElementById('planning-weekly-loading')?.classList.add('hidden');
-        showToast('โหลดไม่สำเร็จ: ' + e.message);
+
+      // สร้าง date range
+      const dates = [];
+      const start = new Date(startDate);
+      for (let i = 0; i < 6; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        dates.push(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'));
       }
+
+      // ใช้ allPartData — real-time
+      let rows = allPartData.filter(function(r) {
+        return dates.includes(normalizeDate(r.date)) &&
+               (r.status==='pending'||r.status==='completed'||r.status==='short'||r.status==='missing');
+      });
+
+      // fallback API ถ้าไม่มีข้อมูล
+      if (rows.length === 0) {
+        try {
+          const res = await callAPI('getPartsByWeek', { startDate: startDate });
+          rows = (res && res.data) ? res.data.filter(function(r){ return r.status==='pending'||r.status==='completed'||r.status==='short'||r.status==='missing'; }) : [];
+          const existIds = new Set(allPartData.map(function(p){ return p.id; }));
+          rows.forEach(function(r){ if (!existIds.has(r.id)) allPartData.push(r); });
+        } catch(e) { rows = []; }
+      }
+
+      document.getElementById('planning-weekly-loading')?.classList.add('hidden');
+      if (picFilter) rows = rows.filter(function(r){ return (r.pic||'') === picFilter; });
+      if (rows.length === 0) { document.getElementById('planning-weekly-empty')?.classList.remove('hidden'); return; }
+
+      _weeklySort.planning.data  = rows;
+      _weeklySort.planning.field = 'date';
+      _weeklySort.planning.asc   = true;
+      _renderPlanningWeeklyRows(rows);
+
+      const badge = document.getElementById('planning-weekly-badge');
+      if (badge) { badge.innerText = rows.length + ' รายการ'; badge.classList.remove('hidden'); }
+      document.getElementById('planning-weekly-table-wrap')?.classList.remove('hidden');
     }
     // =====================================================
     // SYSTEM SETTINGS
