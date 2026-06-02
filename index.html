@@ -485,12 +485,13 @@
       </div>
 
       <!-- Tab: Parts Dashboard -->
+      <!-- Tab: Parts Dashboard -->
       <div id="page-parts" class="hidden fade-in max-w-6xl mx-auto p-4 space-y-5">
 
-        <!-- Header row -->
+        <!-- Header -->
         <div class="flex items-start justify-between flex-wrap gap-4">
           <div>
-            <div class="font-black text-slate-800 text-xl tracking-tight">Parts Dashboard</div>
+            <div class="font-black text-slate-800 text-xl tracking-tight">📦 Parts Dashboard</div>
             <div id="pd-last-update" class="text-[11px] text-slate-400 mt-1">—</div>
           </div>
           <div class="flex items-end gap-3 flex-wrap">
@@ -506,303 +507,212 @@
           </div>
         </div>
 
-        <!-- KPI Row 1 — การเข้ามา -->
-        <div>
-          <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <span class="w-3 h-3 bg-slate-300 rounded-sm inline-block"></span>การเข้ามาส่งของ
-          </div>
-          <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <!-- Row 1: KPI Summary Cards + Pie chart -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-            <div class="bg-white rounded-2xl border border-slate-100 p-5 flex items-start gap-4">
-              <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                <span class="text-slate-500 text-lg">🚚</span>
-              </div>
+          <!-- KPI Cards 2×3 -->
+          <div class="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-3">
+            <!-- Visits -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">🚚</div>
               <div>
-                <div class="text-[10px] font-black text-slate-400 uppercase tracking-wide">เข้าทั้งหมด</div>
-                <div id="pd-visits" class="text-3xl font-black text-slate-800 mt-0.5 leading-none">—</div>
-                <div class="text-[10px] text-slate-400 mt-1">ครั้ง</div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">รถเข้าทั้งหมด</div>
+                <div id="pd-visits" class="text-2xl font-black text-indigo-700">—</div>
               </div>
             </div>
-
-            <div class="bg-emerald-50 rounded-2xl border border-emerald-100 p-5 flex items-start gap-4">
-              <div class="w-10 h-10 bg-emerald-200 rounded-xl flex items-center justify-center flex-shrink-0">
-                <span class="text-emerald-700 text-lg">✅</span>
-              </div>
+            <!-- On-time -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">✅</div>
               <div>
-                <div class="text-[10px] font-black text-emerald-600 uppercase tracking-wide">ตรงเวลา</div>
-                <div id="pd-ontime" class="text-3xl font-black text-emerald-700 mt-0.5 leading-none">—</div>
-                <div id="pd-ontime-pct" class="text-xs font-black text-emerald-500 mt-1">—</div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">ตรงเวลา</div>
+                <div id="pd-ontime" class="text-2xl font-black text-emerald-700">—</div>
+                <div id="pd-ontime-pct" class="text-[9px] font-black text-emerald-500">—</div>
               </div>
             </div>
-
-            <div class="bg-rose-50 rounded-2xl border border-rose-100 p-5 flex items-start gap-4">
-              <div class="w-10 h-10 bg-rose-200 rounded-xl flex items-center justify-center flex-shrink-0">
-                <span class="text-rose-700 text-lg">⚠️</span>
-              </div>
+            <!-- Late -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">⏰</div>
               <div>
-                <div class="text-[10px] font-black text-rose-500 uppercase tracking-wide">ล่าช้า</div>
-                <div id="pd-late" class="text-3xl font-black text-rose-600 mt-0.5 leading-none">—</div>
-                <div id="pd-late-pct" class="text-xs font-black text-rose-400 mt-1">—</div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">ล่าช้า</div>
+                <div id="pd-late" class="text-2xl font-black text-rose-700">—</div>
+                <div id="pd-late-pct" class="text-[9px] font-black text-rose-500">—</div>
               </div>
             </div>
-
-
-            <div class="bg-blue-50 rounded-2xl border border-blue-100 p-5 flex items-start gap-4">
-              <div class="w-10 h-10 bg-blue-200 rounded-xl flex items-center justify-center flex-shrink-0">
-                <span class="text-blue-700 text-lg">🏃</span>
-              </div>
+            <!-- Unplanned -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">📋</div>
               <div>
-                <div class="text-[10px] font-black text-blue-600 uppercase tracking-wide">รับเอง / Pick Up</div>
-                <div id="pd-pickup" class="text-3xl font-black text-blue-700 mt-0.5 leading-none">—</div>
-                <div id="pd-pickup-pct" class="text-xs font-black text-blue-500 mt-1">—</div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">ไม่มีในแผน</div>
+                <div id="pd-unplanned" class="text-2xl font-black text-amber-700">—</div>
+                <div id="pd-unplanned-pct" class="text-[9px] font-black text-amber-500">—</div>
               </div>
             </div>
-
-            <div class="bg-amber-50 rounded-2xl border border-amber-100 p-5 flex items-start gap-4">
-              <div class="w-10 h-10 bg-amber-200 rounded-xl flex items-center justify-center flex-shrink-0">
-                <span class="text-amber-700 text-lg">📋</span>
-              </div>
+            <!-- Pickup -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">🏃</div>
               <div>
-                <div class="text-[10px] font-black text-amber-600 uppercase tracking-wide">ไม่มีในแผน</div>
-                <div id="pd-unplanned" class="text-3xl font-black text-amber-700 mt-0.5 leading-none">—</div>
-                <div id="pd-unplanned-pct" class="text-xs font-black text-amber-500 mt-1">—</div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">Pick Up</div>
+                <div id="pd-pickup" class="text-2xl font-black text-blue-700">—</div>
+                <div id="pd-pickup-pct" class="text-[9px] font-black text-blue-500">—</div>
               </div>
             </div>
-
-          </div>
-        </div>
-
-        <!-- KPI Row Local/Overseas -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Local -->
-          <div class="bg-emerald-50 rounded-2xl border border-emerald-100 p-5">
-            <div class="flex items-center gap-2 mb-3">
-              <span class="text-lg">🇹🇭</span>
-              <div class="font-black text-emerald-700 text-sm uppercase tracking-wide">Local</div>
-            </div>
-            <div class="grid grid-cols-3 gap-3">
-              <div class="text-center">
-                <div class="text-2xl font-black text-emerald-700" id="pd-local-suppliers">—</div>
-                <div class="text-[9px] font-black text-emerald-500 mt-0.5">ซัพพลายเออร์</div>
-              </div>
-              <div class="text-center border-x border-emerald-100">
-                <div class="text-2xl font-black text-emerald-700" id="pd-local-parts">—</div>
-                <div class="text-[9px] font-black text-emerald-500 mt-0.5">พาร์ท (แผน)</div>
-              </div>
-              <div class="text-center">
-                <div class="text-2xl font-black text-emerald-700" id="pd-local-received">—</div>
-                <div class="text-[9px] font-black text-emerald-500 mt-0.5">รับแล้ว</div>
-              </div>
-            </div>
-          </div>
-          <!-- Overseas -->
-          <div class="bg-blue-50 rounded-2xl border border-blue-100 p-5">
-            <div class="flex items-center gap-2 mb-3">
-              <span class="text-lg">🌏</span>
-              <div class="font-black text-blue-700 text-sm uppercase tracking-wide">Overseas</div>
-            </div>
-            <div class="grid grid-cols-3 gap-3">
-              <div class="text-center">
-                <div class="text-2xl font-black text-blue-700" id="pd-overseas-suppliers">—</div>
-                <div class="text-[9px] font-black text-blue-500 mt-0.5">ซัพพลายเออร์</div>
-              </div>
-              <div class="text-center border-x border-blue-100">
-                <div class="text-2xl font-black text-blue-700" id="pd-overseas-parts">—</div>
-                <div class="text-[9px] font-black text-blue-500 mt-0.5">พาร์ท (แผน)</div>
-              </div>
-              <div class="text-center">
-                <div class="text-2xl font-black text-blue-700" id="pd-overseas-received">—</div>
-                <div class="text-[9px] font-black text-blue-500 mt-0.5">รับแล้ว</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- KPI Row 2 — Fill Rate + Combo สองด้าน -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-          <!-- ซ้าย: Fill Rate + Part KPI -->
-          <div class="space-y-3">
             <!-- Fill Rate -->
-            <div class="bg-violet-600 rounded-2xl p-5 flex items-center justify-between gap-4">
+            <div class="bg-violet-600 rounded-2xl p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-violet-500 rounded-xl flex items-center justify-center text-lg flex-shrink-0">📊</div>
               <div>
-                <div class="text-violet-200 text-[10px] font-black uppercase tracking-widest mb-1">อัตราการรับวัตถุดิบ (Fill Rate)</div>
-                <div id="stat-fill-rate" class="text-5xl font-black text-white leading-none">—</div>
-                <div class="mt-2 flex items-center gap-4">
-                  <div>
-                    <div class="text-violet-300 text-[9px] font-black uppercase">แผน</div>
-                    <div id="pd-qty-plan" class="text-white font-black text-xs">—</div>
-                  </div>
-                  <div class="w-px h-6 bg-violet-500"></div>
-                  <div>
-                    <div class="text-violet-300 text-[9px] font-black uppercase">รับจริง</div>
-                    <div id="pd-qty-recv" class="text-white font-black text-xs">—</div>
-                  </div>
+                <div class="text-[9px] font-black text-violet-200 uppercase">Fill Rate</div>
+                <div id="stat-fill-rate" class="text-2xl font-black text-white">—</div>
+                <div class="flex gap-2 mt-0.5">
+                  <span class="text-[9px] text-violet-300">P:<span id="pd-qty-plan" class="text-white font-black">—</span></span>
+                  <span class="text-[9px] text-violet-300">R:<span id="pd-qty-recv" class="text-white font-black">—</span></span>
                 </div>
               </div>
-              <div class="text-5xl opacity-30">📦</div>
             </div>
+          </div>
 
-            <!-- 4 Part KPI 2x2 -->
+          <!-- Pie Chart: สัดส่วน timing -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-3">สัดส่วนการเข้ามาของซัพ</div>
+            <div class="relative h-44">
+              <canvas id="kpiPieChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Parts Status + Local/Overseas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Parts Status -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-4">สถานะรับพาร์ท</div>
             <div class="grid grid-cols-2 gap-3">
-              <div class="bg-white rounded-2xl border border-slate-100 p-4">
-                <div class="text-[10px] font-black text-slate-400 uppercase tracking-wide mb-2">รายการทั้งหมด</div>
-                <div id="pd-parts-total" class="text-3xl font-black text-slate-800">—</div>
-                <div class="text-[10px] text-slate-400 mt-1">รายการ Part</div>
+              <div class="bg-slate-50 rounded-xl p-3 text-center">
+                <div class="text-[9px] font-black text-slate-400 uppercase mb-1">ทั้งหมด</div>
+                <div id="pd-parts-total" class="text-2xl font-black text-slate-700">—</div>
               </div>
-              <div class="bg-emerald-50 rounded-2xl border border-emerald-100 p-4">
-                <div class="text-[10px] font-black text-emerald-600 uppercase tracking-wide mb-2">ส่งครบ</div>
-                <div id="pd-parts-completed" class="text-3xl font-black text-emerald-700">—</div>
-                <div id="pd-parts-completed-pct" class="text-xs font-black text-emerald-500 mt-1">—</div>
+              <div class="bg-emerald-50 rounded-xl p-3 text-center">
+                <div class="text-[9px] font-black text-emerald-600 uppercase mb-1">✅ ครบ</div>
+                <div id="pd-parts-completed" class="text-2xl font-black text-emerald-700">—</div>
+                <div id="pd-parts-completed-pct" class="text-[9px] font-black text-emerald-500">—</div>
               </div>
-              <div class="bg-amber-50 rounded-2xl border border-amber-100 p-4">
-                <div class="text-[10px] font-black text-amber-600 uppercase tracking-wide mb-2">ส่งไม่ครบ</div>
-                <div id="pd-parts-short" class="text-3xl font-black text-amber-600">—</div>
-                <div id="pd-parts-short-pct" class="text-xs font-black text-amber-500 mt-1">—</div>
+              <div class="bg-amber-50 rounded-xl p-3 text-center">
+                <div class="text-[9px] font-black text-amber-600 uppercase mb-1">⚠️ ไม่ครบ</div>
+                <div id="pd-parts-short" class="text-2xl font-black text-amber-700">—</div>
+                <div id="pd-parts-short-pct" class="text-[9px] font-black text-amber-500">—</div>
               </div>
-              <div class="bg-rose-50 rounded-2xl border border-rose-100 p-4">
-                <div class="text-[10px] font-black text-rose-500 uppercase tracking-wide mb-2">ไม่มีการส่ง</div>
-                <div id="pd-parts-missing" class="text-3xl font-black text-rose-600">—</div>
-                <div id="pd-parts-missing-pct" class="text-xs font-black text-rose-400 mt-1">—</div>
+              <div class="bg-rose-50 rounded-xl p-3 text-center">
+                <div class="text-[9px] font-black text-rose-600 uppercase mb-1">❌ ไม่ได้รับ</div>
+                <div id="pd-parts-missing" class="text-2xl font-black text-rose-700">—</div>
+                <div id="pd-parts-missing-pct" class="text-[9px] font-black text-rose-500">—</div>
               </div>
             </div>
           </div>
 
-          <!-- ขวา: Combo Matrix -->
-          <div class="bg-white rounded-2xl border border-slate-100 p-5 flex flex-col">
-            <div class="mb-4">
-              <div class="font-black text-slate-700 text-sm">ผลลัพธ์ด้านการจัดส่ง</div>
-              <div class="text-[10px] text-slate-400 mt-0.5">วิเคราะห์จาก 2 มิติ: ปริมาณ × ความตรงต่อเวลา</div>
-            </div>
-
-            <!-- 2x2+2 Matrix -->
-            <div class="flex-1 grid grid-cols-3 gap-2">
-              <!-- A: ครบ + ตรงเวลา (ดีที่สุด) -->
-              <div class="bg-emerald-600 rounded-xl p-4 flex flex-col justify-between">
-                <div class="flex items-center gap-1.5">
-                  <div class="w-1.5 h-1.5 bg-white rounded-full opacity-70"></div>
-                  <div class="text-emerald-100 text-[9px] font-black uppercase">ครบ · ตรงเวลา</div>
+          <!-- Local / Overseas -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-4">Local vs Overseas</div>
+            <div class="space-y-3">
+              <div class="bg-emerald-50 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">🇹🇭</span>
+                    <span class="font-black text-emerald-700 text-sm">Local</span>
+                  </div>
+                  <span class="text-[9px] text-emerald-500 font-bold" id="pd-local-pct">—</span>
                 </div>
-                <div>
-                  <div id="pd-combo-aa" class="text-4xl font-black text-white leading-none">—</div>
-                  <div id="pd-combo-aa-pct" class="text-emerald-200 text-xs font-black mt-1">—</div>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                  <div><div id="pd-local-suppliers" class="text-xl font-black text-emerald-700">—</div><div class="text-[9px] text-emerald-500 font-bold">ซัพ</div></div>
+                  <div><div id="pd-local-parts" class="text-xl font-black text-emerald-700">—</div><div class="text-[9px] text-emerald-500 font-bold">พาร์ท</div></div>
+                  <div><div id="pd-local-received" class="text-xl font-black text-emerald-700">—</div><div class="text-[9px] text-emerald-500 font-bold">รับแล้ว</div></div>
                 </div>
-                <div class="text-[9px] text-emerald-200 opacity-80">เหมาะสมที่สุด ✓</div>
               </div>
-
-              <!-- B: ครบ + ไม่ตรงเวลา -->
-              <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 flex flex-col justify-between">
-                <div class="flex items-center gap-1.5">
-                  <div class="w-1.5 h-1.5 bg-amber-400 rounded-full"></div>
-                  <div class="text-amber-600 text-[9px] font-black uppercase">ครบ · ล่าช้า</div>
+              <div class="bg-blue-50 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">🌏</span>
+                    <span class="font-black text-blue-700 text-sm">Overseas</span>
+                  </div>
+                  <span class="text-[9px] text-blue-500 font-bold" id="pd-overseas-pct">—</span>
                 </div>
-                <div>
-                  <div id="pd-combo-ab" class="text-4xl font-black text-amber-700 leading-none">—</div>
-                  <div id="pd-combo-ab-pct" class="text-amber-500 text-xs font-black mt-1">—</div>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                  <div><div id="pd-overseas-suppliers" class="text-xl font-black text-blue-700">—</div><div class="text-[9px] text-blue-500 font-bold">ซัพ</div></div>
+                  <div><div id="pd-overseas-parts" class="text-xl font-black text-blue-700">—</div><div class="text-[9px] text-blue-500 font-bold">พาร์ท</div></div>
+                  <div><div id="pd-overseas-received" class="text-xl font-black text-blue-700">—</div><div class="text-[9px] text-blue-500 font-bold">รับแล้ว</div></div>
                 </div>
-                <div class="text-[9px] text-amber-400">ปริมาณผ่าน แต่เวลาไม่ผ่าน</div>
               </div>
-
-              <!-- C: ไม่ครบ + ตรงเวลา -->
-              <div class="bg-orange-50 border border-orange-100 rounded-xl p-4 flex flex-col justify-between">
-                <div class="flex items-center gap-1.5">
-                  <div class="w-1.5 h-1.5 bg-orange-400 rounded-full"></div>
-                  <div class="text-orange-600 text-[9px] font-black uppercase">ไม่ครบ · ตรงเวลา</div>
-                </div>
-                <div>
-                  <div id="pd-combo-ba" class="text-4xl font-black text-orange-600 leading-none">—</div>
-                  <div id="pd-combo-ba-pct" class="text-orange-400 text-xs font-black mt-1">—</div>
-                </div>
-                <div class="text-[9px] text-orange-400">เวลาผ่าน แต่ปริมาณไม่ผ่าน</div>
-              </div>
-
-              <!-- D: ไม่ครบ + ไม่ตรงเวลา (แย่ที่สุด) -->
-              <div class="bg-rose-600 rounded-xl p-4 flex flex-col justify-between">
-                <div class="flex items-center gap-1.5">
-                  <div class="w-1.5 h-1.5 bg-white rounded-full opacity-70"></div>
-                  <div class="text-rose-100 text-[9px] font-black uppercase">ไม่ครบ · ล่าช้า</div>
-                </div>
-                <div>
-                  <div id="pd-combo-bb" class="text-4xl font-black text-white leading-none">—</div>
-                  <div id="pd-combo-bb-pct" class="text-rose-200 text-xs font-black mt-1">—</div>
-                </div>
-                <div class="text-[9px] text-rose-200 opacity-80">ต้องแก้ไขเร่งด่วน ✗</div>
-              </div>
-
-              <!-- E: รับเอง + ครบ -->
-              <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex flex-col justify-between">
-                <div class="flex items-center gap-1.5">
-                  <div class="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
-                  <div class="text-blue-600 text-[9px] font-black uppercase">รับเอง · ครบ</div>
-                </div>
-                <div>
-                  <div id="pd-combo-pu-comp" class="text-4xl font-black text-blue-700 leading-none">—</div>
-                  <div id="pd-combo-pu-comp-pct" class="text-blue-500 text-xs font-black mt-1">—</div>
-                </div>
-                <div class="text-[9px] text-blue-400">Pick Up ครบตามแผน</div>
-              </div>
-
-              <!-- F: รับเอง + ไม่ครบ -->
-              <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex flex-col justify-between">
-                <div class="flex items-center gap-1.5">
-                  <div class="w-1.5 h-1.5 bg-indigo-400 rounded-full"></div>
-                  <div class="text-indigo-600 text-[9px] font-black uppercase">รับเอง · ไม่ครบ</div>
-                </div>
-                <div>
-                  <div id="pd-combo-pu-short" class="text-4xl font-black text-indigo-600 leading-none">—</div>
-                  <div id="pd-combo-pu-short-pct" class="text-indigo-400 text-xs font-black mt-1">—</div>
-                </div>
-                <div class="text-[9px] text-indigo-400">Pick Up ไม่ครบตามแผน</div>
-              </div>
-            </div>
-
-            <!-- Legend แกน -->
-            <div class="mt-3 flex items-center justify-between text-[9px] font-black text-slate-400">
-              <div>← ปริมาณ (QTY)</div>
-              <div>เวลา (Timing) →</div>
             </div>
           </div>
-
         </div>
 
-        <!-- Bar Chart -->
+        <!-- Row 3: Line Chart รายวัน + Bar Chart -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- Line Chart -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-3">แนวโน้มรายวัน (รถเข้า / ตรงเวลา / ล่าช้า)</div>
+            <div class="relative h-52">
+              <canvas id="pdLineChart"></canvas>
+            </div>
+          </div>
+          <!-- Bar Chart Supplier -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-3">Top Supplier (Fill Rate)</div>
+            <div class="relative h-52">
+              <canvas id="pdBarChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 4: Combo Matrix -->
         <div class="bg-white rounded-2xl border border-slate-100 p-5">
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <div class="font-black text-slate-700 text-sm">ประสิทธิภาพแยกตาม Supplier</div>
-              <div class="text-[10px] text-slate-400 mt-0.5">ตรงเวลา % vs Part ครบ %</div>
+          <div class="font-black text-slate-700 text-xs mb-4">Matrix: เวลาเข้า × สถานะรับของ</div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-emerald-50 rounded-xl p-4 text-center border border-emerald-100">
+              <div class="text-[9px] font-black text-emerald-600 uppercase mb-1">ตรงเวลา × ครบ</div>
+              <div id="pd-combo-aa" class="text-3xl font-black text-emerald-700">—</div>
+              <div id="pd-combo-aa-pct" class="text-[9px] text-emerald-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-amber-50 rounded-xl p-4 text-center border border-amber-100">
+              <div class="text-[9px] font-black text-amber-600 uppercase mb-1">ตรงเวลา × ไม่ครบ</div>
+              <div id="pd-combo-ab" class="text-3xl font-black text-amber-700">—</div>
+              <div id="pd-combo-ab-pct" class="text-[9px] text-amber-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-blue-50 rounded-xl p-4 text-center border border-blue-100">
+              <div class="text-[9px] font-black text-blue-600 uppercase mb-1">ล่าช้า × ครบ</div>
+              <div id="pd-combo-ba" class="text-3xl font-black text-blue-700">—</div>
+              <div id="pd-combo-ba-pct" class="text-[9px] text-blue-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-rose-50 rounded-xl p-4 text-center border border-rose-100">
+              <div class="text-[9px] font-black text-rose-600 uppercase mb-1">ล่าช้า × ไม่ครบ</div>
+              <div id="pd-combo-bb" class="text-3xl font-black text-rose-700">—</div>
+              <div id="pd-combo-bb-pct" class="text-[9px] text-rose-500 font-bold mt-1">—</div>
             </div>
           </div>
-          <div style="height:200px;position:relative;"><canvas id="pd-bar-chart" role="img" aria-label="Bar chart showing supplier on-time and part completion percentages">ข้อมูลประสิทธิภาพ Supplier</canvas></div>
         </div>
 
-        <!-- Performance Table -->
+        <!-- Row 5: Supplier Table -->
         <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-          <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-            <div>
-              <div class="font-black text-slate-700 text-sm">คะแนน Supplier — Top 10</div>
-              <div class="text-[10px] text-slate-400 mt-0.5">ตรงเวลา 40% + Part ครบ 60% · เรียงจากคะแนนสูงสุด</div>
-            </div>
-            <button type="button" id="pd-perf-toggle" onclick="togglePerfTable()" class="text-[10px] font-black text-violet-600 hover:text-violet-800 bg-violet-50 border border-violet-200 px-3 py-1.5 rounded-xl cursor-pointer">ดูทั้งหมด</button>
+          <div class="px-5 py-4 border-b flex items-center justify-between">
+            <div class="font-black text-slate-700 text-xs">รายละเอียดตาม Supplier</div>
+            <span id="pd-table-count" class="text-[9px] font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full"></span>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead>
-                <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                  <th class="px-5 py-3 w-8">#</th>
-                  <th class="px-4 py-3">Supplier</th>
-                  <th class="px-4 py-3 text-center">ครั้ง</th>
-                  <th class="px-4 py-3 text-center">ตรงเวลา</th>
-                  <th class="px-4 py-3 text-center">Part ครบ</th>
-                  <th class="px-4 py-3 text-center">คะแนน</th>
+            <table class="w-full text-xs">
+              <thead class="bg-slate-50">
+                <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                  <th class="px-4 py-3 text-left">Supplier</th>
+                  <th class="px-4 py-3 text-center">ประเภท</th>
+                  <th class="px-4 py-3 text-center">PO</th>
+                  <th class="px-4 py-3 text-center">Qty แผน</th>
+                  <th class="px-4 py-3 text-center">Qty รับ</th>
+                  <th class="px-4 py-3 text-center">Fill Rate</th>
+                  <th class="px-4 py-3 text-center">สถานะ</th>
                 </tr>
               </thead>
-              <tbody id="pd-perf-tbody" class="divide-y divide-slate-50"></tbody>
+              <tbody id="kpi-all-suppliers-table" class="divide-y divide-slate-50"></tbody>
             </table>
           </div>
         </div>
 
-      </div>
+      </div><!-- end page-parts -->
 
       <!-- Tab: ตั้งค่า -->
       <div id="page-settings" class="hidden max-w-3xl mx-auto p-4 space-y-4 fade-in">
@@ -4578,6 +4488,7 @@
     let pdTimeChart = null;
     let pdQtyChart  = null;
     let pdBarChart  = null;
+    let pdLineChart = null;
 
     function populatePartsDashboardFilters() {
       const mSel = document.getElementById('parts-month');
@@ -4744,51 +4655,115 @@
 
       set('pd-local-suppliers',   localVendors.size    || '—');
       set('pd-local-parts',       localParts.length    || '—');
-      set('pd-local-received',    localParts.filter(function(p){ return p.status==='completed'||p.status==='short'; }).length || '—');
+      const localRecv = localParts.filter(function(p){ return p.status==='completed'||p.status==='short'; }).length;
+      const overseasRecv = overseasParts.filter(function(p){ return p.status==='completed'||p.status==='short'; }).length;
+      set('pd-local-received',    localRecv || '—');
       set('pd-overseas-suppliers', overseasVendors.size   || '—');
       set('pd-overseas-parts',     overseasParts.length   || '—');
-      set('pd-overseas-received',  overseasParts.filter(function(p){ return p.status==='completed'||p.status==='short'; }).length || '—');
+      set('pd-overseas-received',  overseasRecv || '—');
+      const totalParts2 = localParts.length + overseasParts.length || 1;
+      set('pd-local-pct',   localParts.length   > 0 ? Math.round(localParts.length/totalParts2*100)+'%' : '—');
+      set('pd-overseas-pct', overseasParts.length > 0 ? Math.round(overseasParts.length/totalParts2*100)+'%' : '—');
+
+      // Supplier Table
+      const tableBody = document.getElementById('kpi-all-suppliers-table');
+      if (tableBody && partsData.length > 0) {
+        const byVendor = {};
+        partsData.forEach(function(p) {
+          const v = p.vendor||'ไม่ระบุ';
+          if (!byVendor[v]) byVendor[v] = { po: new Set(), qtyP: 0, qtyR: 0, comp: 0, short: 0, miss: 0 };
+          byVendor[v].po.add(p.po_no||'');
+          byVendor[v].qtyP += parseFloat(p.qty_plan)||0;
+          byVendor[v].qtyR += parseFloat(p.qty_received)||0;
+          if (p.status==='completed') byVendor[v].comp++;
+          else if (p.status==='short') byVendor[v].short++;
+          else if (p.status==='missing') byVendor[v].miss++;
+        });
+        const rows = Object.keys(byVendor).sort();
+        document.getElementById('pd-table-count').innerText = rows.length + ' Supplier';
+        tableBody.innerHTML = rows.map(function(v) {
+          const d = byVendor[v];
+          const fr = d.qtyP > 0 ? (d.qtyR/d.qtyP*100).toFixed(0)+'%' : '—';
+          const frColor = d.qtyP > 0 && d.qtyR/d.qtyP >= 0.95 ? 'text-emerald-600 font-black' : d.qtyP > 0 && d.qtyR/d.qtyP >= 0.7 ? 'text-amber-600 font-black' : 'text-rose-600 font-black';
+          const typeBadge = getTypeForVendor(v) === 'overseas'
+            ? '<span class="bg-blue-100 text-blue-600 text-[8px] font-black px-1.5 py-0.5 rounded-full">🌏</span>'
+            : '<span class="bg-emerald-100 text-emerald-600 text-[8px] font-black px-1.5 py-0.5 rounded-full">🇹🇭</span>';
+          const stText = d.comp > 0 && d.short === 0 && d.miss === 0
+            ? '<span class="text-emerald-600 font-black">✅ ครบ</span>'
+            : d.miss > 0 ? '<span class="text-rose-600 font-black">❌ ไม่ครบ</span>'
+            : d.short > 0 ? '<span class="text-amber-600 font-black">⚠️ บางส่วน</span>'
+            : '<span class="text-slate-400">⏳ รอ</span>';
+          return '<tr class="hover:bg-slate-50">' +
+            '<td class="px-4 py-2 font-bold text-slate-700">' + v + '</td>' +
+            '<td class="px-4 py-2 text-center">' + typeBadge + '</td>' +
+            '<td class="px-4 py-2 text-center text-slate-500">' + d.po.size + '</td>' +
+            '<td class="px-4 py-2 text-center font-black text-slate-700">' + d.qtyP.toLocaleString() + '</td>' +
+            '<td class="px-4 py-2 text-center font-black text-slate-700">' + d.qtyR.toLocaleString() + '</td>' +
+            '<td class="px-4 py-2 text-center ' + frColor + '">' + fr + '</td>' +
+            '<td class="px-4 py-2 text-center">' + stText + '</td>' +
+          '</tr>';
+        }).join('');
+      }
     }
 
 
     function updatePdBarChart(checkinData, partsData) {
+      // ── Bar Chart: Fill Rate ตาม Supplier ──
       const vendors = [...new Set([
         ...checkinData.map(function(r){ return r.company_name||''; }),
         ...partsData.map(function(p){ return p.vendor||''; })
       ].filter(Boolean))].sort().slice(0, 10);
 
-      const ontimePcts = vendors.map(function(v) {
-        const vl   = v.toLowerCase();
-        const rows = checkinData.filter(function(r){ return String(r.company_name||'').toLowerCase().includes(vl) || vl.includes(String(r.company_name||'').toLowerCase().substring(0,8)); });
-        if (!rows.length) return 0;
-        return parseFloat(((rows.filter(function(r){ return String(r.plan_status||'').includes('ตรงเวลา'); }).length/rows.length)*100).toFixed(1));
-      });
-
-      const qtyPcts = vendors.map(function(v) {
+      const fillRates = vendors.map(function(v) {
         const vl    = v.toLowerCase();
-        const parts = partsData.filter(function(p){ return String(p.vendor||'').toLowerCase().includes(vl) || vl.includes(String(p.vendor||'').toLowerCase().substring(0,8)); });
+        const parts = partsData.filter(function(p){ return String(p.vendor||'').toLowerCase() === vl || String(p.vendor||'').toLowerCase().includes(vl.substring(0,8)); });
         if (!parts.length) return 0;
-        return parseFloat(((parts.filter(function(p){ return p.status==='completed'; }).length/parts.length)*100).toFixed(1));
+        const qP = parts.reduce(function(s,p){ return s+(parseFloat(p.qty_plan)||0); }, 0);
+        const qR = parts.reduce(function(s,p){ return s+(parseFloat(p.qty_received)||0); }, 0);
+        return qP > 0 ? parseFloat((qR/qP*100).toFixed(1)) : 0;
       });
 
-      const canvas = document.getElementById('pd-bar-chart');
-      if (!canvas || typeof Chart === 'undefined') return;
-      if (window._pdBarChart) { window._pdBarChart.destroy(); window._pdBarChart = null; }
-      window._pdBarChart = new Chart(canvas.getContext('2d'), {
-        type: 'bar',
-        data: {
-          labels: vendors.map(function(v){ return v.substring(0,15); }),
-          datasets: [
-            { label: 'ตรงเวลา %', data: ontimePcts, backgroundColor: '#6366f1', borderRadius: 4, barPercentage: 0.4 },
-            { label: 'Part ครบ %', data: qtyPcts,   backgroundColor: '#10b981', borderRadius: 4, barPercentage: 0.4 }
-          ]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          scales: { y: { beginAtZero: true, max: 100, ticks: { font: { size: 10 } }, grid: { color: '#f1f5f9' } }, x: { ticks: { font: { size: 9 } } } },
-          plugins: { legend: { labels: { font: { size: 10 } } } }
-        }
-      });
+      const barCanvas = document.getElementById('pdBarChart');
+      if (barCanvas && typeof Chart !== 'undefined') {
+        if (pdBarChart) { pdBarChart.destroy(); pdBarChart = null; }
+        pdBarChart = new Chart(barCanvas.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: vendors.map(function(v){ return v.length > 12 ? v.substring(0,12)+'…' : v; }),
+            datasets: [{ label: 'Fill Rate %', data: fillRates, backgroundColor: fillRates.map(function(r){ return r >= 95 ? '#10b981' : r >= 70 ? '#f59e0b' : '#f43f5e'; }), borderRadius: 6, barPercentage: 0.6 }]
+          },
+          options: { responsive: true, maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, max: 100, ticks: { font: { size: 10 }, callback: function(v){ return v+'%'; } }, grid: { color: '#f1f5f9' } }, x: { ticks: { font: { size: 9 } } } },
+            plugins: { legend: { display: false } }
+          }
+        });
+      }
+
+      // ── Line Chart: แนวโน้มรายวัน ──
+      const lineCanvas = document.getElementById('pdLineChart');
+      if (lineCanvas && typeof Chart !== 'undefined') {
+        const days = [...new Set(checkinData.map(function(r){ return normalizeDate(r.date); }).filter(Boolean))].sort().slice(-14);
+        const totalPerDay   = days.map(function(d){ return checkinData.filter(function(r){ return normalizeDate(r.date)===d && r.status!=='cancelled'; }).length; });
+        const ontimePerDay  = days.map(function(d){ return checkinData.filter(function(r){ return normalizeDate(r.date)===d && String(r.plan_status||'').includes('ตรงเวลา'); }).length; });
+        const latePerDay    = days.map(function(d){ return checkinData.filter(function(r){ return normalizeDate(r.date)===d && String(r.plan_status||'').includes('ล่าช้า'); }).length; });
+        const fmtDay = function(d){ const p=d.split('-'); return p[2]+'/'+p[1]; };
+        if (pdLineChart) { pdLineChart.destroy(); pdLineChart = null; }
+        pdLineChart = new Chart(lineCanvas.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: days.map(fmtDay),
+            datasets: [
+              { label: 'รถเข้า', data: totalPerDay,  borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.08)', fill: true, tension: 0.4, pointRadius: 3, borderWidth: 2 },
+              { label: 'ตรงเวลา', data: ontimePerDay, borderColor: '#10b981', backgroundColor: 'transparent', tension: 0.4, pointRadius: 3, borderWidth: 2 },
+              { label: 'ล่าช้า',   data: latePerDay,   borderColor: '#f43f5e', backgroundColor: 'transparent', tension: 0.4, pointRadius: 3, borderWidth: 2 },
+            ]
+          },
+          options: { responsive: true, maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } }, grid: { color: '#f1f5f9' } }, x: { ticks: { font: { size: 9 } } } },
+            plugins: { legend: { labels: { font: { size: 10 }, boxWidth: 12 } } }
+          }
+        });
+      }
     }
 
     let _perfAllRows = [];
@@ -4978,9 +4953,14 @@
                   <div class="px-5 py-3 hover:bg-slate-50 transition-colors">
                     <div class="flex items-start justify-between gap-2">
                       <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 mb-1">
+                        <div class="flex items-center gap-2 mb-1 flex-wrap">
                           <span class="font-bold text-slate-700 text-sm truncate">${v}</span>
                           ${hasCheckin ? '<span class="text-[9px] bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded font-black flex-shrink-0">เช็คอินแล้ว ✅</span>' : '<span class="text-[9px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded font-black flex-shrink-0">ยังไม่มา</span>'}
+                          <button type="button" onclick="toggleSupplierTypeFromCard('${v.replace(/'/g,"\\'")}', this)"
+                            data-supplier="${v.replace(/"/g,'&quot;')}"
+                            class="text-[9px] font-black px-2 py-0.5 rounded-full border cursor-pointer transition-all ${getSupplierType(v)==='overseas' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}">
+                            ${getSupplierType(v)==='overseas' ? '🌏 Overseas' : '🇹🇭 Local'}
+                          </button>
                         </div>
                         <div class="flex flex-wrap gap-1">
                           ${info.parts.slice(0,3).map(p =>
@@ -5346,6 +5326,40 @@
 
     // reset search เมื่อเปิด modal ใหม่
     // reset search เมื่อเปิด modal
+
+    window.toggleSupplierTypeFromCard = async function(supplierName, btn) {
+      const curType = getSupplierType(supplierName);
+      const newType = curType === 'local' ? 'overseas' : 'local';
+
+      // อัพเดท UI ทันที (optimistic)
+      const isOverseas = newType === 'overseas';
+      btn.innerText = isOverseas ? '🌏 Overseas' : '🇹🇭 Local';
+      btn.className = 'text-[9px] font-black px-2 py-0.5 rounded-full border cursor-pointer transition-all ' +
+        (isOverseas ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200');
+
+      // อัพเดทใน _supplierMasterList ทันที
+      const idx = _supplierMasterList.findIndex(function(s) {
+        const n = (typeof s === 'object' ? s.name : s) || '';
+        return n.toLowerCase().trim() === supplierName.toLowerCase().trim();
+      });
+      if (idx >= 0) {
+        if (typeof _supplierMasterList[idx] === 'object') _supplierMasterList[idx].type = newType;
+        else _supplierMasterList[idx] = { name: supplierName, type: newType };
+      }
+
+      // บันทึกลง Sheet
+      try {
+        const res = await callAPI('updateSupplierType', { name: supplierName, type: newType });
+        if (!res || !res.success) {
+          showToast('บันทึกไม่สำเร็จ', 'error');
+          // revert
+          btn.innerText = curType === 'overseas' ? '🌏 Overseas' : '🇹🇭 Local';
+          if (idx >= 0 && typeof _supplierMasterList[idx] === 'object') _supplierMasterList[idx].type = curType;
+        } else {
+          showToast((isOverseas ? '🌏 Overseas' : '🇹🇭 Local') + ' บันทึกแล้ว');
+        }
+      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+    };
 
     window.toggleSupplierType = async function(idx) {
       const name    = typeof s === 'object' ? s.name : s;
