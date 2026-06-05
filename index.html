@@ -279,43 +279,105 @@
       <!-- Tab: Daily -->
       <div id="page-daily" class="max-w-6xl mx-auto p-4 hidden space-y-5">
 
-        <!-- KPI Cards: ตามแผน vs มาจริง -->
-        <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
-          <div class="bg-slate-800 text-white rounded-2xl p-5 text-center">
-            <div class="text-[10px] font-black text-slate-400 uppercase mb-2">ตามแผนวันนี้</div>
-            <div id="stat-today-planned" class="text-4xl font-black">—</div>
-            <div class="text-[10px] text-slate-500 mt-1">คัน</div>
+        <!-- Header + Date Picker -->
+        <div class="flex items-center justify-between flex-wrap gap-3">
+          <div class="font-black text-slate-800 text-xl">📋 สรุปวันนี้</div>
+          <div class="flex items-center gap-2">
+            <label class="text-[9px] font-black text-slate-400 uppercase">วันที่</label>
+            <input type="date" id="daily-date-pick" onchange="loadDailySummary()"
+              class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer">
           </div>
-          <div class="bg-white rounded-2xl border border-slate-100 p-5 text-center">
-            <div class="text-[10px] font-black text-slate-400 uppercase mb-2">มาจริงวันนี้</div>
-            <div id="stat-today-total" class="text-4xl font-black text-slate-800">0</div>
-            <div class="text-[10px] text-slate-400 mt-1">คัน</div>
+        </div>
+
+        <!-- Row 1: KPI Checkin -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="bg-slate-800 text-white rounded-2xl p-4 text-center">
+            <div class="text-[9px] font-black text-slate-400 uppercase mb-1">รวมเช็คอินวันนี้</div>
+            <div id="stat-today-total" class="text-3xl font-black">0</div>
+            <div class="text-[9px] text-slate-500 mt-1">คัน</div>
           </div>
-          <div class="bg-emerald-50 rounded-2xl border border-emerald-100 p-5 text-center">
-            <div class="text-[10px] font-black text-emerald-500 uppercase mb-2">เสร็จสิ้น</div>
-            <div id="stat-today-done" class="text-4xl font-black text-emerald-600">0</div>
-            <div class="text-[10px] text-emerald-400 mt-1">คัน</div>
+          <div class="bg-violet-50 border border-violet-100 rounded-2xl p-4 text-center">
+            <div class="text-[9px] font-black text-violet-500 uppercase mb-1">✅ ตามแผน</div>
+            <div id="stat-today-planned-in" class="text-3xl font-black text-violet-700">—</div>
+            <div class="text-[9px] text-violet-400 mt-1">คัน</div>
           </div>
-          <div class="bg-amber-50 rounded-2xl border border-amber-100 p-5 text-center">
-            <div class="text-[10px] font-black text-amber-500 uppercase mb-2">รอดำเนินการ</div>
-            <div id="stat-today-wait" class="text-4xl font-black text-amber-600">0</div>
-            <div class="text-[10px] text-amber-400 mt-1">คัน</div>
+          <div class="bg-amber-50 border border-amber-100 rounded-2xl p-4 text-center">
+            <div class="text-[9px] font-black text-amber-600 uppercase mb-1">⚠️ ไม่มีในแผน</div>
+            <div id="stat-today-unplanned-in" class="text-3xl font-black text-amber-700">—</div>
+            <div class="text-[9px] text-amber-500 mt-1">คัน</div>
           </div>
-          <div class="bg-violet-50 rounded-2xl border border-violet-100 p-5 text-center">
-            <div class="text-[10px] font-black text-violet-500 uppercase mb-2">มาตรงแผน</div>
-            <div id="stat-today-match" class="text-4xl font-black text-violet-600">—</div>
+          <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 text-center">
+            <div class="text-[9px] font-black text-emerald-600 uppercase mb-1">มาตรงแผน</div>
+            <div id="stat-today-match" class="text-3xl font-black text-emerald-700">—</div>
+          </div>
+        </div>
+
+        <!-- Row 2: KPI Status -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="bg-white border border-slate-100 rounded-2xl p-4 text-center">
+            <div class="text-[9px] font-black text-slate-400 uppercase mb-1">ตามแผนวันนี้</div>
+            <div id="stat-today-planned" class="text-3xl font-black text-slate-700">—</div>
+            <div class="text-[9px] text-slate-400 mt-1">คัน (Vendor)</div>
+          </div>
+          <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 text-center">
+            <div class="text-[9px] font-black text-emerald-500 uppercase mb-1">เสร็จสิ้น</div>
+            <div id="stat-today-done" class="text-3xl font-black text-emerald-600">0</div>
+            <div class="text-[9px] text-emerald-400 mt-1">คัน</div>
+          </div>
+          <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 text-center">
+            <div class="text-[9px] font-black text-blue-500 uppercase mb-1">รอดำเนินการ</div>
+            <div id="stat-today-wait" class="text-3xl font-black text-blue-600">0</div>
+            <div class="text-[9px] text-blue-400 mt-1">คัน</div>
+          </div>
+          <div class="bg-rose-50 border border-rose-100 rounded-2xl p-4 text-center">
+            <div class="text-[9px] font-black text-rose-500 uppercase mb-1">ยกเลิก</div>
+            <div id="stat-today-cancelled" class="text-3xl font-black text-rose-600">0</div>
+            <div class="text-[9px] text-rose-400 mt-1">คัน</div>
+          </div>
+        </div>
+
+        <!-- Row 3: Parts KPI -->
+        <div class="bg-white rounded-2xl border border-slate-100 p-5">
+          <div class="font-black text-slate-700 text-sm mb-4">📦 สรุปพาร์ท</div>
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div class="bg-slate-50 rounded-xl p-3 text-center">
+              <div class="text-[9px] font-black text-slate-400 uppercase mb-1">แผน</div>
+              <div id="stat-parts-plan" class="text-2xl font-black text-slate-700">—</div>
+              <div class="text-[9px] text-slate-400">พาร์ท</div>
+            </div>
+            <div class="bg-blue-50 rounded-xl p-3 text-center">
+              <div class="text-[9px] font-black text-blue-500 uppercase mb-1">รับจริง</div>
+              <div id="stat-parts-recv" class="text-2xl font-black text-blue-700">—</div>
+              <div class="text-[9px] text-blue-400">พาร์ท</div>
+            </div>
+            <div class="bg-emerald-50 rounded-xl p-3 text-center">
+              <div class="text-[9px] font-black text-emerald-500 uppercase mb-1">✅ ครบ/เกิน</div>
+              <div id="stat-parts-complete" class="text-2xl font-black text-emerald-700">—</div>
+              <div class="text-[9px] text-emerald-400">รายการ</div>
+            </div>
+            <div class="bg-amber-50 rounded-xl p-3 text-center">
+              <div class="text-[9px] font-black text-amber-500 uppercase mb-1">⚠️ ไม่ครบ</div>
+              <div id="stat-parts-short" class="text-2xl font-black text-amber-700">—</div>
+              <div class="text-[9px] text-amber-400">รายการ</div>
+            </div>
+            <div class="bg-rose-50 rounded-xl p-3 text-center">
+              <div class="text-[9px] font-black text-rose-500 uppercase mb-1">❌ ไม่ได้รับ</div>
+              <div id="stat-parts-missing" class="text-2xl font-black text-rose-700">—</div>
+              <div class="text-[9px] text-rose-400">รายการ</div>
+            </div>
           </div>
         </div>
 
         <!-- Chart 7 วัน -->
         <div class="bg-white rounded-2xl border border-slate-100 p-5">
-          <div class="font-black text-slate-700 text-sm mb-4">สรุปย้อนหลัง 7 วัน</div>
-          <div class="h-64"><canvas id="dailyChart"></canvas></div>
+          <div class="font-black text-slate-700 text-sm mb-4">แนวโน้มย้อนหลัง 7 วัน</div>
+          <div class="h-52"><canvas id="dailyChart"></canvas></div>
         </div>
 
-        <!-- ประวัติ 7 วัน -->
+        <!-- ประวัติ -->
         <div id="daily-history-list" class="space-y-4 text-left"></div>
       </div>
+
 
       <!-- Tab: Weekly Plan Staff -->
       <!-- Tab: Weekly Plan Staff -->
@@ -494,7 +556,16 @@
             <div class="font-black text-slate-800 text-xl tracking-tight">📦 Parts Dashboard</div>
             <div id="pd-last-update" class="text-[11px] text-slate-400 mt-1">—</div>
           </div>
-          <div class="flex items-end gap-3 flex-wrap">
+          <div class="flex items-center gap-2 flex-wrap">
+            <!-- Filter: All / Local / Overseas -->
+            <div class="flex bg-slate-100 rounded-xl p-1 gap-1">
+              <button type="button" id="pd-filter-all" onclick="setPdFilter('all')"
+                class="px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer bg-white text-slate-700 shadow-sm">🌐 รวม</button>
+              <button type="button" id="pd-filter-local" onclick="setPdFilter('local')"
+                class="px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer text-slate-500">🇹🇭 Local</button>
+              <button type="button" id="pd-filter-overseas" onclick="setPdFilter('overseas')"
+                class="px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer text-slate-500">🌏 Overseas</button>
+            </div>
             <div>
               <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">เดือน</div>
               <select id="parts-month" onchange="updatePartsDashboard()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[150px]"></select>
@@ -4288,6 +4359,11 @@
         if (dateEl) dateEl.innerText = '📅 ' + thaiDate;
         if (dayEl)  dayEl.innerText  = dayName;
       }
+      if (tab === 'daily') {
+        const dp = document.getElementById('daily-date-pick');
+        if (dp && !dp.value) dp.value = getThaiDate();
+        loadDailySummary();
+      }
       if (tab === 'trend')    { onTrendModeChange('pd'); loadStaffTrend(); }
       if (tab === 'settings') initSettingsPage();
     }
@@ -4354,7 +4430,62 @@
       kpiPieChart = new Chart(ctx, { type:'doughnut', data:{ labels:['ตรงเวลา/ก่อนเวลา','ล่าช้า','ไม่มีในแผน','Pickup'], datasets:[{ data:[ontime,late,unplanned,pickup], backgroundColor:['#10b981','#f43f5e','#f59e0b','#3b82f6'], borderWidth:0, hoverOffset:4 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ font:{ family:'Prompt' } } } }, cutout:'70%' } });
     }
 
-    function updateDailyHistoryList() {
+    function loadDailySummary() {
+      const dp      = document.getElementById('daily-date-pick');
+      const dateVal = (dp && dp.value) ? dp.value : getThaiDate();
+      const today   = getThaiDate();
+      const _s      = function(id, val){ const el = document.getElementById(id); if(el) el.innerText = String(val); };
+
+      // ── Checkin ──
+      const dayCheckin = allData.filter(function(r){ return normalizeDate(r.date) === dateVal; });
+      const total      = dayCheckin.filter(function(r){ return r.status !== 'cancelled'; }).length;
+      const planned    = dayCheckin.filter(function(r){
+        const ps = String(r.plan_status||'');
+        return r.status !== 'cancelled' && ps !== 'ไม่มีในแผน' && ps !== 'นอกแผน' && ps !== '';
+      }).length;
+      const unplanned  = dayCheckin.filter(function(r){
+        const ps = String(r.plan_status||'');
+        return r.status !== 'cancelled' && (ps === 'ไม่มีในแผน' || ps === 'นอกแผน');
+      }).length;
+      const done       = dayCheckin.filter(function(r){ return r.status === 'completed' || r.status === 'exited'; }).length;
+      const waiting    = dayCheckin.filter(function(r){ return r.status === 'waiting' || r.status === 'loading'; }).length;
+      const cancelled  = dayCheckin.filter(function(r){ return r.status === 'cancelled'; }).length;
+
+      // Planned vendors from PartDetail
+      const dayParts   = allPartData.filter(function(p){
+        return normalizeDate(p.date) === dateVal && p.status !== 'draft' && p.status !== 'cancelled';
+      });
+      const planVendors = new Set(dayParts.map(function(p){ return (p.vendor||'').toLowerCase().trim(); }).filter(Boolean)).size;
+      const matchPct    = planVendors > 0 ? Math.round(planned/planVendors*100)+'%' : '—';
+
+      _s('stat-today-total',       total);
+      _s('stat-today-planned-in',  planned);
+      _s('stat-today-unplanned-in',unplanned);
+      _s('stat-today-match',       matchPct);
+      _s('stat-today-planned',     planVendors || '—');
+      _s('stat-today-done',        done);
+      _s('stat-today-wait',        waiting);
+      _s('stat-today-cancelled',   cancelled);
+
+      // ── Parts ──
+      const qtyPlan  = dayParts.reduce(function(s,p){ return s+(parseFloat(p.qty_plan)||0); }, 0);
+      const qtyRecv  = dayParts.reduce(function(s,p){ return s+(parseFloat(p.qty_received)||0); }, 0);
+      const complete = dayParts.filter(function(p){ return p.status==='completed'; }).length;
+      const short    = dayParts.filter(function(p){ return p.status==='short'; }).length;
+      const missing  = dayParts.filter(function(p){ return p.status==='missing'; }).length;
+      _s('stat-parts-plan',    qtyPlan    || '—');
+      _s('stat-parts-recv',    qtyRecv    || '—');
+      _s('stat-parts-complete',complete   || '—');
+      _s('stat-parts-short',   short      || '—');
+      _s('stat-parts-missing', missing    || '—');
+
+      // ── chart & history ──
+      updateDailyHistoryList(dateVal);
+      updateDailyChart();
+    }
+    window.loadDailySummary = loadDailySummary;
+
+    function updateDailyHistoryList(focusDate) {
       const container = document.getElementById('daily-history-list');
       if (!container) return;
       let html = '';
@@ -4473,9 +4604,23 @@
       dailyChart = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{ label:'คิว', data:counts, backgroundColor:'#4f46e5', borderRadius:8 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks: { precision: 0 } } } } });
     }
 
-    // ==========================================
-    // SUPPLIER PERFORMANCE DASHBOARD
-    // ==========================================
+    let _pdFilter = 'all'; // 'all' | 'local' | 'overseas'
+
+    window.setPdFilter = function(filter) {
+      _pdFilter = filter;
+      ['all','local','overseas'].forEach(function(f) {
+        const btn = document.getElementById('pd-filter-' + f);
+        if (!btn) return;
+        if (f === filter) {
+          btn.className = 'px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer bg-white text-slate-700 shadow-sm';
+        } else {
+          btn.className = 'px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer text-slate-500';
+        }
+      });
+      updatePartsDashboard();
+    };
+
+    // =====================================================
     let pdTimeChart = null;
     let pdQtyChart  = null;
     let pdBarChart  = null;
@@ -4532,9 +4677,16 @@
       const mVal = (document.getElementById('parts-month')?.value || 'ALL');
       const sVal = (document.getElementById('parts-supplier')?.value || 'ALL');
 
+      // ฟังก์ชันตรวจ type ของ vendor
+      const isTypeMatch = function(vendorName) {
+        if (_pdFilter === 'all') return true;
+        return getSupplierType(vendorName) === _pdFilter;
+      };
+
       // Filter checkin
       const filteredCheckin = allData.filter(function(r) {
         if (r.status === 'cancelled') return false;
+        if (!isTypeMatch(r.company_name)) return false;
         if (mVal !== 'ALL') {
           const parts = mVal.split('-');
           const dp = String(r.date||'').split('-');
@@ -4545,8 +4697,9 @@
       });
       const visits = new Set(filteredCheckin.map(function(r){ return r.date+'_'+r.queue_number; })).size;
 
-      // Filter parts (จาก PartDetail — pending/completed)
+      // Filter parts
       const filteredParts = allPartData.filter(function(p) {
+        if (!isTypeMatch(p.vendor)) return false;
         if (mVal !== 'ALL') {
           const parts = mVal.split('-');
           const dp = String(p.date||'').split('-');
@@ -4555,6 +4708,14 @@
         if (sVal !== 'ALL' && !String(p.vendor||'').toLowerCase().includes(sVal.toLowerCase())) return false;
         return ['pending','completed','short','missing'].includes(p.status||'');
       });
+
+      // แสดง label filter
+      const filterLabel = _pdFilter === 'local' ? ' 🇹🇭 Local' : _pdFilter === 'overseas' ? ' 🌏 Overseas' : '';
+      const lastUpdateEl = document.getElementById('pd-last-update');
+      if (lastUpdateEl) {
+        const now = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+        lastUpdateEl.innerText = 'อัพเดตล่าสุด ' + now + filterLabel;
+      }
 
       updateKPIUI(filteredCheckin, filteredParts, visits);
       updatePdBarChart(filteredCheckin, filteredParts);
