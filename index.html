@@ -4249,7 +4249,6 @@
     }
 
     async function submitPartsConfirm() {
-      // Collect qty data
       const qtyInputs = document.querySelectorAll('#pcm-parts-tbody .qty-input');
       const receivedData = [];
       qtyInputs.forEach(function(inp) {
@@ -4263,8 +4262,25 @@
       const btn = document.getElementById('pcm-submit-btn');
       if (btn) { btn.disabled = true; btn.innerText = '⏳ กำลังบันทึก...'; }
 
+      // Optimistic update — อัพเดท allPartData ทันที ไม่รอ API
+      receivedData.forEach(function(item) {
+        const idx = allPartData.findIndex(function(p){ return String(p.id) === String(item.part_id); });
+        if (idx >= 0) {
+          const qP = item.qty_plan, qR = item.qty_received;
+          allPartData[idx] = Object.assign({}, allPartData[idx], {
+            qty_received: qR,
+            status: qR === 0 ? 'missing' : qR < qP ? 'short' : 'completed',
+          });
+        }
+      });
+
+      // ปิด modal ทันที
+      if (pcmQueueNum) updateStatus(pcmQueueNum, 'loading', pcmFactory);
+      closePartsModal();
+      showToast('✅ ยืนยันรับของแล้ว ' + receivedData.length + ' รายการ');
+
+      // บันทึกจริงใน background
       try {
-        // 1. Confirm parts in sheet
         const res = await callAPI('confirmParts', {
           date:         getThaiDate(),
           queueNumber:  pcmQueueNum,
@@ -4272,22 +4288,11 @@
           approvedBy:   '',
           remark:       ''
         });
-
         if (!res || !res.success) {
-          showToast('บันทึกไม่สำเร็จ: ' + (res?.message || 'กรุณาลองใหม่'), 'error');
-          if (btn) { btn.disabled = false; btn.innerText = '✅ ยืนยันรับของ'; }
-          return;
+          showToast('⚠️ บันทึกอาจไม่สำเร็จ กรุณาตรวจสอบ', 'error');
         }
-
-        if (pcmQueueNum) updateStatus(pcmQueueNum, 'loading', pcmFactory);
-
-        closePartsModal();
-        await fetchAll();
-        showToast('✅ ยืนยันรับของสำเร็จ ' + (res.updated || 0) + ' รายการ');
-
       } catch(e) {
-        showToast('Error: ' + e.message, 'error');
-        if (btn) { btn.disabled = false; btn.innerText = '✅ ยืนยันรับของ'; }
+        showToast('⚠️ Error: ' + e.message, 'error');
       }
     }
 
@@ -4777,19 +4782,38 @@
     function getPartMiniList(companyName, date) {
       const parts = getPartsForSupplier(companyName, date);
       if (parts.length === 0) return '';
-      return `<div class="mt-2 bg-violet-50 rounded-xl border border-violet-100 overflow-hidden">
-        <div class="px-3 py-1.5 text-[9px] font-black text-violet-500 uppercase tracking-widest border-b border-violet-100 flex justify-between">
-          <span>📦 แผนพาร์ทวันนี้</span>
-          <span>${parts.length} รายการ</span>
-        </div>
-        ${parts.slice(0,4).map(p => `
-          <div class="flex items-center gap-2 px-3 py-1 text-[9px] border-b border-violet-50 last:border-0">
-            <span class="font-mono text-slate-300 w-16 truncate">${p.po_no||p.po_number||'-'}</span>
-            <span class="font-bold text-violet-700 flex-1 truncate">${p.part_no||p.part_number||'-'}</span>
-            <span class="font-black text-slate-600 w-10 text-right">${Number(p.qty_plan||p.qty||0).toLocaleString()}</span>
-          </div>`).join('')}
-        ${parts.length > 4 ? `<div class="px-3 py-1 text-[9px] text-slate-400 font-bold text-center">+${parts.length-4} รายการ</div>` : ''}
-      </div>`;
+
+      // รวม PO เดียวกัน sum QTY
+      const byPO = {};
+      parts.forEach(function(p) {
+        const po = p.po_no || p.po_number || '-';
+        if (!byPO[po]) byPO[po] = { po_no: po, parts: [], qty_plan: 0, qty_received: 0, status: p.status };
+        byPO[po].parts.push(p.part_no || p.part_number || '-');
+        byPO[po].qty_plan     += parseFloat(p.qty_plan)||0;
+        byPO[po].qty_received += parseFloat(p.qty_received)||0;
+      });
+
+      const poList = Object.values(byPO);
+      const totalQtyPlan = poList.reduce(function(s,p){ return s+p.qty_plan; }, 0);
+      const totalQtyRecv = poList.reduce(function(s,p){ return s+p.qty_received; }, 0);
+
+      return '<div class="mt-2 bg-violet-50 rounded-xl border border-violet-100 overflow-hidden">' +
+        '<div class="px-3 py-1.5 text-[9px] font-black text-violet-500 uppercase tracking-widest border-b border-violet-100 flex justify-between">' +
+          '<span>📦 แผนพาร์ทวันนี้</span>' +
+          '<span>' + parts.length + ' รายการ · QTY รวม ' + totalQtyPlan.toLocaleString() + '</span>' +
+        '</div>' +
+        poList.slice(0,4).map(function(p) {
+          const stColor = p.status==='completed' ? 'text-emerald-600' : p.status==='short' ? 'text-amber-500' : p.status==='missing' ? 'text-rose-400' : 'text-slate-400';
+          const recvText = p.qty_received > 0 ? '<span class="' + stColor + ' font-black">/' + p.qty_received.toLocaleString() + '</span>' : '';
+          return '<div class="flex items-center gap-2 px-3 py-1.5 text-[9px] border-b border-violet-50 last:border-0">' +
+            '<span class="font-mono text-slate-400 w-20 truncate">' + p.po_no + '</span>' +
+            '<span class="text-slate-500 flex-1 truncate text-[8px]">' + p.parts.slice(0,2).join(', ') + (p.parts.length>2 ? ' +'+( p.parts.length-2) : '') + '</span>' +
+            '<span class="font-black text-slate-700 tabular-nums">' + p.qty_plan.toLocaleString() + recvText + '</span>' +
+          '</div>';
+        }).join('') +
+        (poList.length > 4 ? '<div class="px-3 py-1 text-[9px] text-slate-400 font-bold text-center">+' + (poList.length-4) + ' PO</div>' : '') +
+        (totalQtyRecv > 0 ? '<div class="px-3 py-1.5 text-[9px] font-black text-emerald-600 bg-emerald-50 border-t border-emerald-100 flex justify-between"><span>รับแล้ว</span><span>' + totalQtyRecv.toLocaleString() + ' / ' + totalQtyPlan.toLocaleString() + '</span></div>' : '') +
+      '</div>';
     }
 
     let _prevWaitCount   = -1;
@@ -5502,7 +5526,17 @@
       set('pd-last-update', 'อัพเดตล่าสุด ' + now);
 
       // ── Local / Overseas KPI ──
-      // สร้าง map vendor → type จาก _supplierMasterList
+      // โหลด supplier master ถ้ายังว่าง
+      if (_supplierMasterList.length === 0) {
+        callAPI('getSupplierMaster').then(function(r){
+          if (r && r.success) {
+            _supplierMasterList = r.suppliers || [];
+            updateKPIUI(checkinData, partsData, visits); // re-run
+          }
+        });
+        return; // รอ re-run
+      }
+
       const typeMap = {};
       _supplierMasterList.forEach(function(s) {
         const name = ((typeof s === 'object' ? s.name : s) || '').toLowerCase().trim();
@@ -5513,7 +5547,6 @@
       function getTypeForVendor(vendor) {
         const v = (vendor||'').toLowerCase().trim();
         if (typeMap[v]) return typeMap[v];
-        // fuzzy fallback
         const keys = Object.keys(typeMap);
         const match = keys.find(function(k){ return k.length>=4 && (v.includes(k)||k.includes(v)); });
         return match ? typeMap[match] : 'local';
@@ -9249,24 +9282,79 @@
     }
 
     async function loadPicDashboard() {
-      const year  = (document.getElementById('picdash-year')||{}).value  || new Date().getFullYear();
+      document.getElementById('picdash-loading')?.classList.remove('hidden');
+      document.getElementById('picdash-empty')?.classList.add('hidden');
+      document.getElementById('picdash-content')?.classList.add('hidden');
+
+      const year  = (document.getElementById('picdash-year')||{}).value  || String(new Date().getFullYear());
       const month = (document.getElementById('picdash-month')||{}).value || '';
-      document.getElementById('picdash-loading').classList.remove('hidden');
-      document.getElementById('picdash-empty').classList.add('hidden');
-      document.getElementById('picdash-content').classList.add('hidden');
-      try {
-        const res = await callAPI('getHistorySummary', { year, month });
-        document.getElementById('picdash-loading').classList.add('hidden');
-        if (!res || !res.success || !res.total_rows) {
-          document.getElementById('picdash-empty').classList.remove('hidden');
-          return;
-        }
-        renderPicDashboard(res.summary);
-        document.getElementById('picdash-content').classList.remove('hidden');
-      } catch(err) {
-        document.getElementById('picdash-loading').classList.add('hidden');
-        showToast('โหลดไม่สำเร็จ: ' + err.message);
+
+      // ใช้ allPartData ที่มีอยู่แล้ว กรองตาม year/month
+      let rows = allPartData.filter(function(p) {
+        if (!p.date) return false;
+        const d = normalizeDate(p.date);
+        if (year && !d.startsWith(year)) return false;
+        if (month && d.slice(5,7) !== month.padStart(2,'0')) return false;
+        return p.status === 'pending' || p.status === 'completed' || p.status === 'short' || p.status === 'missing';
+      });
+
+      // ถ้าว่าง ลอง API
+      if (rows.length === 0) {
+        try {
+          const res = await callAPI('getHistorySummary', { year, month });
+          if (res && res.success && res.total_rows) {
+            document.getElementById('picdash-loading')?.classList.add('hidden');
+            renderPicDashboard(res.summary);
+            document.getElementById('picdash-content')?.classList.remove('hidden');
+            return;
+          }
+        } catch(e) {}
+        document.getElementById('picdash-loading')?.classList.add('hidden');
+        document.getElementById('picdash-empty')?.classList.remove('hidden');
+        return;
       }
+
+      // สรุปจาก allPartData
+      const byPic    = {}, byVendor = {};
+      let totalQtyP = 0, totalQtyR = 0, poSet = new Set();
+
+      rows.forEach(function(p) {
+        const pic    = p.pic    || 'ไม่ระบุ';
+        const vendor = p.vendor || 'ไม่ระบุ';
+        const qP = parseFloat(p.qty_plan)||0;
+        const qR = parseFloat(p.qty_received)||0;
+        totalQtyP += qP; totalQtyR += qR;
+        if (p.po_no) poSet.add(p.po_no);
+
+        if (!byPic[pic])    byPic[pic]    = { po_nos: new Set(), parts: 0, qty_plan: 0, qty_recv: 0, completed: 0, short: 0, missing: 0 };
+        if (!byVendor[vendor]) byVendor[vendor] = { parts: 0, qty_plan: 0, qty_recv: 0 };
+
+        byPic[pic].parts++; byPic[pic].qty_plan += qP; byPic[pic].qty_recv += qR;
+        if (p.po_no) byPic[pic].po_nos.add(p.po_no);
+        if (p.status === 'completed') byPic[pic].completed++;
+        else if (p.status === 'short')   byPic[pic].short++;
+        else if (p.status === 'missing') byPic[pic].missing++;
+
+        byVendor[vendor].parts++; byVendor[vendor].qty_plan += qP; byVendor[vendor].qty_recv += qR;
+      });
+
+      // แปลง po_nos เป็น count
+      Object.keys(byPic).forEach(function(k){ byPic[k].po_count = byPic[k].po_nos.size; });
+
+      const summary = {
+        total_po: poSet.size, total_parts: rows.length,
+        total_qty_plan: totalQtyP, total_qty_recv: totalQtyR,
+        by_status: {
+          completed: rows.filter(function(p){ return p.status==='completed'; }).length,
+          short:     rows.filter(function(p){ return p.status==='short'; }).length,
+          missing:   rows.filter(function(p){ return p.status==='missing'; }).length,
+        },
+        by_pic: byPic, by_vendor: byVendor,
+      };
+
+      document.getElementById('picdash-loading')?.classList.add('hidden');
+      renderPicDashboard(summary);
+      document.getElementById('picdash-content')?.classList.remove('hidden');
     }
 
     function renderPicDashboard(s) {
