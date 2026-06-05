@@ -2473,7 +2473,7 @@
           initManagerView();
         } else {
           isStaffLoggedIn = true;
-          // reset hash ทั้งหมดเพื่อบังคับ render ใหม่
+          _prevWaitCount = -1; // -1 = ยังไม่เคย render ไม่ให้เล่นเสียงรอบแรก
           _hashCheckin = ''; _hashParts = ''; _hashPartsPIC = ''; _hashPartsPlanning = '';
           hideAll();
           document.getElementById('staff-view').classList.remove('hidden');
@@ -3855,6 +3855,8 @@
     }
 
     function updateSupplierStatusDisplay(record) {
+      const prevStatus = currentSupplierRecord ? currentSupplierRecord.status : null;
+
       if (currentSupplierRecord && String(currentSupplierRecord.queue_number) === String(record.queue_number)) {
         currentSupplierRecord = record;
         safeSetLocal('my_active_queue', JSON.stringify(record));
@@ -3862,6 +3864,13 @@
           safeRemoveLocal('my_active_queue');
           safeRemoveSession('qr_auto_triggered');
         }
+      }
+
+      // เสียงแจ้งเตือนเมื่อ status เปลี่ยน
+      if (prevStatus && prevStatus !== record.status) {
+        if (record.status === 'loading')    playBeep('call');   // ถูกเรียกเข้าพื้นที่
+        if (record.status === 'completed')  playBeep('done');   // เสร็จสิ้น
+        if (record.status === 'cancelled')  playBeep('cancel'); // ยกเลิก
       }
 
       const qDisplay = document.getElementById('queue-number-display');
@@ -4086,6 +4095,8 @@
       </div>`;
     }
 
+    let _prevWaitCount = 0;
+
     function updateStaffUI() {
       const today  = getThaiDate();
       const myData = allData.filter(function(r){ return normalizeDate(r.date) === today; });
@@ -4093,6 +4104,12 @@
       const waitList = myData.filter(function(r){ return r.status === 'waiting'; });
       const loadList = myData.filter(function(r){ return r.status === 'loading'; });
       const compList = myData.filter(function(r){ return r.status === 'completed' || r.status === 'exited'; });
+
+      // เสียงกระดิ่งเมื่อมีคิวใหม่เข้ามา (ไม่เล่นรอบแรก)
+      if (_prevWaitCount >= 0 && waitList.length > _prevWaitCount) {
+        playBell();
+      }
+      _prevWaitCount = waitList.length;
 
       // ── counts ──
       const cWait = document.getElementById('count-waiting');
@@ -7910,6 +7927,43 @@
       } else {
         _doBeep(ctx, type);
       }
+    }
+
+    function playBell() {
+      const ctx = _getAudioCtx();
+      if (!ctx) return;
+      const resume = ctx.state === 'suspended' ? ctx.resume() : Promise.resolve();
+      resume.then(function() {
+        const now = ctx.currentTime;
+        // กระดิ่ง — 3 ครั้ง ห่างกัน 0.4 วินาที
+        [0, 0.4, 0.8].forEach(function(offset) {
+          const osc  = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = 'sine';
+          // harmonic เพิ่มความเป็นกระดิ่ง
+          const osc2  = ctx.createOscillator();
+          const gain2 = ctx.createGain();
+          osc2.connect(gain2);
+          gain2.connect(ctx.destination);
+          osc2.type = 'sine';
+
+          osc.frequency.setValueAtTime(1318, now + offset);   // E6
+          osc2.frequency.setValueAtTime(2637, now + offset);  // E7 harmonic
+
+          gain.gain.setValueAtTime(0.001, now + offset);
+          gain.gain.linearRampToValueAtTime(0.5, now + offset + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.5);
+
+          gain2.gain.setValueAtTime(0.001, now + offset);
+          gain2.gain.linearRampToValueAtTime(0.2, now + offset + 0.01);
+          gain2.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.4);
+
+          osc.start(now + offset);  osc.stop(now + offset + 0.55);
+          osc2.start(now + offset); osc2.stop(now + offset + 0.45);
+        });
+      });
     }
 
     function _doBeep(ctx, type) {
