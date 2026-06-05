@@ -2784,6 +2784,15 @@
       return { rows, origin };
     }
 
+    // Bangkok time string helper (frontend)
+    function getBkkTimeStr() {
+      const d   = new Date();
+      const bkk = new Date(d.getTime() + (7 * 60 * 60 * 1000));
+      const pad = function(n){ return String(n).padStart(2,'0'); };
+      return bkk.getUTCFullYear()+'-'+pad(bkk.getUTCMonth()+1)+'-'+pad(bkk.getUTCDate())+
+             ' '+pad(bkk.getUTCHours())+':'+pad(bkk.getUTCMinutes())+':'+pad(bkk.getUTCSeconds());
+    }
+
     function normalizeDate(raw) {
       if (!raw) return '';  // ไม่มีวัน → return '' ไม่ใช่วันนี้
       const v = String(raw).replace(/^'/,'').trim();
@@ -3254,7 +3263,7 @@
             const res = await callAPI('savePicMasterBatch', { picName: pic, suppliers: byPic[pic] });
             if (res && res.success) {
               byPic[pic].forEach(function(vendor) {
-                allPicMaster.push({ pic_name: pic, supplier: vendor, created_at: new Date().toISOString() });
+                allPicMaster.push({ pic_name: pic, supplier: vendor, created_at: getBkkTimeStr() });
               });
             }
           });
@@ -3952,7 +3961,7 @@
       if (recordIdx === -1) return;
       const record = allData[recordIdx];
       const updateId = `${record.date}-${record.queue_number}`;
-      const now = new Date().toISOString();
+      const now = getBkkTimeStr();
       const updates = { ...record, status: nextStatus };
       if (nextStatus === 'loading')   { updates.loading_time   = now; }
       if (nextStatus === 'loading' && factory) updates.factory = factory;
@@ -5291,7 +5300,7 @@
         if (res && res.success) {
           suppliers.forEach(function(vendor) {
             if (!allPicMaster.some(function(m){ return String(m.pic_name||'').toLowerCase()===pic.toLowerCase() && String(m.supplier||'').toLowerCase()===vendor.toLowerCase(); })) {
-              allPicMaster.push({ pic_name: pic, supplier: vendor, created_at: new Date().toISOString() });
+              allPicMaster.push({ pic_name: pic, supplier: vendor, created_at: getBkkTimeStr() });
             }
           });
         }
@@ -5634,7 +5643,7 @@
         // บันทึกลง Sheet ด้วย placeholder supplier = '__NEW__'
         const res = await callAPI('savePicMasterEntry', { picName: name, supplier: '__NEW__' });
         if (res && res.success) {
-          allPicMaster.push({ pic_name: name, supplier: '', status: 'active', created_at: new Date().toISOString() });
+          allPicMaster.push({ pic_name: name, supplier: '', status: 'active', created_at: getBkkTimeStr() });
           renderPicMasterCards(_pmCurrentFilter);
           showToast('เพิ่ม PIC "' + name + '" แล้ว ✅');
         } else {
@@ -5800,7 +5809,7 @@
         const res = await callAPI('savePicMasterBatch', { picName: pic.name, suppliers: newOnes });
         if (res && res.success) {
           // Optimistic: เพิ่มใน allPicMaster ทันที
-          const now = new Date().toISOString();
+          const now = getBkkTimeStr();
           newOnes.forEach(function(name) {
             allPicMaster.push({ pic_name: pic.name, supplier: name, created_at: now, updated_at: now, status: 'active' });
           });
@@ -5995,10 +6004,11 @@
     function formatThaiTime(iso) {
       if (!iso || iso === '-') return '-';
       try {
-        const d = new Date(iso);
-        const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
-        const nd = new Date(utc + (3600000 * 7));
-        return String(nd.getHours()).padStart(2,'0') + ':' + String(nd.getMinutes()).padStart(2,'0');
+        // รองรับทั้ง "2026-06-05 09:40:46" และ "2026-06-05T09:40:46.000Z"
+        const clean = String(iso).replace(' ', 'T');
+        const d = new Date(clean.includes('Z') || clean.includes('+') ? clean : clean + '+07:00');
+        if (isNaN(d)) return '-';
+        return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
       } catch(e) { return '-'; }
     }
 
