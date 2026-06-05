@@ -1033,177 +1033,238 @@
         <!-- Header -->
         <div class="flex items-start justify-between flex-wrap gap-4">
           <div>
-            <div class="font-black text-slate-800 text-xl tracking-tight">Parts Receiving</div>
-            <div class="text-xs text-slate-400 mt-0.5">ภาพรวมการรับวัตถุดิบ — ข้อมูลเดียวกับ Staff Dashboard</div>
+            <div class="font-black text-slate-800 text-xl tracking-tight">📦 Parts Dashboard</div>
+            <div id="pd-last-update" class="text-[11px] text-slate-400 mt-1">—</div>
           </div>
-          <div class="flex items-end gap-3 flex-wrap">
-            <div>
-              <div class="text-[9px] font-black text-slate-400 uppercase mb-1">เดือน</div>
-              <select id="pr-month" onchange="updatePartsReceiving()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[150px]"></select>
+          <div class="flex items-center gap-2 flex-wrap">
+            <!-- Filter: All / Local / Overseas -->
+            <div class="flex bg-slate-100 rounded-xl p-1 gap-1">
+              <button type="button" id="pd-filter-all" onclick="setPdFilter('all')"
+                class="px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer bg-white text-slate-700 shadow-sm">🌐 รวม</button>
+              <button type="button" id="pd-filter-local" onclick="setPdFilter('local')"
+                class="px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer text-slate-500">🇹🇭 Local</button>
+              <button type="button" id="pd-filter-overseas" onclick="setPdFilter('overseas')"
+                class="px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer text-slate-500">🌏 Overseas</button>
             </div>
             <div>
-              <div class="text-[9px] font-black text-slate-400 uppercase mb-1">Supplier</div>
-              <select id="pr-supplier" onchange="updatePartsReceiving()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[180px]"></select>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">เดือน</div>
+              <select id="parts-month" onchange="updatePartsDashboard()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[150px]"></select>
             </div>
-            <button type="button" onclick="updatePartsReceiving()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer">🔄 รีเฟรช</button>
+            <div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Supplier</div>
+              <select id="parts-supplier" onchange="updatePartsDashboard()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[180px]"></select>
+            </div>
+            <button type="button" onclick="updatePartsDashboard()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer">🔄 รีเฟรช</button>
           </div>
         </div>
 
-        <!-- Section 1: การเข้ามาส่งของ -->
-        <div>
-          <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <span class="w-3 h-3 bg-slate-300 rounded-sm inline-block"></span>การเข้ามาส่งของ
-          </div>
-          <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
-            <div class="bg-white rounded-2xl border border-slate-100 p-5 flex items-start gap-4">
-              <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center flex-shrink-0"><span class="text-lg">🚚</span></div>
-              <div>
-                <div class="text-[10px] font-black text-slate-400 uppercase tracking-wide">เข้าทั้งหมด</div>
-                <div id="pr-visits" class="text-3xl font-black text-slate-800 mt-0.5 leading-none">—</div>
-                <div class="text-[10px] text-slate-400 mt-1">ครั้ง</div>
-              </div>
-            </div>
-            <div class="bg-emerald-50 rounded-2xl border border-emerald-100 p-5 flex items-start gap-4">
-              <div class="w-10 h-10 bg-emerald-200 rounded-xl flex items-center justify-center flex-shrink-0"><span class="text-lg">✅</span></div>
-              <div>
-                <div class="text-[10px] font-black text-emerald-600 uppercase tracking-wide">ตรงเวลา</div>
-                <div id="pr-ontime" class="text-3xl font-black text-emerald-700 mt-0.5 leading-none">—</div>
-                <div id="pr-ontime-pct" class="text-xs font-black text-emerald-500 mt-1">—</div>
-              </div>
-            </div>
-            <div class="bg-rose-50 rounded-2xl border border-rose-100 p-5 flex items-start gap-4">
-              <div class="w-10 h-10 bg-rose-200 rounded-xl flex items-center justify-center flex-shrink-0"><span class="text-lg">⚠️</span></div>
-              <div>
-                <div class="text-[10px] font-black text-rose-500 uppercase tracking-wide">ล่าช้า</div>
-                <div id="pr-late" class="text-3xl font-black text-rose-600 mt-0.5 leading-none">—</div>
-                <div id="pr-late-pct" class="text-xs font-black text-rose-400 mt-1">—</div>
-              </div>
-            </div>
+        <!-- Row 1: KPI Summary Cards + Pie chart -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-            <div class="bg-blue-50 rounded-2xl border border-blue-100 p-5 flex items-start gap-4">
-              <div class="w-10 h-10 bg-blue-200 rounded-xl flex items-center justify-center flex-shrink-0"><span class="text-blue-700 text-lg">🏃</span></div>
+          <!-- KPI Cards 2×3 -->
+          <div class="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-3">
+            <!-- Visits -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">🚚</div>
               <div>
-                <div class="text-[10px] font-black text-blue-600 uppercase tracking-wide">รับเอง / Pick Up</div>
-                <div id="pr-pickup" class="text-3xl font-black text-blue-700 mt-0.5 leading-none">—</div>
-                <div id="pr-pickup-pct" class="text-xs font-black text-blue-500 mt-1">—</div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">รถเข้าทั้งหมด</div>
+                <div id="pd-visits" class="text-2xl font-black text-indigo-700">—</div>
               </div>
             </div>
-
-            <div class="bg-amber-50 rounded-2xl border border-amber-100 p-5 flex items-start gap-4">
-              <div class="w-10 h-10 bg-amber-200 rounded-xl flex items-center justify-center flex-shrink-0"><span class="text-lg">📋</span></div>
+            <!-- On-time -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">✅</div>
               <div>
-                <div class="text-[10px] font-black text-amber-600 uppercase tracking-wide">ไม่มีในแผน</div>
-                <div id="pr-unplanned" class="text-3xl font-black text-amber-700 mt-0.5 leading-none">—</div>
-                <div id="pr-unplanned-pct" class="text-xs font-black text-amber-500 mt-1">—</div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">ตรงเวลา</div>
+                <div id="pd-ontime" class="text-2xl font-black text-emerald-700">—</div>
+                <div id="pd-ontime-pct" class="text-[9px] font-black text-emerald-500">—</div>
               </div>
             </div>
-          </div>
-        </div>
-
-        <!-- Section 2: Fill Rate + Combo -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <!-- Fill Rate -->
-          <div class="space-y-3">
-            <div class="bg-violet-600 rounded-2xl p-5 flex items-center justify-between gap-4">
+            <!-- Late -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">⏰</div>
               <div>
-                <div class="text-violet-200 text-[10px] font-black uppercase tracking-widest mb-1">อัตราการรับวัตถุดิบ (Fill Rate)</div>
-                <div id="pr-fill-rate" class="text-5xl font-black text-white leading-none">—</div>
-                <div class="mt-2 flex items-center gap-4">
-                  <div><div class="text-violet-300 text-[9px] font-black uppercase">แผน</div><div id="pr-qty-plan" class="text-white font-black text-xs">—</div></div>
-                  <div class="w-px h-6 bg-violet-500"></div>
-                  <div><div class="text-violet-300 text-[9px] font-black uppercase">รับจริง</div><div id="pr-qty-recv" class="text-white font-black text-xs">—</div></div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">ล่าช้า</div>
+                <div id="pd-late" class="text-2xl font-black text-rose-700">—</div>
+                <div id="pd-late-pct" class="text-[9px] font-black text-rose-500">—</div>
+              </div>
+            </div>
+            <!-- Unplanned -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">📋</div>
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">ไม่มีในแผน</div>
+                <div id="pd-unplanned" class="text-2xl font-black text-amber-700">—</div>
+                <div id="pd-unplanned-pct" class="text-[9px] font-black text-amber-500">—</div>
+              </div>
+            </div>
+            <!-- Pickup -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">🏃</div>
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">Pick Up</div>
+                <div id="pd-pickup" class="text-2xl font-black text-blue-700">—</div>
+                <div id="pd-pickup-pct" class="text-[9px] font-black text-blue-500">—</div>
+              </div>
+            </div>
+            <!-- Fill Rate -->
+            <div class="bg-violet-600 rounded-2xl p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-violet-500 rounded-xl flex items-center justify-center text-lg flex-shrink-0">📊</div>
+              <div>
+                <div class="text-[9px] font-black text-violet-200 uppercase">Fill Rate</div>
+                <div id="stat-fill-rate" class="text-2xl font-black text-white">—</div>
+                <div class="flex gap-2 mt-0.5">
+                  <span class="text-[9px] text-violet-300">P:<span id="pd-qty-plan" class="text-white font-black">—</span></span>
+                  <span class="text-[9px] text-violet-300">R:<span id="pd-qty-recv" class="text-white font-black">—</span></span>
                 </div>
               </div>
-              <div class="text-5xl opacity-30">📦</div>
             </div>
+          </div>
+
+          <!-- Pie Chart: สัดส่วน timing -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-3">สัดส่วนการเข้ามาของซัพ</div>
+            <div class="relative h-44">
+              <canvas id="kpiPieChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Parts Status + Local/Overseas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Parts Status -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-4">สถานะรับพาร์ท</div>
             <div class="grid grid-cols-2 gap-3">
-              <div class="bg-white rounded-2xl border border-slate-100 p-4"><div class="text-[10px] font-black text-slate-400 uppercase mb-2">รายการทั้งหมด</div><div id="pr-parts-total" class="text-3xl font-black text-slate-800">—</div></div>
-              <div class="bg-emerald-50 rounded-2xl border border-emerald-100 p-4"><div class="text-[10px] font-black text-emerald-600 uppercase mb-2">ส่งครบ</div><div id="pr-parts-completed" class="text-3xl font-black text-emerald-700">—</div><div id="pr-parts-completed-pct" class="text-xs font-black text-emerald-500 mt-1">—</div></div>
-              <div class="bg-amber-50 rounded-2xl border border-amber-100 p-4"><div class="text-[10px] font-black text-amber-600 uppercase mb-2">ส่งไม่ครบ</div><div id="pr-parts-short" class="text-3xl font-black text-amber-600">—</div><div id="pr-parts-short-pct" class="text-xs font-black text-amber-500 mt-1">—</div></div>
-              <div class="bg-rose-50 rounded-2xl border border-rose-100 p-4"><div class="text-[10px] font-black text-rose-500 uppercase mb-2">ไม่มีการส่ง</div><div id="pr-parts-missing" class="text-3xl font-black text-rose-600">—</div><div id="pr-parts-missing-pct" class="text-xs font-black text-rose-400 mt-1">—</div></div>
+              <div class="bg-slate-50 rounded-xl p-3 text-center">
+                <div class="text-[9px] font-black text-slate-400 uppercase mb-1">ทั้งหมด</div>
+                <div id="pd-parts-total" class="text-2xl font-black text-slate-700">—</div>
+              </div>
+              <div class="bg-emerald-50 rounded-xl p-3 text-center">
+                <div class="text-[9px] font-black text-emerald-600 uppercase mb-1">✅ ครบ</div>
+                <div id="pd-parts-completed" class="text-2xl font-black text-emerald-700">—</div>
+                <div id="pd-parts-completed-pct" class="text-[9px] font-black text-emerald-500">—</div>
+              </div>
+              <div class="bg-amber-50 rounded-xl p-3 text-center">
+                <div class="text-[9px] font-black text-amber-600 uppercase mb-1">⚠️ ไม่ครบ</div>
+                <div id="pd-parts-short" class="text-2xl font-black text-amber-700">—</div>
+                <div id="pd-parts-short-pct" class="text-[9px] font-black text-amber-500">—</div>
+              </div>
+              <div class="bg-rose-50 rounded-xl p-3 text-center">
+                <div class="text-[9px] font-black text-rose-600 uppercase mb-1">❌ ไม่ได้รับ</div>
+                <div id="pd-parts-missing" class="text-2xl font-black text-rose-700">—</div>
+                <div id="pd-parts-missing-pct" class="text-[9px] font-black text-rose-500">—</div>
+              </div>
             </div>
           </div>
 
-          <!-- Combo Matrix -->
-          <div class="bg-white rounded-2xl border border-slate-100 p-5 flex flex-col">
-            <div class="mb-4">
-              <div class="font-black text-slate-700 text-sm">ผลลัพธ์ด้านการจัดส่ง</div>
-              <div class="text-[10px] text-slate-400 mt-0.5">วิเคราะห์จาก 2 มิติ: ปริมาณ × ความตรงต่อเวลา</div>
-            </div>
-            <div class="flex-1 grid grid-cols-3 gap-2">
-              <div class="bg-emerald-600 rounded-xl p-4 flex flex-col justify-between">
-                <div class="text-emerald-100 text-[9px] font-black uppercase">ครบ · ตรงเวลา</div>
-                <div><div id="pr-combo-aa" class="text-4xl font-black text-white leading-none">—</div><div id="pr-combo-aa-pct" class="text-emerald-200 text-xs font-black mt-1">—</div></div>
-                <div class="text-[9px] text-emerald-200 opacity-80">เหมาะสมที่สุด ✓</div>
+          <!-- Local / Overseas -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-4">Local vs Overseas</div>
+            <div class="space-y-3">
+              <div class="bg-emerald-50 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">🇹🇭</span>
+                    <span class="font-black text-emerald-700 text-sm">Local</span>
+                  </div>
+                  <span class="text-[9px] text-emerald-500 font-bold" id="pd-local-pct">—</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                  <div><div id="pd-local-suppliers" class="text-xl font-black text-emerald-700">—</div><div class="text-[9px] text-emerald-500 font-bold">ซัพ</div></div>
+                  <div><div id="pd-local-parts" class="text-xl font-black text-emerald-700">—</div><div class="text-[9px] text-emerald-500 font-bold">พาร์ท</div></div>
+                  <div><div id="pd-local-received" class="text-xl font-black text-emerald-700">—</div><div class="text-[9px] text-emerald-500 font-bold">รับแล้ว</div></div>
+                </div>
               </div>
-              <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 flex flex-col justify-between">
-                <div class="text-amber-600 text-[9px] font-black uppercase">ครบ · ล่าช้า</div>
-                <div><div id="pr-combo-ab" class="text-4xl font-black text-amber-700 leading-none">—</div><div id="pr-combo-ab-pct" class="text-amber-500 text-xs font-black mt-1">—</div></div>
-                <div class="text-[9px] text-amber-400">ปริมาณผ่าน แต่เวลาไม่ผ่าน</div>
+              <div class="bg-blue-50 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">🌏</span>
+                    <span class="font-black text-blue-700 text-sm">Overseas</span>
+                  </div>
+                  <span class="text-[9px] text-blue-500 font-bold" id="pd-overseas-pct">—</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                  <div><div id="pd-overseas-suppliers" class="text-xl font-black text-blue-700">—</div><div class="text-[9px] text-blue-500 font-bold">ซัพ</div></div>
+                  <div><div id="pd-overseas-parts" class="text-xl font-black text-blue-700">—</div><div class="text-[9px] text-blue-500 font-bold">พาร์ท</div></div>
+                  <div><div id="pd-overseas-received" class="text-xl font-black text-blue-700">—</div><div class="text-[9px] text-blue-500 font-bold">รับแล้ว</div></div>
+                </div>
               </div>
-              <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex flex-col justify-between">
-                <div class="text-blue-600 text-[9px] font-black uppercase">รับเอง · ครบ</div>
-                <div><div id="pr-combo-pu-comp" class="text-4xl font-black text-blue-700 leading-none">—</div><div id="pr-combo-pu-comp-pct" class="text-blue-500 text-xs font-black mt-1">—</div></div>
-                <div class="text-[9px] text-blue-400">Pick Up ครบตามแผน</div>
-              </div>
-              <div class="bg-orange-50 border border-orange-100 rounded-xl p-4 flex flex-col justify-between">
-                <div class="text-orange-600 text-[9px] font-black uppercase">ไม่ครบ · ตรงเวลา</div>
-                <div><div id="pr-combo-ba" class="text-4xl font-black text-orange-600 leading-none">—</div><div id="pr-combo-ba-pct" class="text-orange-400 text-xs font-black mt-1">—</div></div>
-                <div class="text-[9px] text-orange-400">เวลาผ่าน แต่ปริมาณไม่ผ่าน</div>
-              </div>
-              <div class="bg-rose-600 rounded-xl p-4 flex flex-col justify-between">
-                <div class="text-rose-100 text-[9px] font-black uppercase">ไม่ครบ · ล่าช้า</div>
-                <div><div id="pr-combo-bb" class="text-4xl font-black text-white leading-none">—</div><div id="pr-combo-bb-pct" class="text-rose-200 text-xs font-black mt-1">—</div></div>
-                <div class="text-[9px] text-rose-200 opacity-80">ต้องแก้ไขเร่งด่วน ✗</div>
-              </div>
-              <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex flex-col justify-between">
-                <div class="text-indigo-600 text-[9px] font-black uppercase">รับเอง · ไม่ครบ</div>
-                <div><div id="pr-combo-pu-short" class="text-4xl font-black text-indigo-600 leading-none">—</div><div id="pr-combo-pu-short-pct" class="text-indigo-400 text-xs font-black mt-1">—</div></div>
-                <div class="text-[9px] text-indigo-400">Pick Up ไม่ครบตามแผน</div>
-              </div>
-            </div>
-            <div class="mt-3 flex items-center justify-between text-[9px] font-black text-slate-400">
-              <div>← ปริมาณ (QTY)</div><div>เวลา (Timing) →</div>
             </div>
           </div>
         </div>
 
-        <!-- Bar Chart -->
+        <!-- Row 3: Line Chart รายวัน + Bar Chart -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- Line Chart -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-3">แนวโน้มรายวัน (รถเข้า / ตรงเวลา / ล่าช้า)</div>
+            <div class="relative h-52">
+              <canvas id="pdLineChart"></canvas>
+            </div>
+          </div>
+          <!-- Bar Chart Supplier -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-3">Top Supplier (Fill Rate)</div>
+            <div class="relative h-52">
+              <canvas id="pdBarChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 4: Combo Matrix -->
         <div class="bg-white rounded-2xl border border-slate-100 p-5">
-          <div class="mb-4">
-            <div class="font-black text-slate-700 text-sm">ประสิทธิภาพแยกตาม Supplier</div>
-            <div class="text-[10px] text-slate-400 mt-0.5">ตรงเวลา % vs Part ครบ %</div>
+          <div class="font-black text-slate-700 text-xs mb-4">Matrix: เวลาเข้า × สถานะรับของ</div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-emerald-50 rounded-xl p-4 text-center border border-emerald-100">
+              <div class="text-[9px] font-black text-emerald-600 uppercase mb-1">ตรงเวลา × ครบ</div>
+              <div id="pd-combo-aa" class="text-3xl font-black text-emerald-700">—</div>
+              <div id="pd-combo-aa-pct" class="text-[9px] text-emerald-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-amber-50 rounded-xl p-4 text-center border border-amber-100">
+              <div class="text-[9px] font-black text-amber-600 uppercase mb-1">ตรงเวลา × ไม่ครบ</div>
+              <div id="pd-combo-ab" class="text-3xl font-black text-amber-700">—</div>
+              <div id="pd-combo-ab-pct" class="text-[9px] text-amber-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-blue-50 rounded-xl p-4 text-center border border-blue-100">
+              <div class="text-[9px] font-black text-blue-600 uppercase mb-1">ล่าช้า × ครบ</div>
+              <div id="pd-combo-ba" class="text-3xl font-black text-blue-700">—</div>
+              <div id="pd-combo-ba-pct" class="text-[9px] text-blue-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-rose-50 rounded-xl p-4 text-center border border-rose-100">
+              <div class="text-[9px] font-black text-rose-600 uppercase mb-1">ล่าช้า × ไม่ครบ</div>
+              <div id="pd-combo-bb" class="text-3xl font-black text-rose-700">—</div>
+              <div id="pd-combo-bb-pct" class="text-[9px] text-rose-500 font-bold mt-1">—</div>
+            </div>
           </div>
-          <div style="height:200px;position:relative;"><canvas id="pr-bar-chart"></canvas></div>
         </div>
 
-        <!-- Performance Table -->
+        <!-- Row 5: Supplier Table -->
         <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-          <div class="px-5 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
-            <div>
-              <div class="font-black text-slate-700 text-sm">คะแนน Supplier — Top 10</div>
-              <div class="text-[10px] text-slate-400 mt-0.5">ตรงเวลา 40% + Part ครบ 60% · เรียงจากคะแนนสูงสุด</div>
-            </div>
-            <button type="button" id="pr-perf-toggle" onclick="togglePrPerfTable()" class="text-[10px] font-black text-violet-600 hover:text-violet-800 bg-violet-50 border border-violet-200 px-3 py-1.5 rounded-xl cursor-pointer">ดูทั้งหมด</button>
+          <div class="px-5 py-4 border-b flex items-center justify-between">
+            <div class="font-black text-slate-700 text-xs">รายละเอียดตาม Supplier</div>
+            <span id="pd-table-count" class="text-[9px] font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full"></span>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead>
-                <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                  <th class="px-5 py-3 w-8">#</th>
-                  <th class="px-4 py-3">Supplier</th>
-                  <th class="px-4 py-3 text-center">ครั้ง</th>
-                  <th class="px-4 py-3 text-center">ตรงเวลา</th>
-                  <th class="px-4 py-3 text-center">Part ครบ</th>
-                  <th class="px-4 py-3 text-center">คะแนน</th>
+            <table class="w-full text-xs">
+              <thead class="bg-slate-50">
+                <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                  <th class="px-4 py-3 text-left">Supplier</th>
+                  <th class="px-4 py-3 text-center">ประเภท</th>
+                  <th class="px-4 py-3 text-center">PO</th>
+                  <th class="px-4 py-3 text-center">Qty แผน</th>
+                  <th class="px-4 py-3 text-center">Qty รับ</th>
+                  <th class="px-4 py-3 text-center">Fill Rate</th>
+                  <th class="px-4 py-3 text-center">สถานะ</th>
                 </tr>
               </thead>
-              <tbody id="pr-perf-tbody" class="divide-y divide-slate-50"></tbody>
+              <tbody id="kpi-all-suppliers-table" class="divide-y divide-slate-50"></tbody>
             </table>
           </div>
         </div>
 
-      </div><!-- end pic-page-parts-receiving -->
+      </div>
+
 
       <!-- ================= PIC Tab: Trend ================= -->
       <div id="pic-page-pic-trend" class="hidden max-w-6xl mx-auto p-4 space-y-5 fade-in">
@@ -1254,113 +1315,241 @@
       <!-- ================= PIC Tab: Dashboard KPI PIC ================= -->
       <div id="pic-page-pic-dashboard" class="hidden max-w-6xl mx-auto p-4 space-y-5 fade-in">
 
-        <!-- Header + Filter -->
+        <!-- Header -->
         <div class="flex items-start justify-between flex-wrap gap-4">
           <div>
-            <div class="font-black text-slate-800 text-xl tracking-tight">📊 Dashboard KPI — ประเมิน PIC</div>
-            <div class="text-xs text-slate-400 mt-0.5">วัดผลการทำงานของ PIC แต่ละคน</div>
+            <div class="font-black text-slate-800 text-xl tracking-tight">📦 Parts Dashboard</div>
+            <div id="pd-last-update" class="text-[11px] text-slate-400 mt-1">—</div>
           </div>
-          <div class="flex items-end gap-3 flex-wrap">
+          <div class="flex items-center gap-2 flex-wrap">
+            <!-- Filter: All / Local / Overseas -->
+            <div class="flex bg-slate-100 rounded-xl p-1 gap-1">
+              <button type="button" id="pd-filter-all" onclick="setPdFilter('all')"
+                class="px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer bg-white text-slate-700 shadow-sm">🌐 รวม</button>
+              <button type="button" id="pd-filter-local" onclick="setPdFilter('local')"
+                class="px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer text-slate-500">🇹🇭 Local</button>
+              <button type="button" id="pd-filter-overseas" onclick="setPdFilter('overseas')"
+                class="px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer text-slate-500">🌏 Overseas</button>
+            </div>
             <div>
-              <div class="text-[9px] font-black text-slate-400 uppercase mb-1">ปี</div>
-              <select id="picdash-year" onchange="loadPicDashboard()" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 outline-none font-bold text-sm cursor-pointer"></select>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">เดือน</div>
+              <select id="parts-month" onchange="updatePartsDashboard()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[150px]"></select>
             </div>
             <div>
-              <div class="text-[9px] font-black text-slate-400 uppercase mb-1">เดือน</div>
-              <select id="picdash-month" onchange="loadPicDashboard()" class="border-2 border-slate-100 rounded-xl px-3 py-1.5 bg-slate-50 outline-none font-bold text-sm cursor-pointer">
-                <option value="">ทั้งปี</option>
-                <option value="1">ม.ค.</option><option value="2">ก.พ.</option><option value="3">มี.ค.</option>
-                <option value="4">เม.ย.</option><option value="5">พ.ค.</option><option value="6">มิ.ย.</option>
-                <option value="7">ก.ค.</option><option value="8">ส.ค.</option><option value="9">ก.ย.</option>
-                <option value="10">ต.ค.</option><option value="11">พ.ย.</option><option value="12">ธ.ค.</option>
-              </select>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Supplier</div>
+              <select id="parts-supplier" onchange="updatePartsDashboard()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[180px]"></select>
             </div>
-            <button type="button" onclick="loadPicDashboard()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer">โหลด</button>
+            <button type="button" onclick="updatePartsDashboard()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer">🔄 รีเฟรช</button>
           </div>
         </div>
 
-        <!-- Loading / Empty -->
-        <div id="picdash-loading" class="hidden bg-white rounded-2xl p-8 text-center shadow-sm border">
-          <div class="text-2xl animate-pulse mb-2">⏳</div>
-          <div class="text-slate-400 font-bold text-sm">กำลังโหลด...</div>
-        </div>
-        <div id="picdash-empty" class="hidden bg-white rounded-2xl p-10 text-center shadow-sm border">
-          <div class="text-4xl mb-3">📭</div>
-          <div class="font-black text-slate-500">ยังไม่มีข้อมูล PartHistory</div>
-          <div class="text-xs text-slate-400 mt-1">ข้อมูลจะปรากฏหลัง Staff รับของและ Confirm แล้ว</div>
-        </div>
+        <!-- Row 1: KPI Summary Cards + Pie chart -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-        <div id="picdash-content" class="hidden space-y-5">
-
-          <!-- KPI Overview -->
-          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div class="bg-violet-600 text-white rounded-2xl p-5 text-center">
-              <div class="text-[10px] font-black text-violet-200 uppercase mb-2">PO ทั้งหมด</div>
-              <div id="picdash-total-po" class="text-4xl font-black">—</div>
+          <!-- KPI Cards 2×3 -->
+          <div class="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-3">
+            <!-- Visits -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">🚚</div>
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">รถเข้าทั้งหมด</div>
+                <div id="pd-visits" class="text-2xl font-black text-indigo-700">—</div>
+              </div>
             </div>
-            <div class="bg-white rounded-2xl border border-slate-100 p-5 text-center">
-              <div class="text-[10px] font-black text-slate-400 uppercase mb-2">Part ทั้งหมด</div>
-              <div id="picdash-total-parts" class="text-4xl font-black text-slate-700">—</div>
+            <!-- On-time -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">✅</div>
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">ตรงเวลา</div>
+                <div id="pd-ontime" class="text-2xl font-black text-emerald-700">—</div>
+                <div id="pd-ontime-pct" class="text-[9px] font-black text-emerald-500">—</div>
+              </div>
             </div>
-            <div class="bg-emerald-50 rounded-2xl border border-emerald-100 p-5 text-center">
-              <div class="text-[10px] font-black text-emerald-500 uppercase mb-2">Fill Rate รวม</div>
-              <div id="picdash-fill-rate" class="text-4xl font-black text-emerald-600">—</div>
+            <!-- Late -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">⏰</div>
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">ล่าช้า</div>
+                <div id="pd-late" class="text-2xl font-black text-rose-700">—</div>
+                <div id="pd-late-pct" class="text-[9px] font-black text-rose-500">—</div>
+              </div>
             </div>
-            <div class="bg-blue-50 rounded-2xl border border-blue-100 p-5 text-center">
-              <div class="text-[10px] font-black text-blue-500 uppercase mb-2">Confirm Rate</div>
-              <div id="picdash-confirm-rate" class="text-4xl font-black text-blue-600">—</div>
-              <div class="text-[9px] text-blue-400 mt-1">completed / total</div>
+            <!-- Unplanned -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">📋</div>
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">ไม่มีในแผน</div>
+                <div id="pd-unplanned" class="text-2xl font-black text-amber-700">—</div>
+                <div id="pd-unplanned-pct" class="text-[9px] font-black text-amber-500">—</div>
+              </div>
+            </div>
+            <!-- Pickup -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">🏃</div>
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">Pick Up</div>
+                <div id="pd-pickup" class="text-2xl font-black text-blue-700">—</div>
+                <div id="pd-pickup-pct" class="text-[9px] font-black text-blue-500">—</div>
+              </div>
+            </div>
+            <!-- Fill Rate -->
+            <div class="bg-violet-600 rounded-2xl p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-violet-500 rounded-xl flex items-center justify-center text-lg flex-shrink-0">📊</div>
+              <div>
+                <div class="text-[9px] font-black text-violet-200 uppercase">Fill Rate</div>
+                <div id="stat-fill-rate" class="text-2xl font-black text-white">—</div>
+                <div class="flex gap-2 mt-0.5">
+                  <span class="text-[9px] text-violet-300">P:<span id="pd-qty-plan" class="text-white font-black">—</span></span>
+                  <span class="text-[9px] text-violet-300">R:<span id="pd-qty-recv" class="text-white font-black">—</span></span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- PIC KPI Table -->
-          <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-            <div class="px-5 py-4 border-b border-slate-100 bg-slate-50">
-              <div class="font-black text-slate-700 text-sm">👤 KPI แยกตาม PIC</div>
-              <div class="text-[10px] text-slate-400 mt-0.5">วัดจาก Fill Rate / Confirm Rate / Supplier ที่มีปัญหา</div>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
-                <thead class="bg-slate-50 border-b border-slate-100">
-                  <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                    <th class="px-5 py-3">PIC</th>
-                    <th class="px-4 py-3 text-center">PO</th>
-                    <th class="px-4 py-3 text-center">Part</th>
-                    <th class="px-4 py-3 text-center">QTY แผน</th>
-                    <th class="px-4 py-3 text-center">QTY รับจริง</th>
-                    <th class="px-4 py-3 text-center">Fill Rate</th>
-                    <th class="px-4 py-3 text-center">Completed</th>
-                    <th class="px-4 py-3 text-center">Short / Miss</th>
-                  </tr>
-                </thead>
-                <tbody id="picdash-pic-table" class="divide-y divide-slate-50"></tbody>
-              </table>
+          <!-- Pie Chart: สัดส่วน timing -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-3">สัดส่วนการเข้ามาของซัพ</div>
+            <div class="relative h-44">
+              <canvas id="kpiPieChart"></canvas>
             </div>
           </div>
-
-          <!-- Supplier ที่ Fill Rate ต่ำ -->
-          <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-            <div class="px-5 py-4 border-b border-rose-100 bg-rose-50">
-              <div class="font-black text-rose-700 text-sm">⚠️ Supplier ที่ Fill Rate ต่ำกว่า 80%</div>
-              <div class="text-[10px] text-rose-400 mt-0.5">PIC ที่รับผิดชอบควรติดตามเร่งด่วน</div>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
-                <thead class="bg-slate-50 border-b border-slate-100">
-                  <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                    <th class="px-5 py-3">Supplier</th>
-                    <th class="px-4 py-3">PIC ผู้รับผิดชอบ</th>
-                    <th class="px-4 py-3 text-center">Part</th>
-                    <th class="px-4 py-3 text-center">Fill Rate</th>
-                  </tr>
-                </thead>
-                <tbody id="picdash-problem-table" class="divide-y divide-slate-50"></tbody>
-              </table>
-            </div>
-          </div>
-
         </div>
-      </div><!-- end pic-page-pic-dashboard -->
+
+        <!-- Row 2: Parts Status + Local/Overseas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Parts Status -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-4">สถานะรับพาร์ท</div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-slate-50 rounded-xl p-3 text-center">
+                <div class="text-[9px] font-black text-slate-400 uppercase mb-1">ทั้งหมด</div>
+                <div id="pd-parts-total" class="text-2xl font-black text-slate-700">—</div>
+              </div>
+              <div class="bg-emerald-50 rounded-xl p-3 text-center">
+                <div class="text-[9px] font-black text-emerald-600 uppercase mb-1">✅ ครบ</div>
+                <div id="pd-parts-completed" class="text-2xl font-black text-emerald-700">—</div>
+                <div id="pd-parts-completed-pct" class="text-[9px] font-black text-emerald-500">—</div>
+              </div>
+              <div class="bg-amber-50 rounded-xl p-3 text-center">
+                <div class="text-[9px] font-black text-amber-600 uppercase mb-1">⚠️ ไม่ครบ</div>
+                <div id="pd-parts-short" class="text-2xl font-black text-amber-700">—</div>
+                <div id="pd-parts-short-pct" class="text-[9px] font-black text-amber-500">—</div>
+              </div>
+              <div class="bg-rose-50 rounded-xl p-3 text-center">
+                <div class="text-[9px] font-black text-rose-600 uppercase mb-1">❌ ไม่ได้รับ</div>
+                <div id="pd-parts-missing" class="text-2xl font-black text-rose-700">—</div>
+                <div id="pd-parts-missing-pct" class="text-[9px] font-black text-rose-500">—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Local / Overseas -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-4">Local vs Overseas</div>
+            <div class="space-y-3">
+              <div class="bg-emerald-50 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">🇹🇭</span>
+                    <span class="font-black text-emerald-700 text-sm">Local</span>
+                  </div>
+                  <span class="text-[9px] text-emerald-500 font-bold" id="pd-local-pct">—</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                  <div><div id="pd-local-suppliers" class="text-xl font-black text-emerald-700">—</div><div class="text-[9px] text-emerald-500 font-bold">ซัพ</div></div>
+                  <div><div id="pd-local-parts" class="text-xl font-black text-emerald-700">—</div><div class="text-[9px] text-emerald-500 font-bold">พาร์ท</div></div>
+                  <div><div id="pd-local-received" class="text-xl font-black text-emerald-700">—</div><div class="text-[9px] text-emerald-500 font-bold">รับแล้ว</div></div>
+                </div>
+              </div>
+              <div class="bg-blue-50 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">🌏</span>
+                    <span class="font-black text-blue-700 text-sm">Overseas</span>
+                  </div>
+                  <span class="text-[9px] text-blue-500 font-bold" id="pd-overseas-pct">—</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                  <div><div id="pd-overseas-suppliers" class="text-xl font-black text-blue-700">—</div><div class="text-[9px] text-blue-500 font-bold">ซัพ</div></div>
+                  <div><div id="pd-overseas-parts" class="text-xl font-black text-blue-700">—</div><div class="text-[9px] text-blue-500 font-bold">พาร์ท</div></div>
+                  <div><div id="pd-overseas-received" class="text-xl font-black text-blue-700">—</div><div class="text-[9px] text-blue-500 font-bold">รับแล้ว</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 3: Line Chart รายวัน + Bar Chart -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- Line Chart -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-3">แนวโน้มรายวัน (รถเข้า / ตรงเวลา / ล่าช้า)</div>
+            <div class="relative h-52">
+              <canvas id="pdLineChart"></canvas>
+            </div>
+          </div>
+          <!-- Bar Chart Supplier -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-3">Top Supplier (Fill Rate)</div>
+            <div class="relative h-52">
+              <canvas id="pdBarChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 4: Combo Matrix -->
+        <div class="bg-white rounded-2xl border border-slate-100 p-5">
+          <div class="font-black text-slate-700 text-xs mb-4">Matrix: เวลาเข้า × สถานะรับของ</div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-emerald-50 rounded-xl p-4 text-center border border-emerald-100">
+              <div class="text-[9px] font-black text-emerald-600 uppercase mb-1">ตรงเวลา × ครบ</div>
+              <div id="pd-combo-aa" class="text-3xl font-black text-emerald-700">—</div>
+              <div id="pd-combo-aa-pct" class="text-[9px] text-emerald-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-amber-50 rounded-xl p-4 text-center border border-amber-100">
+              <div class="text-[9px] font-black text-amber-600 uppercase mb-1">ตรงเวลา × ไม่ครบ</div>
+              <div id="pd-combo-ab" class="text-3xl font-black text-amber-700">—</div>
+              <div id="pd-combo-ab-pct" class="text-[9px] text-amber-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-blue-50 rounded-xl p-4 text-center border border-blue-100">
+              <div class="text-[9px] font-black text-blue-600 uppercase mb-1">ล่าช้า × ครบ</div>
+              <div id="pd-combo-ba" class="text-3xl font-black text-blue-700">—</div>
+              <div id="pd-combo-ba-pct" class="text-[9px] text-blue-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-rose-50 rounded-xl p-4 text-center border border-rose-100">
+              <div class="text-[9px] font-black text-rose-600 uppercase mb-1">ล่าช้า × ไม่ครบ</div>
+              <div id="pd-combo-bb" class="text-3xl font-black text-rose-700">—</div>
+              <div id="pd-combo-bb-pct" class="text-[9px] text-rose-500 font-bold mt-1">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 5: Supplier Table -->
+        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+          <div class="px-5 py-4 border-b flex items-center justify-between">
+            <div class="font-black text-slate-700 text-xs">รายละเอียดตาม Supplier</div>
+            <span id="pd-table-count" class="text-[9px] font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full"></span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead class="bg-slate-50">
+                <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                  <th class="px-4 py-3 text-left">Supplier</th>
+                  <th class="px-4 py-3 text-center">ประเภท</th>
+                  <th class="px-4 py-3 text-center">PO</th>
+                  <th class="px-4 py-3 text-center">Qty แผน</th>
+                  <th class="px-4 py-3 text-center">Qty รับ</th>
+                  <th class="px-4 py-3 text-center">Fill Rate</th>
+                  <th class="px-4 py-3 text-center">สถานะ</th>
+                </tr>
+              </thead>
+              <tbody id="kpi-all-suppliers-table" class="divide-y divide-slate-50"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
 
 
       <!-- ================= PIC Tab: My Parts ================= -->
@@ -1829,6 +2018,7 @@
                   <th class="px-4 py-3 text-center">งานเข้า</th><th class="px-4 py-3 text-center">ขึ้นผลิต</th>
                   <th class="px-4 py-3 text-center">L/O</th><th class="px-4 py-3">หมายเหตุ</th>
                   <th class="px-4 py-3 text-center">สถานะ</th>
+                  <th class="px-4 py-3 text-center">Action</th>
                 </tr>
               </thead>
               <tbody id="urgent-table-body" class="divide-y divide-slate-50"></tbody>
@@ -1876,27 +2066,243 @@
       </div><!-- end planning-page-weekly -->
 
       <!-- Dashboard Tab -->
-      <div id="planning-page-dashboard" class="hidden max-w-6xl mx-auto p-4 space-y-4 fade-in">
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <div class="bg-orange-500 text-white rounded-2xl p-5 text-center">
-            <div class="text-[10px] font-black text-orange-100 uppercase mb-2">Urgent ทั้งหมด</div>
-            <div id="plan-dash-total" class="text-4xl font-black">—</div>
+      <div id="planning-page-dashboard" class="hidden max-w-6xl mx-auto p-4 space-y-5 fade-in">
+
+        <!-- Header -->
+        <div class="flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <div class="font-black text-slate-800 text-xl tracking-tight">📦 Parts Dashboard</div>
+            <div id="pd-last-update" class="text-[11px] text-slate-400 mt-1">—</div>
           </div>
-          <div class="bg-rose-50 rounded-2xl border border-rose-100 p-5 text-center">
-            <div class="text-[10px] font-black text-rose-500 uppercase mb-2">รอรับอยู่</div>
-            <div id="plan-dash-pending" class="text-4xl font-black text-rose-600">—</div>
-          </div>
-          <div class="bg-emerald-50 rounded-2xl border border-emerald-100 p-5 text-center">
-            <div class="text-[10px] font-black text-emerald-500 uppercase mb-2">รับแล้ว</div>
-            <div id="plan-dash-received" class="text-4xl font-black text-emerald-600">—</div>
-          </div>
-          <div class="bg-amber-50 rounded-2xl border border-amber-100 p-5 text-center">
-            <div class="text-[10px] font-black text-amber-500 uppercase mb-2">Overdue</div>
-            <div id="plan-dash-overdue" class="text-4xl font-black text-amber-600">—</div>
-            <div class="text-[9px] text-amber-400 mt-1">เลยวันที่งานเข้าแล้ว</div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <!-- Filter: All / Local / Overseas -->
+            <div class="flex bg-slate-100 rounded-xl p-1 gap-1">
+              <button type="button" id="pd-filter-all" onclick="setPdFilter('all')"
+                class="px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer bg-white text-slate-700 shadow-sm">🌐 รวม</button>
+              <button type="button" id="pd-filter-local" onclick="setPdFilter('local')"
+                class="px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer text-slate-500">🇹🇭 Local</button>
+              <button type="button" id="pd-filter-overseas" onclick="setPdFilter('overseas')"
+                class="px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer text-slate-500">🌏 Overseas</button>
+            </div>
+            <div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">เดือน</div>
+              <select id="parts-month" onchange="updatePartsDashboard()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[150px]"></select>
+            </div>
+            <div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Supplier</div>
+              <select id="parts-supplier" onchange="updatePartsDashboard()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[180px]"></select>
+            </div>
+            <button type="button" onclick="updatePartsDashboard()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer">🔄 รีเฟรช</button>
           </div>
         </div>
-      </div><!-- end planning-page-dashboard -->
+
+        <!-- Row 1: KPI Summary Cards + Pie chart -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+          <!-- KPI Cards 2×3 -->
+          <div class="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-3">
+            <!-- Visits -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">🚚</div>
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">รถเข้าทั้งหมด</div>
+                <div id="pd-visits" class="text-2xl font-black text-indigo-700">—</div>
+              </div>
+            </div>
+            <!-- On-time -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">✅</div>
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">ตรงเวลา</div>
+                <div id="pd-ontime" class="text-2xl font-black text-emerald-700">—</div>
+                <div id="pd-ontime-pct" class="text-[9px] font-black text-emerald-500">—</div>
+              </div>
+            </div>
+            <!-- Late -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">⏰</div>
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">ล่าช้า</div>
+                <div id="pd-late" class="text-2xl font-black text-rose-700">—</div>
+                <div id="pd-late-pct" class="text-[9px] font-black text-rose-500">—</div>
+              </div>
+            </div>
+            <!-- Unplanned -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">📋</div>
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">ไม่มีในแผน</div>
+                <div id="pd-unplanned" class="text-2xl font-black text-amber-700">—</div>
+                <div id="pd-unplanned-pct" class="text-[9px] font-black text-amber-500">—</div>
+              </div>
+            </div>
+            <!-- Pickup -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">🏃</div>
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">Pick Up</div>
+                <div id="pd-pickup" class="text-2xl font-black text-blue-700">—</div>
+                <div id="pd-pickup-pct" class="text-[9px] font-black text-blue-500">—</div>
+              </div>
+            </div>
+            <!-- Fill Rate -->
+            <div class="bg-violet-600 rounded-2xl p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-violet-500 rounded-xl flex items-center justify-center text-lg flex-shrink-0">📊</div>
+              <div>
+                <div class="text-[9px] font-black text-violet-200 uppercase">Fill Rate</div>
+                <div id="stat-fill-rate" class="text-2xl font-black text-white">—</div>
+                <div class="flex gap-2 mt-0.5">
+                  <span class="text-[9px] text-violet-300">P:<span id="pd-qty-plan" class="text-white font-black">—</span></span>
+                  <span class="text-[9px] text-violet-300">R:<span id="pd-qty-recv" class="text-white font-black">—</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pie Chart: สัดส่วน timing -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-3">สัดส่วนการเข้ามาของซัพ</div>
+            <div class="relative h-44">
+              <canvas id="kpiPieChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Parts Status + Local/Overseas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Parts Status -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-4">สถานะรับพาร์ท</div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-slate-50 rounded-xl p-3 text-center">
+                <div class="text-[9px] font-black text-slate-400 uppercase mb-1">ทั้งหมด</div>
+                <div id="pd-parts-total" class="text-2xl font-black text-slate-700">—</div>
+              </div>
+              <div class="bg-emerald-50 rounded-xl p-3 text-center">
+                <div class="text-[9px] font-black text-emerald-600 uppercase mb-1">✅ ครบ</div>
+                <div id="pd-parts-completed" class="text-2xl font-black text-emerald-700">—</div>
+                <div id="pd-parts-completed-pct" class="text-[9px] font-black text-emerald-500">—</div>
+              </div>
+              <div class="bg-amber-50 rounded-xl p-3 text-center">
+                <div class="text-[9px] font-black text-amber-600 uppercase mb-1">⚠️ ไม่ครบ</div>
+                <div id="pd-parts-short" class="text-2xl font-black text-amber-700">—</div>
+                <div id="pd-parts-short-pct" class="text-[9px] font-black text-amber-500">—</div>
+              </div>
+              <div class="bg-rose-50 rounded-xl p-3 text-center">
+                <div class="text-[9px] font-black text-rose-600 uppercase mb-1">❌ ไม่ได้รับ</div>
+                <div id="pd-parts-missing" class="text-2xl font-black text-rose-700">—</div>
+                <div id="pd-parts-missing-pct" class="text-[9px] font-black text-rose-500">—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Local / Overseas -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-4">Local vs Overseas</div>
+            <div class="space-y-3">
+              <div class="bg-emerald-50 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">🇹🇭</span>
+                    <span class="font-black text-emerald-700 text-sm">Local</span>
+                  </div>
+                  <span class="text-[9px] text-emerald-500 font-bold" id="pd-local-pct">—</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                  <div><div id="pd-local-suppliers" class="text-xl font-black text-emerald-700">—</div><div class="text-[9px] text-emerald-500 font-bold">ซัพ</div></div>
+                  <div><div id="pd-local-parts" class="text-xl font-black text-emerald-700">—</div><div class="text-[9px] text-emerald-500 font-bold">พาร์ท</div></div>
+                  <div><div id="pd-local-received" class="text-xl font-black text-emerald-700">—</div><div class="text-[9px] text-emerald-500 font-bold">รับแล้ว</div></div>
+                </div>
+              </div>
+              <div class="bg-blue-50 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">🌏</span>
+                    <span class="font-black text-blue-700 text-sm">Overseas</span>
+                  </div>
+                  <span class="text-[9px] text-blue-500 font-bold" id="pd-overseas-pct">—</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                  <div><div id="pd-overseas-suppliers" class="text-xl font-black text-blue-700">—</div><div class="text-[9px] text-blue-500 font-bold">ซัพ</div></div>
+                  <div><div id="pd-overseas-parts" class="text-xl font-black text-blue-700">—</div><div class="text-[9px] text-blue-500 font-bold">พาร์ท</div></div>
+                  <div><div id="pd-overseas-received" class="text-xl font-black text-blue-700">—</div><div class="text-[9px] text-blue-500 font-bold">รับแล้ว</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 3: Line Chart รายวัน + Bar Chart -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- Line Chart -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-3">แนวโน้มรายวัน (รถเข้า / ตรงเวลา / ล่าช้า)</div>
+            <div class="relative h-52">
+              <canvas id="pdLineChart"></canvas>
+            </div>
+          </div>
+          <!-- Bar Chart Supplier -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-3">Top Supplier (Fill Rate)</div>
+            <div class="relative h-52">
+              <canvas id="pdBarChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 4: Combo Matrix -->
+        <div class="bg-white rounded-2xl border border-slate-100 p-5">
+          <div class="font-black text-slate-700 text-xs mb-4">Matrix: เวลาเข้า × สถานะรับของ</div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-emerald-50 rounded-xl p-4 text-center border border-emerald-100">
+              <div class="text-[9px] font-black text-emerald-600 uppercase mb-1">ตรงเวลา × ครบ</div>
+              <div id="pd-combo-aa" class="text-3xl font-black text-emerald-700">—</div>
+              <div id="pd-combo-aa-pct" class="text-[9px] text-emerald-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-amber-50 rounded-xl p-4 text-center border border-amber-100">
+              <div class="text-[9px] font-black text-amber-600 uppercase mb-1">ตรงเวลา × ไม่ครบ</div>
+              <div id="pd-combo-ab" class="text-3xl font-black text-amber-700">—</div>
+              <div id="pd-combo-ab-pct" class="text-[9px] text-amber-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-blue-50 rounded-xl p-4 text-center border border-blue-100">
+              <div class="text-[9px] font-black text-blue-600 uppercase mb-1">ล่าช้า × ครบ</div>
+              <div id="pd-combo-ba" class="text-3xl font-black text-blue-700">—</div>
+              <div id="pd-combo-ba-pct" class="text-[9px] text-blue-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-rose-50 rounded-xl p-4 text-center border border-rose-100">
+              <div class="text-[9px] font-black text-rose-600 uppercase mb-1">ล่าช้า × ไม่ครบ</div>
+              <div id="pd-combo-bb" class="text-3xl font-black text-rose-700">—</div>
+              <div id="pd-combo-bb-pct" class="text-[9px] text-rose-500 font-bold mt-1">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 5: Supplier Table -->
+        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+          <div class="px-5 py-4 border-b flex items-center justify-between">
+            <div class="font-black text-slate-700 text-xs">รายละเอียดตาม Supplier</div>
+            <span id="pd-table-count" class="text-[9px] font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full"></span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead class="bg-slate-50">
+                <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                  <th class="px-4 py-3 text-left">Supplier</th>
+                  <th class="px-4 py-3 text-center">ประเภท</th>
+                  <th class="px-4 py-3 text-center">PO</th>
+                  <th class="px-4 py-3 text-center">Qty แผน</th>
+                  <th class="px-4 py-3 text-center">Qty รับ</th>
+                  <th class="px-4 py-3 text-center">Fill Rate</th>
+                  <th class="px-4 py-3 text-center">สถานะ</th>
+                </tr>
+              </thead>
+              <tbody id="kpi-all-suppliers-table" class="divide-y divide-slate-50"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
 
       <!-- Planning Tab: นอกแผน — ใช้ div เดียวกับ PIC (reuse) -->
       <div id="planning-page-unplanned" class="hidden max-w-5xl mx-auto p-4 space-y-4 fade-in">
@@ -1958,51 +2364,325 @@
 
     <!-- ================= Manager View ================= -->
     <div id="manager-view" class="min-h-full hidden fade-in">
-      <div class="bg-white/80 backdrop-blur-md border-b sticky top-0 z-10 shadow-sm">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div class="font-bold text-xl text-slate-800 tracking-tight flex items-center gap-2">
-            <span>👔</span> ผู้จัดการ
-            <span id="mgr-role-badge" class="text-xs font-bold bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full"></span>
+
+      <!-- Role Selection Screen -->
+      <div id="mgr-role-select" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900 p-8">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl text-center">
+          <div class="text-5xl mb-4">👔</div>
+          <div class="font-black text-slate-800 text-2xl mb-2">ผู้จัดการ</div>
+          <div class="text-slate-400 text-sm mb-8">เลือก Role ของคุณ</div>
+          <div class="space-y-3">
+            <button type="button" onclick="selectManagerRole('logistics')"
+              class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-black text-base cursor-pointer shadow-lg flex items-center justify-center gap-3">
+              <span class="text-2xl">🚛</span>
+              <div class="text-left">
+                <div class="font-black">ผู้จัดการ Logistics</div>
+                <div class="text-indigo-200 text-xs font-bold">อนุมัติขั้นที่ 1</div>
+              </div>
+            </button>
+            <button type="button" onclick="selectManagerRole('factory')"
+              class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-black text-base cursor-pointer shadow-lg flex items-center justify-center gap-3">
+              <span class="text-2xl">🏭</span>
+              <div class="text-left">
+                <div class="font-black">ผู้จัดการโรงงาน</div>
+                <div class="text-emerald-200 text-xs font-bold">อนุมัติขั้นที่ 2</div>
+              </div>
+            </button>
           </div>
-          <div class="flex items-center gap-3">
-            <div id="mgr-pending-badge" class="hidden bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full"></div>
-            <button type="button" onclick="managerLogout()" class="text-rose-600 px-4 py-2 rounded-xl font-bold text-xs hover:bg-rose-50 cursor-pointer">ออกจากระบบ</button>
-          </div>
-        </div>
-        <div class="max-w-6xl mx-auto px-4 pb-3 flex gap-2">
-          <button type="button" onclick="showManagerTab('approve')" id="mgr-tab-approve" class="tab-active px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap shadow-md cursor-pointer">✅ รออนุมัติ</button>
-          <button type="button" onclick="showManagerTab('history')" id="mgr-tab-history" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer">📋 ประวัติทั้งหมด</button>
+          <button type="button" onclick="managerLogout()" class="mt-6 text-slate-400 text-xs font-bold hover:text-slate-600 cursor-pointer">← กลับ</button>
         </div>
       </div>
 
-      <!-- Approve Tab -->
-      <div id="mgr-page-approve" class="max-w-6xl mx-auto p-4 space-y-4 fade-in">
-        <div id="mgr-approve-loading" class="hidden bg-white rounded-2xl p-8 text-center border"><div class="text-2xl animate-pulse mb-2">⏳</div><div class="text-slate-400 font-bold text-sm">กำลังโหลด...</div></div>
-        <div id="mgr-approve-empty" class="hidden bg-white rounded-2xl p-10 text-center border"><div class="text-4xl mb-3">✅</div><div class="font-black text-slate-400">ไม่มีรายการรออนุมัติ</div></div>
-        <div id="mgr-approve-list" class="space-y-3"></div>
-      </div>
+      <!-- Main Manager UI (แสดงหลังเลือก Role) -->
+      <div id="mgr-main" class="hidden">
+        <div class="backdrop-blur-md border-b sticky top-0 z-10 shadow-sm" id="mgr-header-bar">
+          <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="font-bold text-xl tracking-tight flex items-center gap-2" id="mgr-header-title">
+              <span id="mgr-header-icon">👔</span>
+              <span id="mgr-header-name">ผู้จัดการ</span>
+              <span id="mgr-role-badge" class="text-xs font-bold px-3 py-0.5 rounded-full"></span>
+            </div>
+            <div class="flex items-center gap-3">
+              <div id="mgr-pending-badge" class="hidden bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse"></div>
+              <button type="button" onclick="managerLogout()" class="text-rose-600 px-4 py-2 rounded-xl font-bold text-xs hover:bg-rose-50 cursor-pointer">ออกจากระบบ</button>
+            </div>
+          </div>
+          <div class="max-w-6xl mx-auto px-4 pb-3 flex gap-2 flex-wrap">
+            <button type="button" onclick="showManagerTab('approve')" id="mgr-tab-approve" class="tab-active px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap shadow-md cursor-pointer">✅ รออนุมัติ</button>
+            <button type="button" onclick="showManagerTab('history')" id="mgr-tab-history" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer">📋 ประวัติ</button>
+            <button type="button" onclick="showManagerTab('dashboard')" id="mgr-tab-dashboard" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer">📦 Parts Dashboard</button>
+          </div>
+        </div>
 
-      <!-- History Tab -->
-      <div id="mgr-page-history" class="hidden max-w-6xl mx-auto p-4 space-y-4 fade-in">
+        <!-- Approve Tab -->
+        <div id="mgr-page-approve" class="max-w-6xl mx-auto p-4 space-y-4 fade-in">
+          <div id="mgr-approve-loading" class="hidden bg-white rounded-2xl p-8 text-center border"><div class="text-2xl animate-pulse mb-2">⏳</div><div class="text-slate-400 font-bold text-sm">กำลังโหลด...</div></div>
+          <div id="mgr-approve-empty" class="hidden bg-white rounded-2xl p-10 text-center border"><div class="text-4xl mb-3">✅</div><div class="font-black text-slate-400">ไม่มีรายการรออนุมัติ</div></div>
+          <div id="mgr-approve-list" class="space-y-3"></div>
+        </div>
+
+        <!-- History Tab -->
+        <div id="mgr-page-history" class="hidden max-w-6xl mx-auto p-4 space-y-4 fade-in">
+          <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+            <div class="px-5 py-4 border-b bg-slate-50"><div class="font-black text-slate-700 text-sm">📋 ประวัติงานนอกแผนทั้งหมด</div></div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs">
+                <thead class="bg-slate-50 border-b border-slate-100">
+                  <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                    <th class="px-4 py-3">วันที่</th><th class="px-4 py-3">ผู้กรอก</th><th class="px-4 py-3">Role</th>
+                    <th class="px-4 py-3">Supplier</th><th class="px-4 py-3">PO</th><th class="px-4 py-3">Part</th>
+                    <th class="px-4 py-3 text-center">QTY</th><th class="px-4 py-3">เหตุผล</th>
+                    <th class="px-4 py-3 text-center">สถานะ</th>
+                    <th class="px-4 py-3">Logistics</th><th class="px-4 py-3">โรงงาน</th>
+                  </tr>
+                </thead>
+                <tbody id="mgr-history-body" class="divide-y divide-slate-50"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Parts Dashboard Tab -->
+        <div id="mgr-page-dashboard" class="hidden max-w-6xl mx-auto p-4 space-y-5 fade-in">
+
+        <!-- Header -->
+        <div class="flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <div class="font-black text-slate-800 text-xl tracking-tight">📦 Parts Dashboard</div>
+            <div id="pd-last-update" class="text-[11px] text-slate-400 mt-1">—</div>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <!-- Filter: All / Local / Overseas -->
+            <div class="flex bg-slate-100 rounded-xl p-1 gap-1">
+              <button type="button" id="pd-filter-all" onclick="setPdFilter('all')"
+                class="px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer bg-white text-slate-700 shadow-sm">🌐 รวม</button>
+              <button type="button" id="pd-filter-local" onclick="setPdFilter('local')"
+                class="px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer text-slate-500">🇹🇭 Local</button>
+              <button type="button" id="pd-filter-overseas" onclick="setPdFilter('overseas')"
+                class="px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer text-slate-500">🌏 Overseas</button>
+            </div>
+            <div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">เดือน</div>
+              <select id="parts-month" onchange="updatePartsDashboard()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[150px]"></select>
+            </div>
+            <div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Supplier</div>
+              <select id="parts-supplier" onchange="updatePartsDashboard()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[180px]"></select>
+            </div>
+            <button type="button" onclick="updatePartsDashboard()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer">🔄 รีเฟรช</button>
+          </div>
+        </div>
+
+        <!-- Row 1: KPI Summary Cards + Pie chart -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+          <!-- KPI Cards 2×3 -->
+          <div class="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-3">
+            <!-- Visits -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">🚚</div>
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">รถเข้าทั้งหมด</div>
+                <div id="pd-visits" class="text-2xl font-black text-indigo-700">—</div>
+              </div>
+            </div>
+            <!-- On-time -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">✅</div>
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">ตรงเวลา</div>
+                <div id="pd-ontime" class="text-2xl font-black text-emerald-700">—</div>
+                <div id="pd-ontime-pct" class="text-[9px] font-black text-emerald-500">—</div>
+              </div>
+            </div>
+            <!-- Late -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">⏰</div>
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">ล่าช้า</div>
+                <div id="pd-late" class="text-2xl font-black text-rose-700">—</div>
+                <div id="pd-late-pct" class="text-[9px] font-black text-rose-500">—</div>
+              </div>
+            </div>
+            <!-- Unplanned -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">📋</div>
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">ไม่มีในแผน</div>
+                <div id="pd-unplanned" class="text-2xl font-black text-amber-700">—</div>
+                <div id="pd-unplanned-pct" class="text-[9px] font-black text-amber-500">—</div>
+              </div>
+            </div>
+            <!-- Pickup -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">🏃</div>
+              <div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">Pick Up</div>
+                <div id="pd-pickup" class="text-2xl font-black text-blue-700">—</div>
+                <div id="pd-pickup-pct" class="text-[9px] font-black text-blue-500">—</div>
+              </div>
+            </div>
+            <!-- Fill Rate -->
+            <div class="bg-violet-600 rounded-2xl p-4 flex items-center gap-3">
+              <div class="w-10 h-10 bg-violet-500 rounded-xl flex items-center justify-center text-lg flex-shrink-0">📊</div>
+              <div>
+                <div class="text-[9px] font-black text-violet-200 uppercase">Fill Rate</div>
+                <div id="stat-fill-rate" class="text-2xl font-black text-white">—</div>
+                <div class="flex gap-2 mt-0.5">
+                  <span class="text-[9px] text-violet-300">P:<span id="pd-qty-plan" class="text-white font-black">—</span></span>
+                  <span class="text-[9px] text-violet-300">R:<span id="pd-qty-recv" class="text-white font-black">—</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pie Chart: สัดส่วน timing -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-3">สัดส่วนการเข้ามาของซัพ</div>
+            <div class="relative h-44">
+              <canvas id="kpiPieChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Parts Status + Local/Overseas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Parts Status -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-4">สถานะรับพาร์ท</div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-slate-50 rounded-xl p-3 text-center">
+                <div class="text-[9px] font-black text-slate-400 uppercase mb-1">ทั้งหมด</div>
+                <div id="pd-parts-total" class="text-2xl font-black text-slate-700">—</div>
+              </div>
+              <div class="bg-emerald-50 rounded-xl p-3 text-center">
+                <div class="text-[9px] font-black text-emerald-600 uppercase mb-1">✅ ครบ</div>
+                <div id="pd-parts-completed" class="text-2xl font-black text-emerald-700">—</div>
+                <div id="pd-parts-completed-pct" class="text-[9px] font-black text-emerald-500">—</div>
+              </div>
+              <div class="bg-amber-50 rounded-xl p-3 text-center">
+                <div class="text-[9px] font-black text-amber-600 uppercase mb-1">⚠️ ไม่ครบ</div>
+                <div id="pd-parts-short" class="text-2xl font-black text-amber-700">—</div>
+                <div id="pd-parts-short-pct" class="text-[9px] font-black text-amber-500">—</div>
+              </div>
+              <div class="bg-rose-50 rounded-xl p-3 text-center">
+                <div class="text-[9px] font-black text-rose-600 uppercase mb-1">❌ ไม่ได้รับ</div>
+                <div id="pd-parts-missing" class="text-2xl font-black text-rose-700">—</div>
+                <div id="pd-parts-missing-pct" class="text-[9px] font-black text-rose-500">—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Local / Overseas -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-4">Local vs Overseas</div>
+            <div class="space-y-3">
+              <div class="bg-emerald-50 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">🇹🇭</span>
+                    <span class="font-black text-emerald-700 text-sm">Local</span>
+                  </div>
+                  <span class="text-[9px] text-emerald-500 font-bold" id="pd-local-pct">—</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                  <div><div id="pd-local-suppliers" class="text-xl font-black text-emerald-700">—</div><div class="text-[9px] text-emerald-500 font-bold">ซัพ</div></div>
+                  <div><div id="pd-local-parts" class="text-xl font-black text-emerald-700">—</div><div class="text-[9px] text-emerald-500 font-bold">พาร์ท</div></div>
+                  <div><div id="pd-local-received" class="text-xl font-black text-emerald-700">—</div><div class="text-[9px] text-emerald-500 font-bold">รับแล้ว</div></div>
+                </div>
+              </div>
+              <div class="bg-blue-50 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base">🌏</span>
+                    <span class="font-black text-blue-700 text-sm">Overseas</span>
+                  </div>
+                  <span class="text-[9px] text-blue-500 font-bold" id="pd-overseas-pct">—</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                  <div><div id="pd-overseas-suppliers" class="text-xl font-black text-blue-700">—</div><div class="text-[9px] text-blue-500 font-bold">ซัพ</div></div>
+                  <div><div id="pd-overseas-parts" class="text-xl font-black text-blue-700">—</div><div class="text-[9px] text-blue-500 font-bold">พาร์ท</div></div>
+                  <div><div id="pd-overseas-received" class="text-xl font-black text-blue-700">—</div><div class="text-[9px] text-blue-500 font-bold">รับแล้ว</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 3: Line Chart รายวัน + Bar Chart -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- Line Chart -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-3">แนวโน้มรายวัน (รถเข้า / ตรงเวลา / ล่าช้า)</div>
+            <div class="relative h-52">
+              <canvas id="pdLineChart"></canvas>
+            </div>
+          </div>
+          <!-- Bar Chart Supplier -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-xs mb-3">Top Supplier (Fill Rate)</div>
+            <div class="relative h-52">
+              <canvas id="pdBarChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 4: Combo Matrix -->
+        <div class="bg-white rounded-2xl border border-slate-100 p-5">
+          <div class="font-black text-slate-700 text-xs mb-4">Matrix: เวลาเข้า × สถานะรับของ</div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-emerald-50 rounded-xl p-4 text-center border border-emerald-100">
+              <div class="text-[9px] font-black text-emerald-600 uppercase mb-1">ตรงเวลา × ครบ</div>
+              <div id="pd-combo-aa" class="text-3xl font-black text-emerald-700">—</div>
+              <div id="pd-combo-aa-pct" class="text-[9px] text-emerald-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-amber-50 rounded-xl p-4 text-center border border-amber-100">
+              <div class="text-[9px] font-black text-amber-600 uppercase mb-1">ตรงเวลา × ไม่ครบ</div>
+              <div id="pd-combo-ab" class="text-3xl font-black text-amber-700">—</div>
+              <div id="pd-combo-ab-pct" class="text-[9px] text-amber-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-blue-50 rounded-xl p-4 text-center border border-blue-100">
+              <div class="text-[9px] font-black text-blue-600 uppercase mb-1">ล่าช้า × ครบ</div>
+              <div id="pd-combo-ba" class="text-3xl font-black text-blue-700">—</div>
+              <div id="pd-combo-ba-pct" class="text-[9px] text-blue-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-rose-50 rounded-xl p-4 text-center border border-rose-100">
+              <div class="text-[9px] font-black text-rose-600 uppercase mb-1">ล่าช้า × ไม่ครบ</div>
+              <div id="pd-combo-bb" class="text-3xl font-black text-rose-700">—</div>
+              <div id="pd-combo-bb-pct" class="text-[9px] text-rose-500 font-bold mt-1">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 5: Supplier Table -->
         <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-          <div class="px-5 py-4 border-b bg-slate-50"><div class="font-black text-slate-700 text-sm">📋 ประวัติงานนอกแผนทั้งหมด</div></div>
+          <div class="px-5 py-4 border-b flex items-center justify-between">
+            <div class="font-black text-slate-700 text-xs">รายละเอียดตาม Supplier</div>
+            <span id="pd-table-count" class="text-[9px] font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full"></span>
+          </div>
           <div class="overflow-x-auto">
             <table class="w-full text-xs">
-              <thead class="bg-slate-50 border-b border-slate-100">
+              <thead class="bg-slate-50">
                 <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                  <th class="px-4 py-3">วันที่</th><th class="px-4 py-3">ผู้กรอก</th><th class="px-4 py-3">Role</th>
-                  <th class="px-4 py-3">Supplier</th><th class="px-4 py-3">PO</th><th class="px-4 py-3">Part</th>
-                  <th class="px-4 py-3 text-center">QTY</th><th class="px-4 py-3">เหตุผล</th>
+                  <th class="px-4 py-3 text-left">Supplier</th>
+                  <th class="px-4 py-3 text-center">ประเภท</th>
+                  <th class="px-4 py-3 text-center">PO</th>
+                  <th class="px-4 py-3 text-center">Qty แผน</th>
+                  <th class="px-4 py-3 text-center">Qty รับ</th>
+                  <th class="px-4 py-3 text-center">Fill Rate</th>
                   <th class="px-4 py-3 text-center">สถานะ</th>
-                  <th class="px-4 py-3">Logistics</th><th class="px-4 py-3">โรงงาน</th>
                 </tr>
               </thead>
-              <tbody id="mgr-history-body" class="divide-y divide-slate-50"></tbody>
+              <tbody id="kpi-all-suppliers-table" class="divide-y divide-slate-50"></tbody>
             </table>
           </div>
         </div>
+
+        </div>
       </div>
+
     </div><!-- end manager-view -->
+
 
 
     <!-- ================= ส่วน Guard ================= -->
@@ -2244,6 +2924,16 @@
             isManagerLoggedIn = true;
             document.getElementById('manager-view').classList.remove('hidden');
             initManagerView();
+            break;
+          case 'manager_logistics':
+            isManagerLoggedIn = true;
+            document.getElementById('manager-view').classList.remove('hidden');
+            setTimeout(function(){ selectManagerRole('logistics'); }, 100);
+            break;
+          case 'manager_factory':
+            isManagerLoggedIn = true;
+            document.getElementById('manager-view').classList.remove('hidden');
+            setTimeout(function(){ selectManagerRole('factory'); }, 100);
             break;
           case 'guard':
             document.getElementById('guard-view').classList.remove('hidden');
@@ -4713,45 +5403,43 @@
       const mVal = (document.getElementById('parts-month')?.value || 'ALL');
       const sVal = (document.getElementById('parts-supplier')?.value || 'ALL');
 
-      // ฟังก์ชันตรวจ type ของ vendor
       const isTypeMatch = function(vendorName) {
         if (_pdFilter === 'all') return true;
         return getSupplierType(vendorName) === _pdFilter;
       };
 
-      // Filter checkin
       const filteredCheckin = allData.filter(function(r) {
         if (r.status === 'cancelled') return false;
         if (!isTypeMatch(r.company_name)) return false;
         if (mVal !== 'ALL') {
-          const parts = mVal.split('-');
-          const dp = String(r.date||'').split('-');
-          if (dp[0] !== parts[0] || dp[1] !== parts[1]) return false;
+          const p = mVal.split('-'); const d = String(r.date||'').split('-');
+          if (d[0] !== p[0] || d[1] !== p[1]) return false;
         }
         if (sVal !== 'ALL' && !String(r.company_name||'').toLowerCase().includes(sVal.toLowerCase())) return false;
         return true;
       });
       const visits = new Set(filteredCheckin.map(function(r){ return r.date+'_'+r.queue_number; })).size;
 
-      // Filter parts
       const filteredParts = allPartData.filter(function(p) {
         if (!isTypeMatch(p.vendor)) return false;
         if (mVal !== 'ALL') {
-          const parts = mVal.split('-');
-          const dp = String(p.date||'').split('-');
-          if (dp[0] !== parts[0] || dp[1] !== parts[1]) return false;
+          const pp = mVal.split('-'); const dp = String(p.date||'').split('-');
+          if (dp[0] !== pp[0] || dp[1] !== pp[1]) return false;
         }
         if (sVal !== 'ALL' && !String(p.vendor||'').toLowerCase().includes(sVal.toLowerCase())) return false;
         return ['pending','completed','short','missing'].includes(p.status||'');
       });
 
-      // แสดง label filter
       const filterLabel = _pdFilter === 'local' ? ' 🇹🇭 Local' : _pdFilter === 'overseas' ? ' 🌏 Overseas' : '';
-      const lastUpdateEl = document.getElementById('pd-last-update');
-      if (lastUpdateEl) {
-        const now = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
-        lastUpdateEl.innerText = 'อัพเดตล่าสุด ' + now + filterLabel;
-      }
+      const now = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+
+      // อัพเดททุก Dashboard ที่เปิดอยู่
+      ['page-parts','pic-page-parts-receiving','pic-page-pic-dashboard','planning-page-dashboard','mgr-page-dashboard'].forEach(function(pageId) {
+        const page = document.getElementById(pageId);
+        if (!page || page.classList.contains('hidden')) return;
+        const lu = page.querySelector('#pd-last-update');
+        if (lu) lu.innerText = 'อัพเดตล่าสุด ' + now + filterLabel;
+      });
 
       updateKPIUI(filteredCheckin, filteredParts, visits);
       updatePdBarChart(filteredCheckin, filteredParts);
@@ -5025,8 +5713,7 @@
           : 'bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer';
       });
       if (tab === 'myparts') initMyParts();
-      if (tab === 'pic-dashboard') initPicDashboard();
-      if (tab === 'parts-receiving') initPartsReceiving();
+      if (tab === 'pic-dashboard' || tab === 'parts-receiving') { populatePartsDashboardFilters(); updatePartsDashboard(); }
       if (tab === 'unplanned') initUnplanned('pic');
       if (tab === 'pic-trend') { onTrendModeChange('pr'); loadPrTrend(); }
       if (tab === 'pic-master') { _vehicleData = []; updatePicMaster(); }
@@ -7660,7 +8347,7 @@
       if (tab === 'urgent')    initPlanningUrgent();
       if (tab === 'weekly')    initPlanningWeekly();
       if (tab === 'unplanned') initUnplanned('planning');
-      if (tab === 'dashboard') updatePlanningDashboard();
+      if (tab === 'dashboard') { populatePartsDashboardFilters(); updatePartsDashboard(); }
     };
 
 
@@ -7809,9 +8496,24 @@
           '<td class="px-4 py-2.5 text-center">' + (u.origin==='overseas'?'🌏':'🇹🇭') + '</td>' +
           '<td class="px-4 py-2.5 text-slate-400 max-w-[150px] truncate">' + (u.remark||'—') + '</td>' +
           '<td class="px-4 py-2.5 text-center">' + statusHtml + '</td>' +
+          '<td class="px-4 py-2.5 text-center">' +
+            (isPending ? '<button type="button" data-id="' + (u.id||'') + '" onclick="markUrgentDone(this.dataset.id)" class="bg-emerald-500 hover:bg-emerald-600 text-white text-[9px] font-black px-3 py-1 rounded-lg cursor-pointer whitespace-nowrap">✅ รับแล้ว</button>' : '<span class="text-[9px] text-slate-400">' + (u.received_by||'') + '</span>') +
+          '</td>' +
         '</tr>';
       }).join('');
     }
+
+    window.markUrgentDone = async function(id) {
+      if (!id) return;
+      const receivedBy = (typeof currentPicUser !== 'undefined' && currentPicUser) ? currentPicUser : 'Planning';
+      try {
+        const res = await callAPI('markUrgentReceived', { id: id, receivedBy: receivedBy });
+        if (res && res.success) {
+          showToast('✅ บันทึกรับ Urgent Part แล้ว');
+          await loadUrgentList();
+        } else { showToast('ไม่สำเร็จ: ' + (res?.message||''), 'error'); }
+      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+    };
 
     window.saveUrgentPart = async function() {
       const po    = (document.getElementById('urgent-po')||{}).value?.trim() || '';
@@ -8243,25 +8945,62 @@
     // =====================================================
     // MANAGER VIEW
     // =====================================================
-    window.managerLogout = function() { isManagerLoggedIn=false; showRoleSelection(); };
-
-    window.showManagerTab = function(tab) {
-      ['approve','history'].forEach(function(t) {
-        const p=document.getElementById('mgr-page-'+t); const b=document.getElementById('mgr-tab-'+t);
-        if(p) p.classList.toggle('hidden', t!==tab);
-        if(b) b.className = t===tab ? 'tab-active px-6 py-2.5 rounded-xl text-xs font-bold shadow-md cursor-pointer' : 'bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer';
-      });
-      if (tab==='approve') loadManagerApprove();
-      if (tab==='history') loadManagerHistory();
+    window.managerLogout = function() {
+      isManagerLoggedIn = false;
+      _managerRole = '';
+      document.getElementById('mgr-role-select').classList.remove('hidden');
+      document.getElementById('mgr-main').classList.add('hidden');
+      showRoleSelection();
     };
 
-    async function initManagerView() {
-      const badge = document.getElementById('mgr-role-badge');
-      const role  = window.prompt('คุณเป็น:\n1 = ผู้จัดการ Logistics\n2 = ผู้จัดการโรงงาน\n\nกรุณาพิมพ์ 1 หรือ 2');
-      if (role==='1')      { _managerRole='logistics'; if(badge) badge.innerText='Logistics'; }
-      else if (role==='2') { _managerRole='factory';   if(badge) badge.innerText='โรงงาน'; }
-      else { managerLogout(); return; }
+    window.switchManagerRole = function() {
+      document.getElementById('mgr-role-select').classList.remove('hidden');
+      document.getElementById('mgr-main').classList.add('hidden');
+    };
+
+    window.selectManagerRole = function(role) {
+      _managerRole = role;
+      const isLogistics = role === 'logistics';
+
+      // ตั้ง header color ตาม role
+      const bar    = document.getElementById('mgr-header-bar');
+      const icon   = document.getElementById('mgr-header-icon');
+      const name   = document.getElementById('mgr-header-name');
+      const badge  = document.getElementById('mgr-role-badge');
+      if (bar)   bar.className   = 'backdrop-blur-md border-b sticky top-0 z-10 shadow-sm ' + (isLogistics ? 'bg-indigo-700' : 'bg-emerald-700');
+      if (icon)  icon.innerText  = isLogistics ? '🚛' : '🏭';
+      if (name)  { name.innerText = isLogistics ? 'ผู้จัดการ Logistics' : 'ผู้จัดการโรงงาน'; name.className = 'font-bold text-xl tracking-tight ' + (isLogistics ? 'text-white' : 'text-white'); }
+      if (badge) { badge.innerText = isLogistics ? 'อนุมัติขั้น 1' : 'อนุมัติขั้น 2'; badge.className = 'text-xs font-bold px-3 py-0.5 rounded-full ' + (isLogistics ? 'bg-indigo-500 text-indigo-100' : 'bg-emerald-500 text-emerald-100'); }
+
+      // แก้สี Tab active ตาม role
+      document.getElementById('mgr-role-select').classList.add('hidden');
+      document.getElementById('mgr-main').classList.remove('hidden');
       showManagerTab('approve');
+      loadManagerApprove();
+    };
+
+    window.showManagerTab = function(tab) {
+      ['approve','history','dashboard'].forEach(function(t) {
+        const p = document.getElementById('mgr-page-' + t);
+        const b = document.getElementById('mgr-tab-' + t);
+        if (p) p.classList.toggle('hidden', t !== tab);
+        if (b) {
+          const isLogistics = _managerRole === 'logistics';
+          const activeColor = isLogistics ? 'bg-indigo-600 text-white' : 'bg-emerald-600 text-white';
+          b.className = t === tab
+            ? activeColor + ' px-6 py-2.5 rounded-xl text-xs font-bold shadow-md cursor-pointer'
+            : 'bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer';
+        }
+      });
+      if (tab === 'history')   loadManagerHistory();
+      if (tab === 'dashboard') { populatePartsDashboardFilters(); updatePartsDashboard(); }
+    };
+
+
+    async function initManagerView() {
+      // แสดง role selection screen แทน prompt()
+      document.getElementById('mgr-role-select').classList.remove('hidden');
+      document.getElementById('mgr-main').classList.add('hidden');
     }
 
     async function loadManagerApprove() {
