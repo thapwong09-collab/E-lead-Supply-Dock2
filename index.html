@@ -304,7 +304,6 @@
           <div class="bg-violet-50 rounded-2xl border border-violet-100 p-5 text-center">
             <div class="text-[10px] font-black text-violet-500 uppercase mb-2">มาตรงแผน</div>
             <div id="stat-today-match" class="text-4xl font-black text-violet-600">—</div>
-            <div class="text-[10px] text-violet-400 mt-1">%</div>
           </div>
         </div>
 
@@ -2715,8 +2714,9 @@
     }
 
     function normalizeDate(raw) {
-      if (!raw) return getThaiDate();
-      const v = raw.trim();
+      if (!raw) return '';  // ไม่มีวัน → return '' ไม่ใช่วันนี้
+      const v = String(raw).replace(/^'/,'').trim();
+      if (!v) return '';
       // YYYY/MM/DD หรือ YYYY-MM-DD
       const ymd = v.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
       if (ymd) return `${ymd[1]}-${ymd[2].padStart(2,'0')}-${ymd[3].padStart(2,'0')}`;
@@ -2725,7 +2725,7 @@
       if (dmy) return `${dmy[3]}-${dmy[2].padStart(2,'0')}-${dmy[1].padStart(2,'0')}`;
       const d = new Date(v);
       if (!isNaN(d)) return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-      return getThaiDate();
+      return '';
     }
 
     function normalizeTime(raw) {
@@ -3509,7 +3509,7 @@
           return;
         }
 
-        // 2. Update queue status to loading (ย้ายไปโซน loading)
+        playBeep('done');
         if (pcmQueueNum) updateStatus(pcmQueueNum, 'loading', pcmFactory);
 
         closePartsModal();
@@ -3875,9 +3875,10 @@
       const updateId = `${record.date}-${record.queue_number}`;
       const now = new Date().toISOString();
       const updates = { ...record, status: nextStatus };
-      if (nextStatus === 'loading') updates.loading_time = now;
+      if (nextStatus === 'loading')   { updates.loading_time   = now; playBeep('call'); }
       if (nextStatus === 'loading' && factory) updates.factory = factory;
-      if (nextStatus === 'completed') updates.completed_time = now;
+      if (nextStatus === 'completed') { updates.completed_time = now; playBeep('done'); }
+      if (nextStatus === 'cancelled') playBeep('cancel');
       pendingUpdates.add(updateId);
       allData[recordIdx] = updates;
       if (isStaffLoggedIn) updateStaffUI();
@@ -4036,8 +4037,6 @@
         return normalizeDate(p.date) === today &&
                p.status !== 'draft' && p.status !== 'cancelled';
       });
-      console.log('[banner] today:', today, '| allPartData:', allPartData.length, '| todayParts:', todayParts.length, todayParts.slice(0,3).map(function(p){ return {date:p.date, vendor:p.vendor, status:p.status}; }));
-      console.log('[banner] allData today:', myData.length, myData.map(function(r){ return {q:r.queue_number, name:r.company_name, status:r.status, date:r.date}; }));
       if (todayParts.length > 0 && banner) {
         banner.classList.remove('hidden');
         const plannedVendors = [...new Map(todayParts.map(function(p){
@@ -4149,7 +4148,7 @@
       const stWait    = document.getElementById('stat-today-wait');
       const stPlanned = document.getElementById('stat-today-planned');
       const stMatch   = document.getElementById('stat-today-match');
-      const _set = function(el, val){ if (el && el.innerText !== String(val)) el.innerText = val; };
+      const _set = function(el, val){ if (el && el.innerText.trim() !== String(val).trim()) el.innerText = val; };
 
       const todayActual  = myData.filter(function(r){ return r.status !== 'cancelled'; }).length;
       const todayPlanned = allPartData.filter(function(p){
@@ -4366,7 +4365,7 @@
         const y = bkk.getFullYear(); const m = String(bkk.getMonth()+1).padStart(2,'0'); const day = String(bkk.getDate()).padStart(2,'0');
         const dateStr = y+'-'+m+'-'+day;
         const label = bkk.toLocaleDateString('th-TH', { day:'numeric', month:'long', year:'numeric' });
-        const dayRecords = allData.filter(function(r){ return r.date === dateStr && (r.status === 'completed' || r.status === 'exited' || r.status === 'cancelled'); }).sort(function(a,b){ return parseInt(a.queue_number)-parseInt(b.queue_number); });
+        const dayRecords = allData.filter(function(r){ return normalizeDate(r.date) === dateStr && (r.status === 'completed' || r.status === 'exited' || r.status === 'cancelled'); }).sort(function(a,b){ return parseInt(a.queue_number)-parseInt(b.queue_number); });
         if (dayRecords.length > 0) {
           const completed = dayRecords.filter(function(r){ return r.status==='completed'||r.status==='exited'; }).length;
           const cancelled = dayRecords.filter(function(r){ return r.status==='cancelled'; }).length;
@@ -7722,7 +7721,51 @@
       document.getElementById('planning-weekly-table-wrap')?.classList.remove('hidden');
     }
     // =====================================================
-    // SYSTEM SETTINGS
+    // SOUND NOTIFICATIONS
+    // =====================================================
+    const _audioCtx = typeof AudioContext !== 'undefined' ? new AudioContext() :
+                      typeof webkitAudioContext !== 'undefined' ? new webkitAudioContext() : null;
+
+    function playBeep(type) {
+      if (!_audioCtx) return;
+      // resume context ถ้า browser suspend ไว้
+      if (_audioCtx.state === 'suspended') _audioCtx.resume();
+
+      const configs = {
+        // เรียกเข้าพื้นที่ — ดิ้ง สูง
+        call: [
+          { freq: 880, dur: 0.15, start: 0.0 },
+          { freq: 1100, dur: 0.2,  start: 0.18 },
+        ],
+        // เสร็จสิ้น — ดิ้ง-ดิ้ง-ดิ้ง
+        done: [
+          { freq: 660,  dur: 0.12, start: 0.0 },
+          { freq: 880,  dur: 0.12, start: 0.15 },
+          { freq: 1100, dur: 0.18, start: 0.30 },
+        ],
+        // ยกเลิก — เสียงต่ำ
+        cancel: [
+          { freq: 330, dur: 0.25, start: 0.0 },
+          { freq: 220, dur: 0.3,  start: 0.28 },
+        ],
+      };
+
+      const notes = configs[type] || configs.call;
+      notes.forEach(function(n) {
+        const osc  = _audioCtx.createOscillator();
+        const gain = _audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(_audioCtx.destination);
+        osc.type      = 'sine';
+        osc.frequency.value = n.freq;
+        gain.gain.setValueAtTime(0, _audioCtx.currentTime + n.start);
+        gain.gain.linearRampToValueAtTime(0.4, _audioCtx.currentTime + n.start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, _audioCtx.currentTime + n.start + n.dur);
+        osc.start(_audioCtx.currentTime + n.start);
+        osc.stop(_audioCtx.currentTime + n.start + n.dur + 0.05);
+      });
+    }
+    // =====================================================
     // =====================================================
     let _sysSettings = {
       guard_scan_enabled:  true,
