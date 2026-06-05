@@ -79,8 +79,6 @@
     .u503-row:hover { background: #f5f3ff; }
     .u503-row.deselected { opacity: .4; }
   </style>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body class="h-full bg-slate-50 text-slate-900 text-left">
   
@@ -2838,421 +2836,19 @@
 
   <!-- ==================== JAVASCRIPT ==================== -->
   <script>
-    // =====================================================
-    // FIREBASE CONFIG
-    // =====================================================
-    const firebaseConfig = {
-      apiKey: "AIzaSyAKT9mi_IE0Y3fG_874Xyv_9xnX2PQ9NDw",
-      authDomain: "e-lead-receiving-system.firebaseapp.com",
-      projectId: "e-lead-receiving-system",
-      storageBucket: "e-lead-receiving-system.firebasestorage.app",
-      messagingSenderId: "494067916077",
-      appId: "1:494067916077:web:caac410632ac789e64c7a4"
-    };
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwvu_FiWEZOX1UEmo85MloZEt93jUhQ0dfJiVAPX27BV2UVnqV1eJaIJOkMWoWcMyU/exec";
 
-    // Init Firebase (ใช้ compat SDK — ไม่ต้อง build)
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // =====================================================
-    // FIREBASE HELPERS
-    // =====================================================
-
-    // getBkkNow — Bangkok time string
-    function getBkkTimeStr() {
-      const d = new Date();
-      const bkk = new Date(d.getTime() + 7*60*60*1000);
-      const p = n => String(n).padStart(2,'0');
-      return bkk.getUTCFullYear()+'-'+p(bkk.getUTCMonth()+1)+'-'+p(bkk.getUTCDate())+
-             ' '+p(bkk.getUTCHours())+':'+p(bkk.getUTCMinutes())+':'+p(bkk.getUTCSeconds());
-    }
-
-    // แปลง Firestore doc → plain object
-    function docToObj(doc) {
-      return { id: doc.id, ...doc.data() };
-    }
-
-    // =====================================================
-    // FIREBASE callAPI — แทน GAS callAPI เดิมทั้งหมด
-    // =====================================================
     async function callAPI(action, payload = {}) {
       try {
-        switch(action) {
-
-          // ─── READ ALL DATA ───────────────────────────
-          case 'readAllData': {
-            const [checkins, parts, picMaster, suppliers] = await Promise.all([
-              db.collection('checkins').orderBy('checkin_time','desc').limit(2000).get(),
-              db.collection('parts').orderBy('date','desc').limit(3000).get(),
-              db.collection('pic_master').get(),
-              db.collection('supplier_master').get(),
-            ]);
-            return {
-              success: true,
-              checkins:  checkins.docs.map(docToObj),
-              parts:     parts.docs.map(docToObj),
-              picMaster: picMaster.docs.map(docToObj),
-              suppliers: suppliers.docs.map(docToObj),
-            };
-          }
-
-          // ─── CHECKIN ─────────────────────────────────
-          case 'createRecord': {
-            const today = getBkkTimeStr().split(' ')[0];
-            // หา queue_number ถัดไป
-            const snap = await db.collection('checkins')
-              .where('date','==',today).get();
-            const maxQ = snap.docs.reduce((m,d)=> Math.max(m, parseInt(d.data().queue_number)||0), 0);
-            const qNum = maxQ + 1;
-            const now  = getBkkTimeStr();
-            const ref  = db.collection('checkins').doc(`${today}_${String(qNum).padStart(4,'0')}`);
-            await ref.set({
-              date: today, queue_number: qNum,
-              company_name: payload.companyName || '',
-              license_plate: payload.licensePlate || '',
-              status: 'waiting', checkin_time: now,
-              loading_time: '', completed_time: '',
-              plan_status: '', factory: '',
-              created_at: now,
-            });
-            return { success: true, queue_number: qNum };
-          }
-
-          case 'updateRecord': {
-            const rec = typeof payload.jsonString === 'string'
-              ? JSON.parse(payload.jsonString) : payload.jsonString || payload;
-            const date = rec.date || payload.originalDate;
-            const qNum = String(rec.queue_number || payload.originalQueue).padStart(4,'0');
-            const docId = `${date}_${qNum}`;
-            await db.collection('checkins').doc(docId).set(rec, { merge: true });
-            return { success: true };
-          }
-
-          // ─── PARTS ───────────────────────────────────
-          case 'savePlanParts': {
-            const rows = typeof payload.rows === 'string'
-              ? JSON.parse(payload.rows) : payload.rows;
-            const batch = db.batch();
-            rows.forEach(r => {
-              const id = r.id || `part_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
-              batch.set(db.collection('parts').doc(id), { ...r, id, status: r.status||'pending', created_at: getBkkTimeStr() }, { merge: true });
-            });
-            await batch.commit();
-            return { success: true };
-          }
-
-          case 'getPartsByDate': {
-            const snap = await db.collection('parts').where('date','==',payload.date).get();
-            return { success: true, data: snap.docs.map(docToObj) };
-          }
-
-          case 'getPartsByWeek': {
-            const start = payload.startDate;
-            const d = new Date(start);
-            d.setDate(d.getDate() + 6);
-            const end = d.toISOString().split('T')[0];
-            const snap = await db.collection('parts')
-              .where('date','>=',start).where('date','<=',end).get();
-            return { success: true, data: snap.docs.map(docToObj) };
-          }
-
-          case 'confirmParts': {
-            const items = typeof payload.items === 'string'
-              ? JSON.parse(payload.items) : payload.items || [];
-            const batch = db.batch();
-            const now   = getBkkTimeStr();
-            items.forEach(item => {
-              const qP = parseFloat(item.qty_plan)||0;
-              const qR = parseFloat(item.qty_received)||0;
-              const st = qR===0 ? 'missing' : qR < qP ? 'short' : 'completed';
-              batch.update(db.collection('parts').doc(item.id), {
-                qty_received: qR, status: st,
-                confirmed_by: payload.confirmedBy||'staff',
-                confirmed_time: now,
-              });
-            });
-            await batch.commit();
-            return { success: true };
-          }
-
-          case 'updatePartNote': {
-            await db.collection('parts').doc(payload.id).update({
-              erp_status: payload.erp_status || '',
-              staff_note: payload.staff_note || '',
-            });
-            return { success: true };
-          }
-
-          case 'updatePartDetail': {
-            await db.collection('parts').doc(payload.id).set(payload.updates, { merge: true });
-            return { success: true };
-          }
-
-          case 'deletePartDetail': {
-            await db.collection('parts').doc(payload.id).delete();
-            return { success: true };
-          }
-
-          // ─── URGENT PARTS ─────────────────────────────
-          case 'getUrgentParts': {
-            const snap = await db.collection('urgent_parts').orderBy('created_at','desc').get();
-            return { success: true, data: snap.docs.map(docToObj) };
-          }
-
-          case 'saveUrgentPart': {
-            const id = 'URG-' + Date.now();
-            await db.collection('urgent_parts').doc(id).set({
-              ...payload, id, status: 'pending', created_at: getBkkTimeStr()
-            });
-            return { success: true };
-          }
-
-          case 'markUrgentReceived': {
-            await db.collection('urgent_parts').doc(payload.id).update({
-              status: 'received', received_by: payload.receivedBy,
-              received_at: getBkkTimeStr(),
-            });
-            return { success: true };
-          }
-
-          // ─── UNPLANNED PARTS ──────────────────────────
-          case 'getUnplanned': {
-            const snap = await db.collection('unplanned_parts').orderBy('created_at','desc').get();
-            return { success: true, data: snap.docs.map(docToObj) };
-          }
-
-          case 'saveUnplanned': {
-            const id = 'UNP-' + Date.now();
-            const lTok = 'L-' + Math.random().toString(36).slice(2,10).toUpperCase();
-            const fTok = 'F-' + Math.random().toString(36).slice(2,10).toUpperCase();
-            await db.collection('unplanned_parts').doc(id).set({
-              ...payload, id,
-              status: 'pending_l',
-              logistics_token: lTok,
-              factory_token:   fTok,
-              created_at: getBkkTimeStr(),
-            });
-            return { success: true };
-          }
-
-          case 'approveUnplanned': {
-            const snap = await db.collection('unplanned_parts')
-              .where('logistics_token','==', payload.token).get();
-            const snap2 = await db.collection('unplanned_parts')
-              .where('factory_token','==', payload.token).get();
-            const doc = snap.docs[0] || snap2.docs[0];
-            if (!doc) return { success: false, message: 'ไม่พบรายการ' };
-            const cur = doc.data();
-            const nextStatus = cur.status === 'pending_l' ? 'pending_f' : 'approved';
-            const update = {
-              status: nextStatus,
-              [`${cur.status === 'pending_l' ? 'logistics' : 'factory'}_approved_by`]: payload.approvedBy,
-              [`${cur.status === 'pending_l' ? 'logistics' : 'factory'}_approved_at`]: getBkkTimeStr(),
-            };
-            await doc.ref.update(update);
-            return { success: true, newStatus: nextStatus };
-          }
-
-          case 'rejectUnplanned': {
-            const snap = await db.collection('unplanned_parts')
-              .where('logistics_token','==', payload.token).get();
-            const snap2 = await db.collection('unplanned_parts')
-              .where('factory_token','==', payload.token).get();
-            const doc = snap.docs[0] || snap2.docs[0];
-            if (!doc) return { success: false, message: 'ไม่พบรายการ' };
-            await doc.ref.update({
-              status: 'rejected',
-              rejected_by: payload.rejectedBy,
-              rejected_reason: payload.reason || '',
-              rejected_at: getBkkTimeStr(),
-            });
-            return { success: true };
-          }
-
-          case 'getUnplannedByToken': {
-            const snap = await db.collection('unplanned_parts')
-              .where('logistics_token','==',payload.token).get();
-            const snap2 = await db.collection('unplanned_parts')
-              .where('factory_token','==',payload.token).get();
-            const doc = snap.docs[0] || snap2.docs[0];
-            return doc ? { success: true, data: docToObj(doc) } : { success: false };
-          }
-
-          // ─── VEHICLES ────────────────────────────────
-          case 'getVehicles': {
-            const snap = await db.collection('vehicles').get();
-            return { success: true, data: snap.docs.map(docToObj) };
-          }
-
-          case 'addVehicle': {
-            const id = `${payload.supplierName}_${payload.licensePlate}`.replace(/\s/g,'_');
-            await db.collection('vehicles').doc(id).set({
-              supplier_name: payload.supplierName,
-              license_plate: payload.licensePlate,
-              created_at: getBkkTimeStr(),
-            });
-            return { success: true };
-          }
-
-          case 'deleteVehicle': {
-            const id = `${payload.supplierName}_${payload.licensePlate}`.replace(/\s/g,'_');
-            await db.collection('vehicles').doc(id).delete();
-            return { success: true };
-          }
-
-          case 'updateVehicle': {
-            const oldId = `${payload.supplierName}_${payload.oldPlate}`.replace(/\s/g,'_');
-            const newId = `${payload.supplierName}_${payload.newPlate}`.replace(/\s/g,'_');
-            const snap  = await db.collection('vehicles').doc(oldId).get();
-            if (snap.exists) {
-              await db.collection('vehicles').doc(newId).set({
-                ...snap.data(), license_plate: payload.newPlate
-              });
-              await db.collection('vehicles').doc(oldId).delete();
-            }
-            return { success: true };
-          }
-
-          // ─── SETTINGS ────────────────────────────────
-          case 'getSettings': {
-            const snap = await db.collection('settings').doc('system').get();
-            return { success: true, settings: snap.exists ? snap.data() : {} };
-          }
-
-          case 'saveSettings': {
-            await db.collection('settings').doc('system').set(
-              payload.settings || payload, { merge: true }
-            );
-            return { success: true };
-          }
-
-          // ─── SUPPLIER MASTER ─────────────────────────
-          case 'getSupplierMaster': {
-            const snap = await db.collection('supplier_master').orderBy('name').get();
-            return { success: true, suppliers: snap.docs.map(docToObj) };
-          }
-
-          case 'addSupplierToMaster': {
-            const id = payload.name.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_ก-๙]/g,'');
-            await db.collection('supplier_master').doc(id).set({
-              name: payload.name, type: payload.type || 'local',
-              created_at: getBkkTimeStr(),
-            }, { merge: true });
-            return { success: true };
-          }
-
-          case 'updateSupplierType': {
-            const snap = await db.collection('supplier_master')
-              .where('name','==',payload.name).get();
-            if (snap.empty) {
-              await callAPI('addSupplierToMaster', { name: payload.name, type: payload.type });
-            } else {
-              await snap.docs[0].ref.update({ type: payload.type });
-            }
-            return { success: true };
-          }
-
-          // ─── PIC MASTER ──────────────────────────────
-          case 'getPicMaster': {
-            const snap = await db.collection('pic_master').orderBy('pic_name').get();
-            return { success: true, data: snap.docs.map(docToObj) };
-          }
-
-          case 'savePicMasterEntry': {
-            const id = `${payload.pic_name}_${payload.supplier}`.replace(/\s/g,'_');
-            await db.collection('pic_master').doc(id).set({
-              pic_name: payload.pic_name,
-              supplier: payload.supplier,
-              type: payload.type || 'local',
-              status: payload.status || 'active',
-              created_at: getBkkTimeStr(),
-            }, { merge: true });
-            return { success: true };
-          }
-
-          case 'savePicMasterBatch': {
-            const rows = typeof payload.rows === 'string'
-              ? JSON.parse(payload.rows) : payload.rows || [];
-            const batch = db.batch();
-            rows.forEach(r => {
-              const id = `${r.pic_name}_${r.supplier}`.replace(/\s/g,'_');
-              batch.set(db.collection('pic_master').doc(id), {
-                ...r, created_at: getBkkTimeStr()
-              }, { merge: true });
-            });
-            await batch.commit();
-            return { success: true };
-          }
-
-          case 'deletePicMasterEntry': {
-            const id = `${payload.pic_name}_${payload.supplier}`.replace(/\s/g,'_');
-            await db.collection('pic_master').doc(id).delete();
-            return { success: true };
-          }
-
-          case 'deletePicMasterAll': {
-            const snap = await db.collection('pic_master')
-              .where('pic_name','==',payload.picName).get();
-            const batch = db.batch();
-            snap.docs.forEach(d => batch.delete(d.ref));
-            await batch.commit();
-            return { success: true };
-          }
-
-          case 'updatePicStatus': {
-            const snap = await db.collection('pic_master')
-              .where('pic_name','==',payload.picName).get();
-            const batch = db.batch();
-            snap.docs.forEach(d => batch.update(d.ref, { status: payload.status }));
-            await batch.commit();
-            return { success: true };
-          }
-
-          // ─── APMR 503 ────────────────────────────────
-          case 'saveApmr503': {
-            const rows = typeof payload.rows === 'string'
-              ? JSON.parse(payload.rows) : payload.rows || [];
-            const batch = db.batch();
-            rows.forEach(r => {
-              const id = r.id || `apmr_${Date.now()}_${Math.random().toString(36).slice(2,5)}`;
-              batch.set(db.collection('apmr_503').doc(id), {
-                ...r, id, created_at: getBkkTimeStr()
-              }, { merge: true });
-            });
-            await batch.commit();
-            return { success: true };
-          }
-
-          case 'getApmr503': {
-            let q = db.collection('apmr_503');
-            if (payload.pic_name) q = q.where('pic_name','==',payload.pic_name);
-            const snap = await q.orderBy('date','desc').get();
-            return { success: true, data: snap.docs.map(docToObj) };
-          }
-
-          // ─── HISTORY / TREND ─────────────────────────
-          case 'getHistorySummary': {
-            let q = db.collection('parts');
-            if (payload.year)  q = q.where('year','==',String(payload.year));
-            if (payload.month) q = q.where('month','==',String(payload.month));
-            const snap = await q.get();
-            return { success: true, data: snap.docs.map(docToObj) };
-          }
-
-          case 'getMonthlyTrend': {
-            const snap = await db.collection('checkins')
-              .where('date','>=',`${payload.year}-01-01`)
-              .where('date','<=',`${payload.year}-12-31`).get();
-            return { success: true, data: snap.docs.map(docToObj) };
-          }
-
-          default:
-            console.warn('callAPI: unknown action', action);
-            return { success: false, message: 'Unknown action: ' + action };
-        }
-      } catch(err) {
-        console.error('Firebase callAPI error [' + action + ']:', err);
-        return { success: false, message: err.message || err.toString() };
+        const response = await fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action, ...payload })
+        });
+        return await response.json();
+      } catch (err) {
+        console.error("API Error:", err);
+        return { success: false, message: err.toString() };
       }
     }
 
@@ -3312,7 +2908,7 @@
           case 'staff':
             isStaffLoggedIn = true; _hashCheckin = ''; _hashParts = '';
             document.getElementById('staff-view').classList.remove('hidden');
-            showStaffTab('queue'); // Firebase real-time will update automatically
+            showStaffTab('queue'); fetchAll();
             break;
           case 'pic':
             isPICLoggedIn = true;
@@ -3432,9 +3028,8 @@
         } else if (licenseInput) { licenseInput.focus(); }
       }
 
-      fetchAll().then(function() {
-        startRealtimeListeners();
-      });
+      fetchAll();
+      setInterval(fetchAll, 5000); // 5 วินาที — เร็วพอสำหรับ real-time queue
       // อัปเดต PIC access banner ทุก 1 นาที
       setInterval(() => { if (isPICLoggedIn) updatePICAccessUI(); }, 60000);
     });
@@ -3574,7 +3169,7 @@
           document.getElementById('staff-view').classList.remove('hidden');
           showStaffTab('queue');
           // โหลดข้อมูลทันที ไม่รอ interval
-          // Firebase real-time will update automatically
+          fetchAll();
         }
       } else {
         if (err) { err.classList.remove('hidden'); setTimeout(() => err.classList.add('hidden'), 2000); }
@@ -4370,6 +3965,7 @@
         updatePICRowCount();
         document.getElementById('pic-empty-state').classList.remove('hidden');
         loadTodayPICParts();
+        fetchAll(); // sync ข้อมูลให้ Staff ด้วย
       } else {
         showToast('เกิดข้อผิดพลาด: ' + (result ? result.message : 'ไม่ทราบสาเหตุ', 'error'));
       }
@@ -4686,6 +4282,7 @@
         if (pcmQueueNum) updateStatus(pcmQueueNum, 'loading', pcmFactory);
 
         closePartsModal();
+        await fetchAll();
         showToast('✅ ยืนยันรับของสำเร็จ ' + (res.updated || 0) + ' รายการ');
 
       } catch(e) {
@@ -4870,7 +4467,7 @@
           if (res.success) {
             currentSupplierRecord = res.record;
             safeSetLocal('my_active_queue', JSON.stringify(res.record));
-            // Firebase real-time will update automatically
+            fetchAll();
             showSupplierStatus(res.record);
           } else { showToast('Error: ' + res.message, 'error'); }
           if (btn) { btn.disabled = false; btn.innerText = 'รับหมายเลขคิว'; }
@@ -4899,7 +4496,7 @@
             if (res.success) {
               currentSupplierRecord = res.record;
               safeSetLocal('my_active_queue', JSON.stringify(res.record));
-              // Firebase real-time will update automatically
+              fetchAll();
               showSupplierStatus(res.record);
             } else { showToast('Error: ' + res.message, 'error'); }
             if (btn) { btn.disabled = false; btn.innerText = 'รับหมายเลขคิว'; }
@@ -5069,7 +4666,7 @@
       }).then(res => {
         pendingUpdates.delete(updateId);
         if (!res || !res.success) showToast('Error: ' + res.message, 'error');
-        // Firebase real-time will update automatically
+        fetchAll();
       });
     }
 
@@ -6136,7 +5733,7 @@
       _populatePicRespFilter();
 
       // fetch ใหม่เสมอ แล้ว update filter + content หลัง fetch
-      // Firebase real-time will update automatically
+      fetchAll();
     }
 
     function _populatePicRespFilter() {
@@ -6395,7 +5992,7 @@
           });
         }
       }));
-      // Firebase real-time will update automatically
+      fetchAll();
     }
 
     // ลบ localStorage เก่าถ้ายังมีค้างอยู่
@@ -7538,7 +7135,7 @@
           if (btn) { btn.disabled = false; btn.innerText = '✅ ยืนยันส่งข้อมูล'; }
         }, 3000);
 
-        // Firebase real-time will update automatically
+        fetchAll();
       } catch(err) {
         document.getElementById('upload503-saving').classList.add('hidden');
         document.getElementById('upload503-preview').classList.remove('hidden');
