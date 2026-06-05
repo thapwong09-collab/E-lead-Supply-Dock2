@@ -2339,7 +2339,7 @@
       }
 
       fetchAll();
-      setInterval(fetchAll, 15000);
+      setInterval(fetchAll, 5000); // 5 วินาที — เร็วพอสำหรับ real-time queue
       // อัปเดต PIC access banner ทุก 1 นาที
       setInterval(() => { if (isPICLoggedIn) updatePICAccessUI(); }, 60000);
     });
@@ -3868,7 +3868,7 @@
 
       // เสียงแจ้งเตือนเมื่อ status เปลี่ยน
       if (prevStatus && prevStatus !== record.status) {
-        if (record.status === 'loading')    playBeep('call');   // ถูกเรียกเข้าพื้นที่
+        if (record.status === 'loading')    playBell();         // ถูกเรียกเข้าพื้นที่ — กระดิ่ง
         if (record.status === 'completed')  playBeep('done');   // เสร็จสิ้น
         if (record.status === 'cancelled')  playBeep('cancel'); // ยกเลิก
       }
@@ -4181,7 +4181,9 @@
       };
 
       const renderLoadCard = function(r) {
-        return '<div class="bg-white p-5 rounded-3xl shadow-sm border border-blue-100 fade-in text-left border-l-4 border-l-blue-500">' +
+        return '<div class="bg-white p-5 rounded-3xl shadow-sm border border-blue-100 fade-in text-left border-l-4 border-l-blue-500 relative pt-10">' +
+          '<button type="button" onclick="updateStatus(\'' + r.queue_number + '\', \'cancelled\')" class="absolute top-2 left-1/2 -translate-x-1/2 text-slate-300 hover:text-rose-500 transition-colors p-1 cursor-pointer" title="ยกเลิก">' +
+          '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>' +
           '<div class="flex justify-between items-center mb-1">' +
           '<div class="flex items-center gap-2"><span class="font-black text-xl text-blue-600">#' + r.queue_number + '</span>' + getPlanBadge(getEffectivePlanStatus(r)) + '</div>' +
           '<span class="text-[9px] font-black text-slate-300 uppercase">' + formatThaiTime(r.loading_time) + '</span></div>' +
@@ -7935,61 +7937,62 @@
       const resume = ctx.state === 'suspended' ? ctx.resume() : Promise.resolve();
       resume.then(function() {
         const now = ctx.currentTime;
-        // กระดิ่ง — 3 ครั้ง ห่างกัน 0.4 วินาที
-        [0, 0.4, 0.8].forEach(function(offset) {
+        // กระดิ่ง 3 ครั้ง ห่างกัน 0.5 วินาที — เสียงยาวขึ้น decay ช้าลง
+        [0, 0.5, 1.0].forEach(function(offset) {
           const osc  = ctx.createOscillator();
           const gain = ctx.createGain();
-          osc.connect(gain);
-          gain.connect(ctx.destination);
+          osc.connect(gain); gain.connect(ctx.destination);
           osc.type = 'sine';
-          // harmonic เพิ่มความเป็นกระดิ่ง
+          osc.frequency.setValueAtTime(1318, now + offset); // E6
+
           const osc2  = ctx.createOscillator();
           const gain2 = ctx.createGain();
-          osc2.connect(gain2);
-          gain2.connect(ctx.destination);
+          osc2.connect(gain2); gain2.connect(ctx.destination);
           osc2.type = 'sine';
+          osc2.frequency.setValueAtTime(2637, now + offset); // E7 harmonic
 
-          osc.frequency.setValueAtTime(1318, now + offset);   // E6
-          osc2.frequency.setValueAtTime(2637, now + offset);  // E7 harmonic
-
+          // decay ยาวขึ้น 0.8 วินาที
           gain.gain.setValueAtTime(0.001, now + offset);
-          gain.gain.linearRampToValueAtTime(0.5, now + offset + 0.01);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.5);
+          gain.gain.linearRampToValueAtTime(0.55, now + offset + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.8);
 
           gain2.gain.setValueAtTime(0.001, now + offset);
-          gain2.gain.linearRampToValueAtTime(0.2, now + offset + 0.01);
-          gain2.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.4);
+          gain2.gain.linearRampToValueAtTime(0.22, now + offset + 0.01);
+          gain2.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.6);
 
-          osc.start(now + offset);  osc.stop(now + offset + 0.55);
-          osc2.start(now + offset); osc2.stop(now + offset + 0.45);
+          osc.start(now + offset);  osc.stop(now + offset + 0.85);
+          osc2.start(now + offset); osc2.stop(now + offset + 0.65);
         });
       });
     }
 
     function _doBeep(ctx, type) {
-      const configs = {
+      const now = ctx.currentTime;
+      const notes = {
+        // เรียกเข้าพื้นที่ — fanfare สั้น 2 โน้ต ชัดเจน
         call: [
-          { freq: 880,  dur: 0.15, start: 0.0,  vol: 0.5 },
-          { freq: 1100, dur: 0.2,  start: 0.2,  vol: 0.5 },
+          { freq: 523, dur: 0.12, start: 0.0,  vol: 0.5, type: 'square' },
+          { freq: 784, dur: 0.25, start: 0.15, vol: 0.5, type: 'square' },
         ],
+        // เสร็จสิ้น — ascending 3 โน้ต สดใส
         done: [
-          { freq: 660,  dur: 0.12, start: 0.0,  vol: 0.4 },
-          { freq: 880,  dur: 0.12, start: 0.18, vol: 0.4 },
-          { freq: 1100, dur: 0.2,  start: 0.35, vol: 0.5 },
+          { freq: 523, dur: 0.1,  start: 0.0,  vol: 0.4, type: 'sine' },
+          { freq: 659, dur: 0.1,  start: 0.12, vol: 0.4, type: 'sine' },
+          { freq: 1047,dur: 0.3,  start: 0.25, vol: 0.5, type: 'sine' },
         ],
+        // ยกเลิก — เสียงแจ้งเตือนลง
         cancel: [
-          { freq: 330,  dur: 0.25, start: 0.0,  vol: 0.35 },
-          { freq: 220,  dur: 0.3,  start: 0.3,  vol: 0.35 },
+          { freq: 440, dur: 0.15, start: 0.0,  vol: 0.35, type: 'sawtooth' },
+          { freq: 330, dur: 0.2,  start: 0.18, vol: 0.35, type: 'sawtooth' },
+          { freq: 220, dur: 0.25, start: 0.40, vol: 0.3,  type: 'sawtooth' },
         ],
-      };
-      const notes = configs[type] || configs.call;
-      const now   = ctx.currentTime;
+      }[type] || [];
+
       notes.forEach(function(n) {
         const osc  = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.type = 'sine';
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = n.type || 'sine';
         osc.frequency.setValueAtTime(n.freq, now + n.start);
         gain.gain.setValueAtTime(0.001, now + n.start);
         gain.gain.linearRampToValueAtTime(n.vol, now + n.start + 0.02);
