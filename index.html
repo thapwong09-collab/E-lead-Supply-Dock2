@@ -348,7 +348,7 @@
             <div class="bg-blue-50 rounded-xl p-3 text-center">
               <div class="text-[9px] font-black text-blue-500 uppercase mb-1">รับจริง</div>
               <div id="stat-parts-recv" class="text-2xl font-black text-blue-700">—</div>
-              <div class="text-[9px] text-blue-400">พาร์ท</div>
+              <div class="text-[9px] text-blue-400">รายการ</div>
             </div>
             <div class="bg-emerald-50 rounded-xl p-3 text-center">
               <div class="text-[9px] font-black text-emerald-500 uppercase mb-1">✅ ครบ/เกิน</div>
@@ -4468,8 +4468,8 @@
       _s('stat-today-cancelled',   cancelled);
 
       // ── Parts ──
-      const qtyPlan  = dayParts.reduce(function(s,p){ return s+(parseFloat(p.qty_plan)||0); }, 0);
-      const qtyRecv  = dayParts.reduce(function(s,p){ return s+(parseFloat(p.qty_received)||0); }, 0);
+      const qtyPlan  = dayParts.length;
+      const qtyRecv  = dayParts.filter(function(p){ return p.status==='completed'||p.status==='short'||p.status==='missing'; }).length;
       const complete = dayParts.filter(function(p){ return p.status==='completed'; }).length;
       const short    = dayParts.filter(function(p){ return p.status==='short'; }).length;
       const missing  = dayParts.filter(function(p){ return p.status==='missing'; }).length;
@@ -8990,5 +8990,8 @@
     }
     // =====================================================
   </script>
+</body>
+</html>
+cript>
 </body>
 </html>
