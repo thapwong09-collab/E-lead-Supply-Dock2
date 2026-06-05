@@ -2473,7 +2473,7 @@
           initManagerView();
         } else {
           isStaffLoggedIn = true;
-          _prevWaitCount = -1; // -1 = ยังไม่เคย render ไม่ให้เล่นเสียงรอบแรก
+          _prevWaitCount = -1; _prevLoadCount = 0; _prevCompCount = 0; _prevCancelCount = 0;
           _hashCheckin = ''; _hashParts = ''; _hashPartsPIC = ''; _hashPartsPlanning = '';
           hideAll();
           document.getElementById('staff-view').classList.remove('hidden');
@@ -3580,7 +3580,6 @@
           return;
         }
 
-        playBeep('done');
         if (pcmQueueNum) updateStatus(pcmQueueNum, 'loading', pcmFactory);
 
         closePartsModal();
@@ -3955,10 +3954,9 @@
       const updateId = `${record.date}-${record.queue_number}`;
       const now = new Date().toISOString();
       const updates = { ...record, status: nextStatus };
-      if (nextStatus === 'loading')   { updates.loading_time   = now; playBeep('call'); }
+      if (nextStatus === 'loading')   { updates.loading_time   = now; }
       if (nextStatus === 'loading' && factory) updates.factory = factory;
-      if (nextStatus === 'completed') { updates.completed_time = now; playBeep('done'); }
-      if (nextStatus === 'cancelled') playBeep('cancel');
+      if (nextStatus === 'completed') { updates.completed_time = now; }
       pendingUpdates.add(updateId);
       allData[recordIdx] = updates;
       if (isStaffLoggedIn) updateStaffUI();
@@ -4095,21 +4093,31 @@
       </div>`;
     }
 
-    let _prevWaitCount = 0;
+    let _prevWaitCount   = -1;
+    let _prevLoadCount   = 0;
+    let _prevCompCount   = 0;
+    let _prevCancelCount = 0;
 
     function updateStaffUI() {
       const today  = getThaiDate();
       const myData = allData.filter(function(r){ return normalizeDate(r.date) === today; });
 
-      const waitList = myData.filter(function(r){ return r.status === 'waiting'; });
-      const loadList = myData.filter(function(r){ return r.status === 'loading'; });
-      const compList = myData.filter(function(r){ return r.status === 'completed' || r.status === 'exited'; });
+      const waitList   = myData.filter(function(r){ return r.status === 'waiting'; });
+      const loadList   = myData.filter(function(r){ return r.status === 'loading'; });
+      const compList   = myData.filter(function(r){ return r.status === 'completed' || r.status === 'exited'; });
+      const cancelList = myData.filter(function(r){ return r.status === 'cancelled'; });
 
-      // เสียงกระดิ่งเมื่อมีคิวใหม่เข้ามา (ไม่เล่นรอบแรก)
-      if (_prevWaitCount >= 0 && waitList.length > _prevWaitCount) {
-        playBell();
+      // ── ตรวจ status เปลี่ยน → เล่นเสียงทุกเครื่องที่เปิด Staff ──
+      if (_prevWaitCount >= 0) {
+        if (waitList.length   > _prevWaitCount)   playBell();
+        if (loadList.length   > _prevLoadCount)   playBeep('call');
+        if (compList.length   > _prevCompCount)   playBeep('done');
+        if (cancelList.length > _prevCancelCount) playBeep('cancel');
       }
-      _prevWaitCount = waitList.length;
+      _prevWaitCount   = waitList.length;
+      _prevLoadCount   = loadList.length;
+      _prevCompCount   = compList.length;
+      _prevCancelCount = cancelList.length;
 
       // ── counts ──
       const cWait = document.getElementById('count-waiting');
