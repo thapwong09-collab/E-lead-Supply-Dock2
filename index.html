@@ -5490,11 +5490,9 @@
       if (!newName || !newName.trim() || newName.trim() === oldName) return;
       const name = newName.trim();
 
-      // แสดง loading
       showToast('⏳ กำลังเปลี่ยนชื่อ...');
 
       try {
-        // เรียก API เพื่ออัพเดทชื่อ PIC ใน Sheet
         const res = await callAPI('renamePicMaster', { oldName: oldName, newName: name });
         if (res && res.success) {
           // อัพเดท allPicMaster ใน memory
@@ -5502,7 +5500,9 @@
             if ((m.pic_name||'').trim() === oldName) m.pic_name = name;
           });
           showToast('✅ เปลี่ยนชื่อ PIC เป็น "' + name + '" แล้ว');
-          _renderPicResponsibility();
+          // refresh ทั้งสองหน้า
+          updatePicMaster();
+          if (typeof _renderPicResponsibility === 'function') _renderPicResponsibility();
         } else {
           showToast('ไม่สำเร็จ: ' + (res?.message||''), 'error');
         }
@@ -5794,6 +5794,8 @@
               ${isActive ? `<button type="button" onclick="openAddSupModal(${pi})" class="bg-white/20 hover:bg-white/30 text-white text-[9px] font-black px-2 py-1 rounded-lg cursor-pointer">+ Supplier</button>` : ''}
               <button type="button" onclick="openQrPic('${pic.name.replace(/'/g,"\\'")}','${thisPicKey}')"
                 class="bg-white/20 hover:bg-white/30 text-white text-[9px] font-black px-2 py-1 rounded-lg cursor-pointer">🖨️ QR</button>
+              <button type="button" onclick="renamePic('${pic.name.replace(/'/g,"\\'")}')"
+                class="bg-white/20 hover:bg-white/30 text-white text-[9px] font-black px-2 py-1 rounded-lg cursor-pointer">✏️ ชื่อ</button>
               <button type="button" onclick="togglePicStatus(${pi})"
                 class="bg-white/20 hover:bg-white/30 text-white text-[9px] font-black px-2 py-1 rounded-lg cursor-pointer">
                 ${isActive ? '🔒 Inactive' : '✅ Active'}
@@ -5822,7 +5824,14 @@
                   return '<div class="px-4 py-3 border-b border-slate-50 last:border-0 hover:bg-slate-50/60 group">' +
                     '<div class="flex items-start justify-between gap-2">' +
                       '<div class="flex-1 min-w-0">' +
-                        '<div class="font-bold text-slate-700 text-xs truncate">' + s + '</div>' +
+                        '<div class="flex items-center gap-2 flex-wrap">' +
+                          '<span class="font-bold text-slate-700 text-xs truncate">' + s + '</span>' +
+                          '<button type="button" data-supplier="' + s.replace(/'/g,"\\'").replace(/"/g,'&quot;') + '" onclick="toggleSupplierTypeFromCard(this)" ' +
+                            'class="text-[8px] font-black px-2 py-0.5 rounded-full border cursor-pointer transition-all ' +
+                            (getSupplierType(s)==='overseas' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200') + '">' +
+                            (getSupplierType(s)==='overseas' ? '🌏 Overseas' : '🇹🇭 Local') +
+                          '</button>' +
+                        '</div>' +
                         '<div class="flex flex-wrap gap-1 mt-1.5">' +
                           (vehicles.length > 0 ? plateBadges : '<span class="text-[9px] text-slate-300">ยังไม่มีทะเบียน</span>') +
                         '</div>' +
@@ -9376,15 +9385,15 @@
     }
 
     function loadPicDashboard() {
-      const year     = (document.getElementById('picdash-year')||{}).value  || String(new Date().getFullYear());
-      const month    = (document.getElementById('picdash-month')||{}).value || '';
-      const picFilt  = (document.getElementById('picdash-pic-filter')||{}).value || '';
+      const year    = (document.getElementById('picdash-year')||{}).value  || String(new Date().getFullYear());
+      const month   = (document.getElementById('picdash-month')||{}).value || '';
+      const picFilt = (document.getElementById('picdash-pic-filter')||{}).value || '';
 
       document.getElementById('picdash-loading')?.classList.remove('hidden');
       document.getElementById('picdash-content')?.classList.add('hidden');
       document.getElementById('picdash-empty')?.classList.add('hidden');
 
-      // กรอง parts ตามช่วงเวลา
+      // กรอง parts
       const parts = allPartData.filter(function(p) {
         if (!p.date) return false;
         const d = normalizeDate(p.date);
@@ -9402,14 +9411,13 @@
         return r.status !== 'cancelled';
       });
 
-      // unplanned
       const unplanned = _unplannedData || [];
 
-      // สร้าง PIC → Supplier map จาก allPicMaster
-      const picMap = {}; // { picName: Set of suppliers }
+      // PIC → Supplier map จาก allPicMaster
+      const picMap = {};
       allPicMaster.forEach(function(m) {
-        const pic = m.pic_name || '';
-        const sup = m.supplier || '';
+        const pic = (m.pic_name||'').trim();
+        const sup = (m.supplier||'').trim();
         if (!pic) return;
         if (!picMap[pic]) picMap[pic] = new Set();
         if (sup) picMap[pic].add(sup);
@@ -9430,7 +9438,7 @@
       content.innerHTML = pics.map(function(pic) {
         const suppliers = [...picMap[pic]].sort();
 
-        // นอกแผนของ PIC นี้
+        // นอกแผนของ PIC
         const unplannedByPic = unplanned.filter(function(u){
           return (u.submitted_by||u.created_by||u.pic_name||'') === pic;
         });
@@ -9438,18 +9446,22 @@
         const unplPend  = unplannedByPic.filter(function(u){ return u.status==='pending_l'||u.status==='pending_f'; }).length;
         const unplRej   = unplannedByPic.filter(function(u){ return u.status==='rejected'; }).length;
 
-        // สร้าง supplier rows
+        // Overall stats ของ PIC (จาก PartDetail ที่ field pic ตรง)
+        const picParts = parts.filter(function(p){ return (p.pic||'').trim() === pic; });
+        const picQtyP  = picParts.reduce(function(s,p){ return s+(parseFloat(p.qty_plan)||0); },0);
+        const picQtyR  = picParts.reduce(function(s,p){ return s+(parseFloat(p.qty_received)||0); },0);
+        const picFR    = picQtyP > 0 ? (picQtyR/picQtyP*100).toFixed(1)+'%' : '—';
+
+        // Supplier rows
         const supRows = suppliers.map(function(sup) {
-          const supNorm  = normalizeVendor(sup.toLowerCase());
-          // Parts ของ supplier นี้
-          const supParts = parts.filter(function(p) {
+          const supNorm     = normalizeVendor(sup.toLowerCase());
+          const supParts    = parts.filter(function(p) {
             const pv = normalizeVendor((p.vendor||'').toLowerCase());
-            return pv === supNorm || (supNorm.length>=4 && pv.includes(supNorm)) || (pv.length>=4 && supNorm.includes(pv));
+            return pv === supNorm || (supNorm.length>=4 && (pv.includes(supNorm)||supNorm.includes(pv)));
           });
-          // Checkins ของ supplier นี้
           const supCheckins = checkins.filter(function(r) {
             const cn = normalizeVendor((r.company_name||'').toLowerCase());
-            return cn === supNorm || (supNorm.length>=4 && cn.includes(supNorm)) || (cn.length>=4 && supNorm.includes(cn));
+            return cn === supNorm || (supNorm.length>=4 && (cn.includes(supNorm)||supNorm.includes(cn)));
           });
 
           const visits   = supCheckins.length;
@@ -9464,10 +9476,19 @@
           const frColor  = qtyP > 0 ? (parseFloat(fillRate)>=95 ? 'text-emerald-600' : parseFloat(fillRate)>=70 ? 'text-amber-600' : 'text-rose-600') : 'text-slate-400';
           const compPct  = total > 0 ? Math.round(comp/total*100) : 0;
           const type     = getSupplierType(sup);
-          const badge    = type==='overseas' ? '<span class="bg-blue-100 text-blue-600 text-[8px] font-black px-1.5 py-0.5 rounded-full">🌏 OVS</span>' : '<span class="bg-emerald-100 text-emerald-600 text-[8px] font-black px-1.5 py-0.5 rounded-full">🇹🇭 Local</span>';
+          const badge    = type==='overseas'
+            ? '<span class="bg-blue-100 text-blue-600 text-[8px] font-black px-1.5 py-0.5 rounded-full">🌏 OVS</span>'
+            : '<span class="bg-emerald-100 text-emerald-600 text-[8px] font-black px-1.5 py-0.5 rounded-full">🇹🇭 Local</span>';
+          const supEsc = sup.replace(/'/g,"\'").replace(/"/g,'&quot;');
 
           return '<tr class="hover:bg-violet-50/20">' +
-            '<td class="px-4 py-2.5"><div class="font-bold text-slate-700 text-sm">' + sup + '</div><div class="mt-0.5">' + badge + '</div></td>' +
+            '<td class="px-4 py-2.5">' +
+              '<div class="font-bold text-slate-700 text-sm">' + sup + '</div>' +
+              '<div class="flex items-center gap-1.5 mt-0.5">' + badge +
+                '<button type="button" data-supplier="' + supEsc + '" onclick="toggleSupplierTypeFromCard(this)" ' +
+                  'class="text-[8px] font-black text-slate-400 hover:text-violet-600 cursor-pointer underline underline-offset-2">เปลี่ยน</button>' +
+              '</div>' +
+            '</td>' +
             '<td class="px-4 py-2.5 text-center font-black text-slate-700">' + visits + '</td>' +
             '<td class="px-4 py-2.5 text-center font-black text-slate-600">' + total + '</td>' +
             '<td class="px-4 py-2.5 text-center">' +
@@ -9478,49 +9499,36 @@
               '<span class="font-black text-rose-500">' + missing + '</span>' +
             '</td>' +
             '<td class="px-4 py-2.5 text-center">' +
-              (total > 0 ? '<div class="flex items-center gap-1.5"><div class="flex-1 bg-slate-100 rounded-full h-1.5"><div class="bg-emerald-500 h-1.5 rounded-full" style="width:' + compPct + '%"></div></div><span class="text-[9px] font-black text-emerald-600 w-8">' + compPct + '%</span></div>' : '<span class="text-slate-300 text-[9px]">—</span>') +
+              (total > 0
+                ? '<div class="flex items-center gap-1.5"><div class="flex-1 bg-slate-100 rounded-full h-1.5"><div class="bg-emerald-500 h-1.5 rounded-full" style="width:' + compPct + '%"></div></div><span class="text-[9px] font-black text-emerald-600 w-8">' + compPct + '%</span></div>'
+                : '<span class="text-slate-300 text-[9px]">—</span>') +
             '</td>' +
             '<td class="px-4 py-2.5 text-center font-black ' + frColor + '">' + fillRate + (fillRate!=='—'?'%':'') + '</td>' +
-            '<td class="px-4 py-2.5 text-center text-slate-400 font-bold text-xs">' + (pending > 0 ? '<span class="bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full text-[9px] font-black">⏳ ' + pending + '</span>' : '—') + '</td>' +
+            '<td class="px-4 py-2.5 text-center">' + (pending > 0 ? '<span class="bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full text-[9px] font-black">⏳ ' + pending + '</span>' : '—') + '</td>' +
           '</tr>';
         }).join('') || '<tr><td colspan="7" class="text-center py-3 text-slate-300 text-xs">ไม่มีข้อมูล Supplier</td></tr>';
 
-        // Overall stats ของ PIC
-        const picParts    = parts.filter(function(p){ return (p.pic||'') === pic; });
-        const picComp     = picParts.filter(function(p){ return p.status==='completed'; }).length;
-        const picTotal    = picParts.length;
-        const picQtyP     = picParts.reduce(function(s,p){ return s+(parseFloat(p.qty_plan)||0); },0);
-        const picQtyR     = picParts.reduce(function(s,p){ return s+(parseFloat(p.qty_received)||0); },0);
-        const picFR       = picQtyP > 0 ? (picQtyR/picQtyP*100).toFixed(1)+'%' : '—';
-
         return '<div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">' +
-
-          // PIC Header
           '<div class="px-5 py-4 bg-gradient-to-r from-violet-600 to-purple-500 flex items-center justify-between">' +
             '<div class="flex items-center gap-3">' +
               '<div class="w-10 h-10 rounded-full bg-white/20 text-white font-black text-lg flex items-center justify-center">' + pic.charAt(0).toUpperCase() + '</div>' +
               '<div>' +
                 '<div class="font-black text-white text-base">' + pic + '</div>' +
-                '<div class="text-violet-200 text-[10px] mt-0.5">' + suppliers.length + ' Supplier ในความรับผิดชอบ</div>' +
+                '<div class="text-violet-200 text-[10px] mt-0.5">' + suppliers.length + ' Supplier · พาร์ท ' + picParts.length + ' · Fill Rate ' + picFR + '</div>' +
               '</div>' +
             '</div>' +
             '<div class="flex gap-4 text-center">' +
-              '<div><div class="text-white font-black text-lg">' + picTotal + '</div><div class="text-violet-200 text-[9px]">พาร์ทรวม</div></div>' +
-              '<div><div class="text-white font-black text-lg">' + picFR + '</div><div class="text-violet-200 text-[9px]">Fill Rate</div></div>' +
               '<div><div class="text-amber-300 font-black text-lg">' + unplannedByPic.length + '</div><div class="text-violet-200 text-[9px]">นอกแผน</div></div>' +
             '</div>' +
           '</div>' +
-
-          // Unplanned summary
-          (unplannedByPic.length > 0 ?
-            '<div class="px-5 py-2 bg-amber-50 border-b border-amber-100 flex items-center gap-4 text-[10px] font-bold">' +
-              '<span class="text-amber-700">⚡ งานนอกแผน:</span>' +
-              '<span class="text-emerald-600">approved ' + unplApprv + '</span>' +
-              '<span class="text-amber-600">รออนุมัติ ' + unplPend + '</span>' +
-              (unplRej > 0 ? '<span class="text-rose-500">ไม่อนุมัติ ' + unplRej + '</span>' : '') +
-            '</div>' : '') +
-
-          // Supplier Table
+          (unplannedByPic.length > 0
+            ? '<div class="px-5 py-2 bg-amber-50 border-b border-amber-100 flex items-center gap-4 text-[10px] font-bold">' +
+                '<span class="text-amber-700">⚡ งานนอกแผน:</span>' +
+                '<span class="text-emerald-600">approved ' + unplApprv + '</span>' +
+                '<span class="text-amber-600">รออนุมัติ ' + unplPend + '</span>' +
+                (unplRej > 0 ? '<span class="text-rose-500">ไม่อนุมัติ ' + unplRej + '</span>' : '') +
+              '</div>'
+            : '') +
           '<div class="overflow-x-auto">' +
             '<table class="w-full text-xs">' +
               '<thead class="bg-slate-50 border-b border-slate-100">' +
@@ -9528,7 +9536,7 @@
                   '<th class="px-4 py-3 text-left">Supplier</th>' +
                   '<th class="px-4 py-3 text-center">เข้ามา (ครั้ง)</th>' +
                   '<th class="px-4 py-3 text-center">พาร์ท (แผน)</th>' +
-                  '<th class="px-4 py-3 text-center">ครบ / ไม่ครบ / ไม่รับ</th>' +
+                  '<th class="px-4 py-3 text-center">ครบ/ไม่ครบ/ไม่รับ</th>' +
                   '<th class="px-4 py-3 text-center">% ครบ</th>' +
                   '<th class="px-4 py-3 text-center">Fill Rate</th>' +
                   '<th class="px-4 py-3 text-center">รอรับ</th>' +
