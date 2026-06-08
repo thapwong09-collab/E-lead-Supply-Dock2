@@ -2708,6 +2708,7 @@
           allData     = res.data  || [];
           if (res.parts)     allPartData   = res.parts     || [];
           if (res.vehicles && res.vehicles.length > 0) _vehicleData = res.vehicles;
+          if (res.suppliers && res.suppliers.length > 0) _supplierMasterList = res.suppliers;
           if (res.picMaster) {
             const picMasterPage = document.getElementById('pic-page-pic-master');
             const isOnPicMaster = picMasterPage && !picMasterPage.classList.contains('hidden');
