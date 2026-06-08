@@ -49,7 +49,7 @@
     .part-row:hover { background: #f8fafc; }
     .part-row.confirmed { background: #f0fdf4; }
     .part-row.unplanned { background: #fff7ed; }
-    .qty-input { width: 70px; padding: 4px 8px; border: 2px solid #e2e8f0; border-radius: 8px; text-align: center; font-weight: 700; font-size: 13px; outline: none; }
+    .qty-input { width: 100%; min-width: 60px; padding: 4px 8px; border: 2px solid #e2e8f0; border-radius: 8px; text-align: center; font-weight: 700; font-size: 13px; outline: none; }
     .qty-input:focus { border-color: #3b82f6; }
     .qty-input.over { border-color: #f59e0b; background: #fffbeb; }
     .qty-input.short { border-color: #f43f5e; background: #fff1f2; }
@@ -772,13 +772,15 @@
             <table class="w-full text-xs">
               <thead class="bg-slate-50">
                 <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                  <th class="px-4 py-3 text-left">Supplier</th>
-                  <th class="px-4 py-3 text-center">ประเภท</th>
-                  <th class="px-4 py-3 text-center">PO</th>
-                  <th class="px-4 py-3 text-center">Qty แผน</th>
-                  <th class="px-4 py-3 text-center">Qty รับ</th>
-                  <th class="px-4 py-3 text-center">Fill Rate</th>
-                  <th class="px-4 py-3 text-center">สถานะ</th>
+                  <th class="px-3 py-3 text-left">Supplier</th>
+                  <th class="px-3 py-3 text-center">เข้ามา</th>
+                  <th class="px-3 py-3 text-center">PO</th>
+                  <th class="px-3 py-3 text-center">พาร์ท</th>
+                  <th class="px-3 py-3 text-center">ครบ/ไม่ครบ/ไม่รับ</th>
+                  <th class="px-3 py-3 text-center">% ครบ</th>
+                  <th class="px-3 py-3 text-center">Fill Rate</th>
+                  <th class="px-3 py-3 text-center">% ตรงเวลา</th>
+                  <th class="px-3 py-3 text-center">สถานะ</th>
                 </tr>
               </thead>
               <tbody id="kpi-all-suppliers-table" class="divide-y divide-slate-50"></tbody>
@@ -1280,13 +1282,15 @@
             <table class="w-full text-xs">
               <thead class="bg-slate-50">
                 <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                  <th class="px-4 py-3 text-left">Supplier</th>
-                  <th class="px-4 py-3 text-center">ประเภท</th>
-                  <th class="px-4 py-3 text-center">PO</th>
-                  <th class="px-4 py-3 text-center">Qty แผน</th>
-                  <th class="px-4 py-3 text-center">Qty รับ</th>
-                  <th class="px-4 py-3 text-center">Fill Rate</th>
-                  <th class="px-4 py-3 text-center">สถานะ</th>
+                  <th class="px-3 py-3 text-left">Supplier</th>
+                  <th class="px-3 py-3 text-center">เข้ามา</th>
+                  <th class="px-3 py-3 text-center">PO</th>
+                  <th class="px-3 py-3 text-center">พาร์ท</th>
+                  <th class="px-3 py-3 text-center">ครบ/ไม่ครบ/ไม่รับ</th>
+                  <th class="px-3 py-3 text-center">% ครบ</th>
+                  <th class="px-3 py-3 text-center">Fill Rate</th>
+                  <th class="px-3 py-3 text-center">% ตรงเวลา</th>
+                  <th class="px-3 py-3 text-center">สถานะ</th>
                 </tr>
               </thead>
               <tbody id="kpi-all-suppliers-table" class="divide-y divide-slate-50"></tbody>
@@ -2392,13 +2396,15 @@
             <table class="w-full text-xs">
               <thead class="bg-slate-50">
                 <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                  <th class="px-4 py-3 text-left">Supplier</th>
-                  <th class="px-4 py-3 text-center">ประเภท</th>
-                  <th class="px-4 py-3 text-center">PO</th>
-                  <th class="px-4 py-3 text-center">Qty แผน</th>
-                  <th class="px-4 py-3 text-center">Qty รับ</th>
-                  <th class="px-4 py-3 text-center">Fill Rate</th>
-                  <th class="px-4 py-3 text-center">สถานะ</th>
+                  <th class="px-3 py-3 text-left">Supplier</th>
+                  <th class="px-3 py-3 text-center">เข้ามา</th>
+                  <th class="px-3 py-3 text-center">PO</th>
+                  <th class="px-3 py-3 text-center">พาร์ท</th>
+                  <th class="px-3 py-3 text-center">ครบ/ไม่ครบ/ไม่รับ</th>
+                  <th class="px-3 py-3 text-center">% ครบ</th>
+                  <th class="px-3 py-3 text-center">Fill Rate</th>
+                  <th class="px-3 py-3 text-center">% ตรงเวลา</th>
+                  <th class="px-3 py-3 text-center">สถานะ</th>
                 </tr>
               </thead>
               <tbody id="kpi-all-suppliers-table" class="divide-y divide-slate-50"></tbody>
@@ -4415,7 +4421,7 @@
     // STAFF UI
     // ==========================================
     // คำนวณ plan_status จาก PartDetail (แทน WeeklyPlan)
-    function getPlanStatusFromParts(companyName, date) {
+    function getPlanStatusFromParts(companyName, date, checkinTime) {
       const parts = allPartData.filter(p => String(p.date||'').trim() === date && p.status !== 'draft' && p.status !== 'cancelled');
       if (parts.length === 0) return 'ไม่มีในแผน';
 
@@ -4430,10 +4436,24 @@
       if (!match) return 'ไม่มีในแผน';
 
       const slot = String(match.time_slot||'').toUpperCase().trim();
-      const now  = new Date();
-      const utc  = now.getTime() + (now.getTimezoneOffset() * 60000);
-      const bkk  = new Date(utc + (3600000 * 7));
-      const tf   = bkk.getHours() + (bkk.getMinutes() / 60);
+
+      // ใช้ checkin_time ของ record ไม่ใช่เวลาปัจจุบัน
+      let tf;
+      if (checkinTime) {
+        const ct = new Date(String(checkinTime).replace(' ','T').includes('+') || String(checkinTime).includes('Z')
+          ? checkinTime
+          : String(checkinTime).replace(' ','T') + '+07:00');
+        if (!isNaN(ct)) {
+          tf = ct.getHours() + (ct.getMinutes() / 60);
+        }
+      }
+      if (tf === undefined) {
+        // fallback: เวลาปัจจุบัน (กรณี realtime)
+        const now = new Date();
+        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const bkk = new Date(utc + (3600000 * 7));
+        tf = bkk.getHours() + (bkk.getMinutes() / 60);
+      }
 
       if (slot.includes('PICK')) return 'Pickup';
       if (slot === 'AM') return tf > 11.5 ? 'AM - ล่าช้า' : 'AM - ตรงเวลา';
@@ -4442,7 +4462,7 @@
         if (tf > 17.33)  return 'PM - ล่าช้า';
         return 'PM - ตรงเวลา';
       }
-      return 'ตามแผน'; // มีในแผนแต่ไม่ระบุ slot
+      return 'ตามแผน';
     }
 
     const getPlanBadge = (planStatus) => {
@@ -4459,11 +4479,10 @@
     // คำนวณ plan_status realtime จาก allPartData
     function getEffectivePlanStatus(r) {
       const stored = r.plan_status || '';
-      // ถ้ามีค่าจาก sheet และไม่ใช่ค่า default เก่า ใช้ค่าเดิม
       const oldDefaults = ['นอกแผน', ''];
       if (stored && !oldDefaults.includes(stored)) return stored;
-      // recalculate จาก PartDetail
-      return getPlanStatusFromParts(r.company_name, normalizeDate(r.date));
+      // recalculate โดยใช้ checkin_time จริง
+      return getPlanStatusFromParts(r.company_name, normalizeDate(r.date), r.checkin_time);
     }
 
     // ดึง Parts ของ Supplier โดย match ชื่อแบบ fuzzy
@@ -5460,32 +5479,76 @@
     }
 
     function updatePdPerfTable(checkinData, partsData) {
-      const _activePg = document.getElementById(['page-parts','pic-page-parts-receiving','pic-page-pic-dashboard','planning-page-dashboard','mgr-page-dashboard'].find(function(id){ const el=document.getElementById(id); return el&&!el.classList.contains('hidden'); })||'page-parts');
-      const vendors = [...new Set([
-        ...checkinData.map(function(r){ return r.company_name||''; }),
-        ...partsData.map(function(p){ return p.vendor||''; })
-      ].filter(Boolean))].sort();
+      const _activePg = document.getElementById(getActivePdPage());
+      const tbody = (_activePg||document).querySelector('#kpi-all-suppliers-table') || document.getElementById('kpi-all-suppliers-table');
+      if (!tbody) return;
 
-      _perfAllRows = vendors.map(function(v) {
-        const vl = v.toLowerCase();
-        const ci = checkinData.filter(function(r){ return String(r.company_name||'').toLowerCase().includes(vl) || vl.includes(String(r.company_name||'').toLowerCase().substring(0,8)); });
-        const pp = partsData.filter(function(p){ return String(p.vendor||'').toLowerCase().includes(vl) || vl.includes(String(p.vendor||'').toLowerCase().substring(0,8)); });
-        const visits    = new Set(ci.map(function(r){ return r.date+'_'+r.queue_number; })).size;
-        const ontime    = ci.filter(function(r){ return String(r.plan_status||'').includes('ตรงเวลา'); }).length;
-        const ontimePct = visits > 0 ? Math.round(ontime/visits*100) : 0;
-        const comp      = pp.filter(function(p){ return p.status==='completed'; }).length;
-        const qtyPct    = pp.length > 0 ? Math.round(comp/pp.length*100) : 0;
-        const score     = Math.round(ontimePct*0.4 + qtyPct*0.6);
-        return { v, visits, ontimePct, qtyPct, score };
-      }).sort(function(a,b){ return b.score-a.score; });
+      // group by vendor
+      const supStats = {};
+      checkinData.forEach(function(r) {
+        const name = String(r.company_name||'').trim();
+        if (!name) return;
+        if (!supStats[name]) supStats[name] = { visits:0, ontime:0, late:0, poSet:new Set(), parts:0, qtyP:0, qtyR:0, comp:0, short:0, miss:0 };
+        supStats[name].visits++;
+        const ps = String(r.plan_status||'');
+        if (ps.includes('ตรงเวลา')||ps.includes('มาก่อนเวลา')) supStats[name].ontime++;
+        else if (ps.includes('ล่าช้า')) supStats[name].late++;
+      });
+      partsData.forEach(function(p) {
+        const vendor = String(p.vendor||'').trim();
+        if (!vendor) return;
+        // หา key ที่ตรง (fuzzy match)
+        const key = Object.keys(supStats).find(function(k){
+          const kn = normalizeVendor(k.toLowerCase()), vn = normalizeVendor(vendor.toLowerCase());
+          return kn === vn || (kn.length>=4 && (vn.includes(kn)||kn.includes(vn)));
+        }) || vendor;
+        if (!supStats[key]) supStats[key] = { visits:0, ontime:0, late:0, poSet:new Set(), parts:0, qtyP:0, qtyR:0, comp:0, short:0, miss:0 };
+        supStats[key].parts++;
+        if (p.po_no) supStats[key].poSet.add(p.po_no);
+        supStats[key].qtyP += parseFloat(p.qty_plan)||0;
+        supStats[key].qtyR += parseFloat(p.qty_received)||0;
+        if (p.status==='completed') supStats[key].comp++;
+        else if (p.status==='short')   supStats[key].short++;
+        else if (p.status==='missing') supStats[key].miss++;
+      });
 
-      _perfShowAll = false;
-      const btn = document.getElementById('pd-perf-toggle');
-      if (btn) {
-        btn.innerText = 'ดูทั้งหมด';
-        btn.style.display = _perfAllRows.length <= 10 ? 'none' : '';
-      }
-      renderPerfRows();
+      const sorted = Object.keys(supStats).sort();
+      if (!sorted.length) { tbody.innerHTML = '<tr><td colspan="9" class="text-center py-6 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>'; return; }
+
+      tbody.innerHTML = sorted.map(function(name) {
+        const s       = supStats[name];
+        const fillRate = s.qtyP > 0 ? (s.qtyR/s.qtyP*100).toFixed(1) : '—';
+        const frColor  = s.qtyP > 0 ? (parseFloat(fillRate)>=95?'text-emerald-600 font-black':parseFloat(fillRate)>=70?'text-amber-600 font-black':'text-rose-600 font-black') : 'text-slate-400';
+        const compPct  = s.parts > 0 ? Math.round(s.comp/s.parts*100) : 0;
+        const ontimePct= s.visits > 0 ? Math.round(s.ontime/s.visits*100) : 0;
+        const ontimeColor = ontimePct>=90?'text-emerald-600 font-black':ontimePct>=70?'text-amber-600 font-black':'text-rose-600 font-black';
+        const type     = getSupplierType(name);
+        const badge    = type==='overseas'?'<span class="bg-blue-100 text-blue-600 text-[8px] font-black px-1.5 py-0.5 rounded-full">🌏</span>':'<span class="bg-emerald-100 text-emerald-600 text-[8px] font-black px-1.5 py-0.5 rounded-full">🇹🇭</span>';
+
+        return '<tr class="hover:bg-slate-50">' +
+          '<td class="px-3 py-2.5"><div class="font-bold text-slate-700 text-xs">' + name + '</div><div class="mt-0.5">' + badge + '</div></td>' +
+          '<td class="px-3 py-2.5 text-center font-black text-slate-700 text-xs">' + s.visits + '</td>' +
+          '<td class="px-3 py-2.5 text-center font-black text-slate-600 text-xs">' + s.poSet.size + '</td>' +
+          '<td class="px-3 py-2.5 text-center font-black text-slate-600 text-xs">' + s.parts + '</td>' +
+          '<td class="px-3 py-2.5 text-center text-xs">' +
+            '<span class="text-emerald-600 font-black">' + s.comp + '</span>' +
+            '<span class="text-slate-300 mx-0.5">/</span>' +
+            '<span class="text-amber-600 font-black">' + s.short + '</span>' +
+            '<span class="text-slate-300 mx-0.5">/</span>' +
+            '<span class="text-rose-500 font-black">' + s.miss + '</span>' +
+          '</td>' +
+          '<td class="px-3 py-2.5 text-center text-xs">' +
+            (s.parts > 0
+              ? '<div class="flex items-center gap-1"><div class="flex-1 bg-slate-100 rounded-full h-1.5"><div class="bg-emerald-500 h-1.5 rounded-full" style="width:' + compPct + '%"></div></div><span class="text-[9px] font-black text-emerald-600">' + compPct + '%</span></div>'
+              : '—') +
+          '</td>' +
+          '<td class="px-3 py-2.5 text-center text-xs ' + frColor + '">' + fillRate + (fillRate!=='—'?'%':'') + '</td>' +
+          '<td class="px-3 py-2.5 text-center text-xs ' + ontimeColor + '">' + (s.visits>0 ? ontimePct+'%' : '—') + '</td>' +
+          '<td class="px-3 py-2.5 text-center text-xs">' +
+            (s.late > 0 ? '<span class="bg-rose-100 text-rose-600 text-[9px] font-black px-2 py-0.5 rounded-full">' + s.late + ' ล่าช้า</span>' : '<span class="text-emerald-600 text-[9px] font-black">✅</span>') +
+          '</td>' +
+        '</tr>';
+      }).join('');
     }
 
     // ==========================================
@@ -8836,16 +8899,19 @@
     };
 
     function updateReceiverDropdowns() {
-      // โหลด team ถ้ายังว่าง
       if (_receivingTeam.length === 0) {
         try { _receivingTeam = JSON.parse(localStorage.getItem(RECV_TEAM_KEY)||'[]'); } catch(e) {}
       }
-      const opts = '<option value="">-- เลือกพนักงาน --</option>' +
+      const sel = document.getElementById('pcm-receiver');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">-- เลือกพนักงานผู้รับ --</option>' +
         _receivingTeam.map(function(m){
           return '<option value="' + m.name + '">' + m.name + (m.position ? ' ('+m.position+')' : '') + '</option>';
         }).join('');
-      const sel = document.getElementById('pcm-receiver');
-      if (sel) sel.innerHTML = opts;
+      // ถ้ายังไม่มีทีม แจ้งให้ไปเพิ่มก่อน
+      if (_receivingTeam.length === 0) {
+        sel.innerHTML = '<option value="">⚠️ ยังไม่มีทีม — ไปเพิ่มที่ Tab ทีม Receiving</option>';
+      }
     }
 
     // =====================================================
