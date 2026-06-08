@@ -2691,13 +2691,10 @@
           if (res.plans) globalPlanData = res.plans; // legacy — ไม่ใช้แล้ว
           if (res.parts) {
             allPartData = res.parts || [];
-            // auto-sync PIC+Vendor → PIC_Master Sheet
-            if (allPartData.length > 0) {
-              syncPicMasterToSheet(allPartData.map(p => ({
-                pic:    p.pic    || '',
-                vendor: p.vendor || ''
-              })));
-            }
+            // NOTE: ไม่ auto-sync PIC Master แล้ว เพื่อไม่ให้ทับข้อมูลที่กรอกมือ
+          }
+          if (res.vehicles && res.vehicles.length > 0) {
+            _vehicleData = res.vehicles;
           }
           if (res.picMaster) {
             // ไม่ทับถ้ากำลังอยู่ในหน้า PIC Master และมีข้อมูลแล้ว (ป้องกัน ลบแล้วกลับมา)
