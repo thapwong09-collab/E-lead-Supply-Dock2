@@ -5462,7 +5462,8 @@
           : 'bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer';
       });
       if (tab === 'myparts') initMyParts();
-      if (tab === 'pic-dashboard' || tab === 'parts-receiving') { populatePartsDashboardFilters(); updatePartsDashboard(); }
+      if (tab === 'pic-dashboard') initPicDashboard();
+      if (tab === 'parts-receiving') { populatePartsDashboardFilters(); updatePartsDashboard(); }
       if (tab === 'unplanned') initUnplanned('pic');
       if (tab === 'pic-trend') { onTrendModeChange('pr'); loadPrTrend(); }
       if (tab === 'pic-master') { _vehicleData = []; updatePicMaster(); }
@@ -9375,11 +9376,13 @@
         const now = new Date().getFullYear();
         for (let y = now; y >= now-3; y--) ySel.add(new Option(y, y, y===now, y===now));
       }
-      // populate PIC filter
+      // populate PIC filter ใหม่ทุกครั้ง
       const picSel = document.getElementById('picdash-pic-filter');
-      if (picSel && picSel.options.length <= 1) {
+      if (picSel) {
+        const cur = picSel.value;
+        picSel.innerHTML = '<option value="">ทุก PIC</option>';
         const pics = [...new Set(allPicMaster.map(function(m){ return m.pic_name||''; }))].filter(Boolean).sort();
-        pics.forEach(function(p){ picSel.add(new Option(p, p)); });
+        pics.forEach(function(p){ picSel.add(new Option(p, p, false, p===cur)); });
       }
       loadPicDashboard();
     }
