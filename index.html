@@ -454,6 +454,7 @@
                   <th class="px-3 py-3 text-center">รับโดย</th>
                   <th class="px-3 py-3 text-center">ERP</th>
                   <th class="px-3 py-3">Note Staff</th>
+                  <th class="px-3 py-3">หมายเหตุจัดซื้อ</th>
                   <th class="px-3 py-3 text-center">✏️</th>
                 </tr>
               </thead>
@@ -1919,6 +1920,7 @@
                   <th class="px-4 py-3 text-center">สถานะรับ</th>
                   <th class="px-4 py-3 text-center">ERP</th>
                   <th class="px-4 py-3">Note Staff</th>
+                  <th class="px-4 py-3">หมายเหตุจัดซื้อ</th>
                 </tr>
               </thead>
               <tbody id="planning-weekly-body" class="divide-y divide-slate-50"></tbody>
@@ -5464,7 +5466,7 @@
       if (tab === 'myparts') initMyParts();
       if (tab === 'pic-dashboard') initPicDashboard();
       if (tab === 'parts-receiving') { populatePartsDashboardFilters(); updatePartsDashboard(); }
-      if (tab === 'unplanned') initUnplanned('pic');
+      if (tab === 'unplanned') { initUnplanned('pic'); loadPicUsersForDropdown(); }
       if (tab === 'pic-trend') { onTrendModeChange('pr'); loadPrTrend(); }
       if (tab === 'pic-master') { _vehicleData = []; updatePicMaster(); }
     }
@@ -7328,6 +7330,7 @@
           '<td class="px-3 py-2 text-center text-[10px] font-bold text-slate-600">' + (r.confirmed_by || '<span class="text-slate-300">—</span>') + '</td>' +
           '<td class="px-3 py-2 text-center">' + erpHtml + '</td>' +
           '<td class="px-3 py-2">' + noteHtml + '</td>' +
+          '<td class="px-3 py-2 text-[10px] text-purple-600 max-w-[100px] truncate" title="' + String(r.pic_note||'').replace(/"/g,'') + '">' + (r.pic_note || '<span class="text-slate-300">—</span>') + '</td>' +
           '<td class="px-3 py-2 text-center"><button type="button" onclick="openPartNoteModal(\''+rowId+'\',\''+rowPo+'\',\''+rowPt+'\',\''+(r.erp_status||'')+'\',\''+rowNote+'\')" class="text-violet-500 hover:text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 px-2 py-1 rounded-lg text-[9px] font-black cursor-pointer">✏️</button></td>' +
         '</tr>';
       }).join('') || '<tr><td colspan="11" class="text-center py-6 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
@@ -7362,6 +7365,7 @@
           '<td class="px-4 py-2 text-center">' + stBadge + '</td>' +
           '<td class="px-4 py-2 text-center">' + erpBadge + '</td>' +
           '<td class="px-4 py-2">' + noteHtml + '</td>' +
+          '<td class="px-4 py-2 text-[10px] text-purple-600 max-w-[100px] truncate" title="' + String(r.pic_note||'').replace(/"/g,'') + '">' + (r.pic_note || '<span class="text-slate-300">—</span>') + '</td>' +
         '</tr>';
       }).join('') || '<tr><td colspan="10" class="text-center py-6 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
     }
@@ -7428,6 +7432,23 @@
     }
     // =====================================================
     // =====================================================
+    window.openPicNoteModal = function(id, encodedNote) {
+      const note = encodedNote ? decodeURIComponent(encodedNote) : '';
+      const newNote = prompt('หมายเหตุจัดซื้อ:', note);
+      if (newNote === null) return; // กด cancel
+      callAPI('updatePicNote', { id: id, pic_note: newNote }).then(function(res) {
+        if (res && res.success) {
+          // อัพเดท allPartData memory
+          const idx = allPartData.findIndex(function(p){ return String(p.id) === String(id); });
+          if (idx >= 0) allPartData[idx] = Object.assign({}, allPartData[idx], { pic_note: newNote });
+          showToast('✅ บันทึกหมายเหตุจัดซื้อแล้ว');
+          renderConfirmedMyParts();
+        } else {
+          showToast('ไม่สำเร็จ: ' + (res?.message||''), 'error');
+        }
+      });
+    };
+
     window.openPartNoteModal = function(id, poNo, partNo, erpStatus, note) {
       document.getElementById('part-note-id').value  = id;
       document.getElementById('part-note-erp').value = erpStatus || '';
@@ -8136,13 +8157,41 @@
       showToast('ลบ ' + name + ' แล้ว');
     };
 
+    // PIC Users list สำหรับ dropdown นอกแผนจัดซื้อ
+    let _picUsersList = [];
+    async function loadPicUsersForDropdown() {
+      if (_picUsersList.length > 0) { updatePicUnplannedDropdown(); return; }
+      try {
+        const res = await callAPI('getPicUsers');
+        if (res && res.success) {
+          _picUsersList = (res.data||[]).map(function(u){ return u.pic_name||u.name||''; }).filter(Boolean);
+        }
+      } catch(e) {}
+      if (_picUsersList.length === 0) {
+        _picUsersList = [...new Set(allPicMaster.map(function(m){ return m.pic_name||''; }))].filter(Boolean).sort();
+      }
+      updatePicUnplannedDropdown();
+    }
+
+    function updatePicUnplannedDropdown() {
+      const sel = document.getElementById('unp-submitted-by');
+      if (!sel || sel.tagName !== 'SELECT') return;
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">-- เลือกชื่อ PIC --</option>' +
+        _picUsersList.map(function(n){ return '<option value="' + n + '">' + n + '</option>'; }).join('');
+      if (cur) sel.value = cur;
+    }
+
     function updatePlanningMemberDropdowns() {
       const opts = '<option value="">-- เลือกชื่อ --</option>' +
         _planningTeam.map(function(m){ return '<option value="' + m.name + '">' + m.name + (m.position ? ' ('+m.position+')' : '') + '</option>'; }).join('');
-      ['urg-submitted-by','unp-submitted-by','unp2-submitted-by'].forEach(function(id) {
+      // Planning team → Urgent + นอกแผนฝั่ง Planning
+      ['urg-submitted-by','unp2-submitted-by'].forEach(function(id) {
         const el = document.getElementById(id);
         if (el && el.tagName === 'SELECT') el.innerHTML = opts;
       });
+      // PIC/จัดซื้อ → นอกแผนฝั่งจัดซื้อ
+      updatePicUnplannedDropdown();
     }
 
     // =====================================================
@@ -9511,6 +9560,17 @@
           '</tr>';
         }).join('') || '<tr><td colspan="7" class="text-center py-3 text-slate-300 text-xs">ไม่มีข้อมูล Supplier</td></tr>';
 
+        // คำนวณ % นอกแผน
+        const totalVisits   = checkins.filter(function(r){
+          return suppliers.some(function(sup){
+            const cn = normalizeVendor((r.company_name||'').toLowerCase());
+            const sn = normalizeVendor(sup.toLowerCase());
+            return cn === sn || (sn.length>=4 && (cn.includes(sn)||sn.includes(cn)));
+          });
+        }).length;
+        const unplPct = totalVisits > 0 ? (unplannedByPic.length/totalVisits*100).toFixed(1)+'%' : '—';
+        const unplApprPct = unplannedByPic.length > 0 ? Math.round(unplApprv/unplannedByPic.length*100)+'%' : '—';
+
         return '<div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">' +
           '<div class="px-5 py-4 bg-gradient-to-r from-violet-600 to-purple-500 flex items-center justify-between">' +
             '<div class="flex items-center gap-3">' +
@@ -9521,13 +9581,16 @@
               '</div>' +
             '</div>' +
             '<div class="flex gap-4 text-center">' +
+              '<div><div class="text-white font-black text-lg">' + totalVisits + '</div><div class="text-violet-200 text-[9px]">เข้ามารวม</div></div>' +
               '<div><div class="text-amber-300 font-black text-lg">' + unplannedByPic.length + '</div><div class="text-violet-200 text-[9px]">นอกแผน</div></div>' +
+              '<div><div class="text-amber-200 font-black text-lg">' + unplPct + '</div><div class="text-violet-200 text-[9px]">% นอกแผน</div></div>' +
+              '<div><div class="text-emerald-300 font-black text-lg">' + unplApprPct + '</div><div class="text-violet-200 text-[9px]">% approved</div></div>' +
             '</div>' +
           '</div>' +
           (unplannedByPic.length > 0
             ? '<div class="px-5 py-2 bg-amber-50 border-b border-amber-100 flex items-center gap-4 text-[10px] font-bold">' +
                 '<span class="text-amber-700">⚡ งานนอกแผน:</span>' +
-                '<span class="text-emerald-600">approved ' + unplApprv + '</span>' +
+                '<span class="text-emerald-600">approved ' + unplApprv + ' (' + unplApprPct + ')</span>' +
                 '<span class="text-amber-600">รออนุมัติ ' + unplPend + '</span>' +
                 (unplRej > 0 ? '<span class="text-rose-500">ไม่อนุมัติ ' + unplRej + '</span>' : '') +
               '</div>'
@@ -9757,6 +9820,13 @@
           '<td class="px-4 py-2 text-center text-[10px] font-bold text-slate-600">' + (r.confirmed_by || '<span class="text-slate-300">—</span>') + '</td>' +
           '<td class="px-4 py-2 text-center">' + erpBadge + '</td>' +
           '<td class="px-4 py-2">' + noteHtml + '</td>' +
+          '<td class="px-4 py-2">' +
+            '<div class="flex items-center gap-1 min-w-[100px]">' +
+              '<span class="text-[10px] text-purple-600 flex-1 truncate" title="' + String(r.pic_note||'').replace(/"/g,'') + '">' + (r.pic_note || '<span class="text-slate-300">—</span>') + '</span>' +
+              '<button type="button" onclick="openPicNoteModal(\'' + String(r.id||'').replace(/'/g,"\\'") + '\',\'' + encodeURIComponent(r.pic_note||'') + '\')" ' +
+                'class="text-purple-400 hover:text-purple-600 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-1.5 py-0.5 rounded text-[9px] font-black cursor-pointer flex-shrink-0">✏️</button>' +
+            '</div>' +
+          '</td>' +
         '</tr>';
       }).join('') || '<tr><td colspan="11" class="text-center py-4 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
       if (sub) sub.innerText = data.length + ' รายการ · ' + new Set(data.map(function(r){return r.pic;})).size + ' PIC';
