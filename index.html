@@ -1973,9 +1973,9 @@
           </div>
         </div>
 
-        <!-- Urgent Parts KPI -->
+        <!-- Urgent KPI -->
         <div class="bg-rose-50 rounded-2xl border border-rose-100 p-5">
-          <div class="font-black text-rose-700 text-sm mb-4">🚨 Urgent Parts</div>
+          <div class="font-black text-rose-700 text-sm mb-4">🚨 Urgent Parts Overview</div>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div class="bg-white rounded-xl p-3 text-center"><div class="text-[9px] font-black text-slate-400 uppercase mb-1">ทั้งหมด</div><div id="plan-dash-total" class="text-3xl font-black text-slate-700">—</div></div>
             <div class="bg-amber-50 rounded-xl p-3 text-center"><div class="text-[9px] font-black text-amber-500 uppercase mb-1">⏳ รอรับ</div><div id="plan-dash-pending" class="text-3xl font-black text-amber-700">—</div></div>
@@ -1984,28 +1984,23 @@
           </div>
         </div>
 
-        <!-- Parts Overview -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div class="bg-white rounded-2xl border border-slate-100 p-4 text-center"><div class="text-[9px] font-black text-slate-400 uppercase mb-1">PO</div><div id="plandash-po" class="text-2xl font-black text-slate-700">—</div></div>
-          <div class="bg-white rounded-2xl border border-slate-100 p-4 text-center"><div class="text-[9px] font-black text-violet-500 uppercase mb-1">พาร์ท</div><div id="plandash-parts" class="text-2xl font-black text-violet-700">—</div></div>
-          <div class="bg-emerald-50 rounded-2xl border border-emerald-100 p-4 text-center"><div class="text-[9px] font-black text-emerald-500 uppercase mb-1">✅ ครบ</div><div id="plandash-completed" class="text-2xl font-black text-emerald-700">—</div></div>
-          <div class="bg-violet-600 rounded-2xl p-4 text-center"><div class="text-[9px] font-black text-violet-200 uppercase mb-1">Fill Rate</div><div id="plandash-fillrate" class="text-2xl font-black text-white">—</div></div>
-        </div>
-
         <!-- สรุปกิจกรรมต่อสมาชิก -->
         <div id="plandash-member-section" class="bg-white rounded-2xl border border-slate-100 overflow-hidden hidden">
-          <div class="px-5 py-4 border-b bg-orange-50">
-            <div class="font-black text-orange-700 text-sm">👥 สรุปกิจกรรมต่อสมาชิกทีม</div>
+          <div class="px-5 py-4 border-b bg-orange-50 flex items-center justify-between">
+            <div class="font-black text-orange-700 text-sm">👥 สรุปกิจกรรมต่อสมาชิกทีม Planning</div>
+            <div id="plandash-period-label" class="text-[10px] font-bold text-orange-500 bg-orange-100 px-3 py-1 rounded-full"></div>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-xs">
               <thead class="bg-slate-50">
                 <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                  <th class="px-4 py-3 text-left">ชื่อ</th>
-                  <th class="px-4 py-3 text-center">Urgent Parts</th>
-                  <th class="px-4 py-3 text-center">สถานะ Urgent</th>
-                  <th class="px-4 py-3 text-center">งานนอกแผน</th>
-                  <th class="px-4 py-3 text-center">สถานะนอกแผน</th>
+                  <th class="px-4 py-3 text-left">ชื่อ / ตำแหน่ง</th>
+                  <th class="px-4 py-3 text-center">🚨 Urgent</th>
+                  <th class="px-4 py-3 text-center">% Urgent/เดือน</th>
+                  <th class="px-4 py-3 text-center">⚡ นอกแผน</th>
+                  <th class="px-4 py-3 text-center">% นอกแผน/เดือน</th>
+                  <th class="px-4 py-3 text-center">รวมกิจกรรม</th>
+                  <th class="px-4 py-3 text-center">สถานะล่าสุด</th>
                 </tr>
               </thead>
               <tbody id="plandash-member-table" class="divide-y divide-slate-50"></tbody>
@@ -2013,28 +2008,22 @@
           </div>
         </div>
 
-        <!-- Supplier Table -->
-        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-          <div class="px-5 py-4 border-b flex items-center justify-between">
-            <div class="font-black text-slate-700 text-sm">รายละเอียดตาม Supplier</div>
-            <span id="plandash-supplier-count" class="text-[9px] font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full"></span>
+        <!-- กราฟ: Urgent by week + Unplanned trend -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-sm mb-4">📈 Urgent Parts รายสัปดาห์</div>
+            <div class="h-52"><canvas id="plandash-urgent-chart"></canvas></div>
           </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-xs">
-              <thead class="bg-slate-50">
-                <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                  <th class="px-4 py-3 text-left">Supplier</th>
-                  <th class="px-4 py-3 text-center">ประเภท</th>
-                  <th class="px-4 py-3 text-center">PO</th>
-                  <th class="px-4 py-3 text-center">พาร์ท</th>
-                  <th class="px-4 py-3 text-center">Qty แผน</th>
-                  <th class="px-4 py-3 text-center">Qty รับ</th>
-                  <th class="px-4 py-3 text-center">Fill Rate</th>
-                </tr>
-              </thead>
-              <tbody id="plandash-supplier-table" class="divide-y divide-slate-50"></tbody>
-            </table>
+          <div class="bg-white rounded-2xl border border-slate-100 p-5">
+            <div class="font-black text-slate-700 text-sm mb-4">⚡ งานนอกแผน รายสัปดาห์</div>
+            <div class="h-52"><canvas id="plandash-unplanned-chart"></canvas></div>
           </div>
+        </div>
+
+        <!-- กราฟ: กิจกรรมต่อสมาชิก (bar) -->
+        <div class="bg-white rounded-2xl border border-slate-100 p-5">
+          <div class="font-black text-slate-700 text-sm mb-4">📊 เปรียบเทียบกิจกรรมต่อสมาชิก</div>
+          <div class="h-64"><canvas id="plandash-member-chart"></canvas></div>
         </div>
 
       </div><!-- end planning-page-dashboard -->
@@ -8128,72 +8117,142 @@
       loadPlanningDashboard();
     }
 
+    let _pdUrgentChart = null, _pdUnplannedChart = null, _pdMemberChart = null;
+
     window.loadPlanningDashboard = function() {
-      const year  = (document.getElementById('planning-dash-year')||{}).value || String(new Date().getFullYear());
-      const month = (document.getElementById('planning-dash-month')||{}).value || '';
-      const today = getThaiDate();
-      const set   = function(id,v){ const e=document.getElementById(id); if(e) e.innerText=v; };
+      const year   = (document.getElementById('planning-dash-year')||{}).value || String(new Date().getFullYear());
+      const month  = (document.getElementById('planning-dash-month')||{}).value || '';
+      const today  = getThaiDate();
+      const set    = function(id,v){ const e=document.getElementById(id); if(e) e.innerText=v; };
       const urgent = _urgentAll || [];
+      const unplannAll = _unplannedData || [];
+
+      // filter ตาม year/month
+      function inPeriod(dateStr) {
+        if (!dateStr) return false;
+        const d = normalizeDate(String(dateStr));
+        if (year && !d.startsWith(year)) return false;
+        if (month && d.slice(5,7) !== month.padStart(2,'0')) return false;
+        return true;
+      }
+
+      const urgFiltered  = urgent.filter(function(u){ return inPeriod(u.notify_date||u.created_at||u.arrival_date); });
+      const unplFiltered = unplannAll.filter(function(u){ return inPeriod(u.created_at); });
+
       set('plan-dash-total',    urgent.length || '—');
       set('plan-dash-pending',  urgent.filter(function(u){ return u.status==='pending'; }).length || '—');
       set('plan-dash-received', urgent.filter(function(u){ return u.status==='received'; }).length || '—');
       set('plan-dash-overdue',  urgent.filter(function(u){ return u.status==='pending' && u.arrival_date && u.arrival_date < today; }).length || '—');
 
-      let rows = allPartData.filter(function(p) {
-        if (!p.date) return false;
-        const d = normalizeDate(p.date);
-        if (year && !d.startsWith(year)) return false;
-        if (month && d.slice(5,7) !== month.padStart(2,'0')) return false;
-        return ['pending','completed','short','missing'].includes(p.status||'');
-      });
-      const poSet = new Set(rows.map(function(p){ return p.po_no||''; }).filter(Boolean));
-      const comp  = rows.filter(function(p){ return p.status==='completed'; }).length;
-      const qtyP  = rows.reduce(function(s,p){ return s+(parseFloat(p.qty_plan)||0); },0);
-      const qtyR  = rows.reduce(function(s,p){ return s+(parseFloat(p.qty_received)||0); },0);
-      set('plandash-po',       poSet.size || '—');
-      set('plandash-parts',    rows.length || '—');
-      set('plandash-completed',comp || '—');
-      set('plandash-fillrate', qtyP > 0 ? (qtyR/qtyP*100).toFixed(1)+'%' : '—');
+      // คำนวณจำนวนสัปดาห์และเดือนในช่วงที่เลือก
+      const weeksInPeriod = month ? 4.3 : 52;
+      const monthsInPeriod = month ? 1 : 12;
 
       // Member activity
-      const memberSec  = document.getElementById('plandash-member-section');
-      const unplannAll = _unplannedData || [];
+      const memberSec = document.getElementById('plandash-member-section');
+      const periodLabel = document.getElementById('plandash-period-label');
+      if (periodLabel) periodLabel.innerText = month ? year+'/'+month.padStart(2,'0') : 'ทั้งปี '+year;
+
       if (_planningTeam.length > 0 && memberSec) {
         memberSec.classList.remove('hidden');
         const mtbody = document.getElementById('plandash-member-table');
         if (mtbody) {
           mtbody.innerHTML = _planningTeam.map(function(m) {
-            const urgMine  = urgent.filter(function(u){ return (u.submitted_by||u.created_by||'')===m.name; });
-            const unplMine = unplannAll.filter(function(u){ return (u.submitted_by||u.created_by||'')===m.name; });
+            const urgMine  = urgFiltered.filter(function(u){ return (u.submitted_by||u.created_by||'')===m.name; });
+            const unplMine = unplFiltered.filter(function(u){ return (u.submitted_by||u.created_by||'')===m.name; });
+            const urgPctM  = monthsInPeriod > 0 ? (urgMine.length/monthsInPeriod).toFixed(1) : '—';
+            const unplPctM = monthsInPeriod > 0 ? (unplMine.length/monthsInPeriod).toFixed(1) : '—';
+            const total    = urgMine.length + unplMine.length;
+            // สถานะล่าสุด
+            const lastUrg  = urgMine.sort(function(a,b){ return (b.notify_date||'').localeCompare(a.notify_date||''); })[0];
+            const lastUnpl = unplMine.sort(function(a,b){ return (b.created_at||'').localeCompare(a.created_at||''); })[0];
+            let lastStatus = '—';
+            if (lastUrg || lastUnpl) {
+              const lu = lastUrg  ? (lastUrg.status ==='received' ? '✅ Urgent รับแล้ว' : '⏳ Urgent รอรับ') : null;
+              const lp = lastUnpl ? (lastUnpl.status==='approved'  ? '✅ นอกแผน approved' : lastUnpl.status==='rejected' ? '❌ ถูกปฏิเสธ' : '⏳ นอกแผนรออนุมัติ') : null;
+              lastStatus = lu || lp || '—';
+            }
             return '<tr class="hover:bg-orange-50/20">' +
-              '<td class="px-4 py-3"><div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-orange-100 text-orange-600 font-black text-xs flex items-center justify-center">' + m.name.charAt(0).toUpperCase() + '</div><div><div class="font-bold text-slate-700">' + m.name + '</div><div class="text-[9px] text-slate-400">' + (m.position||'') + '</div></div></div></td>' +
+              '<td class="px-4 py-3"><div class="flex items-center gap-2">' +
+                '<div class="w-8 h-8 rounded-full bg-orange-100 text-orange-600 font-black text-xs flex items-center justify-center">' + m.name.charAt(0).toUpperCase() + '</div>' +
+                '<div><div class="font-bold text-slate-700">' + m.name + '</div><div class="text-[9px] text-slate-400">' + (m.position||'') + '</div></div>' +
+              '</div></td>' +
               '<td class="px-4 py-3 text-center font-black text-orange-600 text-lg">' + urgMine.length + '</td>' +
-              '<td class="px-4 py-3 text-center text-xs"><span class="text-amber-500 font-black">' + urgMine.filter(function(u){ return u.status==='pending'; }).length + ' รอ</span> / <span class="text-emerald-600 font-black">' + urgMine.filter(function(u){ return u.status==='received'; }).length + ' รับ</span></td>' +
+              '<td class="px-4 py-3 text-center"><div class="text-sm font-black text-slate-700">' + urgPctM + '</div><div class="text-[9px] text-slate-400">ครั้ง/เดือน</div></td>' +
               '<td class="px-4 py-3 text-center font-black text-rose-600 text-lg">' + unplMine.length + '</td>' +
-              '<td class="px-4 py-3 text-center text-xs"><span class="text-emerald-600 font-black">' + unplMine.filter(function(u){ return u.status==='approved'; }).length + ' approved</span> / <span class="text-amber-500 font-black">' + unplMine.filter(function(u){ return u.status==='pending_l'||u.status==='pending_f'; }).length + ' รออนุมัติ</span></td>' +
+              '<td class="px-4 py-3 text-center"><div class="text-sm font-black text-slate-700">' + unplPctM + '</div><div class="text-[9px] text-slate-400">ครั้ง/เดือน</div></td>' +
+              '<td class="px-4 py-3 text-center"><div class="font-black text-slate-800 text-xl">' + total + '</div></td>' +
+              '<td class="px-4 py-3 text-center text-[10px] font-bold text-slate-600">' + lastStatus + '</td>' +
             '</tr>';
           }).join('');
         }
       } else if (memberSec) { memberSec.classList.add('hidden'); }
 
-      // Supplier table
-      const byVendor = {};
-      rows.forEach(function(p) {
-        const v = p.vendor||'ไม่ระบุ';
-        if (!byVendor[v]) byVendor[v] = { po:new Set(), parts:0, qP:0, qR:0 };
-        byVendor[v].parts++; if(p.po_no) byVendor[v].po.add(p.po_no);
-        byVendor[v].qP+=parseFloat(p.qty_plan)||0; byVendor[v].qR+=parseFloat(p.qty_received)||0;
+      // ── กราฟ Urgent by week ──
+      function getWeekKey(dateStr) {
+        if (!dateStr) return 'ไม่ระบุ';
+        const d = new Date(String(dateStr).replace(' ','T').split('T')[0]);
+        if (isNaN(d)) return 'ไม่ระบุ';
+        const startOfYear = new Date(d.getFullYear(), 0, 1);
+        const week = Math.ceil(((d - startOfYear)/86400000 + startOfYear.getDay()+1)/7);
+        return 'W' + String(week).padStart(2,'0');
+      }
+
+      // สร้าง weeks labels
+      const urgByWeek = {}, unplByWeek = {};
+      urgFiltered.forEach(function(u) {
+        const w = getWeekKey(u.notify_date||u.created_at||u.arrival_date);
+        urgByWeek[w] = (urgByWeek[w]||0) + 1;
       });
-      const vendors = Object.keys(byVendor).sort();
-      const ce = document.getElementById('plandash-supplier-count'); if(ce) ce.innerText = vendors.length+' Supplier';
-      const tbody = document.getElementById('plandash-supplier-table');
-      if (tbody) {
-        tbody.innerHTML = vendors.map(function(v) {
-          const d=byVendor[v]; const fr=d.qP>0?(d.qR/d.qP*100).toFixed(0):'—';
-          const fc=parseFloat(fr)>=95?'text-emerald-600 font-black':parseFloat(fr)>=70?'text-amber-600 font-black':'text-rose-600 font-black';
-          const badge=getSupplierType(v)==='overseas'?'<span class="bg-blue-100 text-blue-600 text-[8px] font-black px-1.5 py-0.5 rounded-full">🌏</span>':'<span class="bg-emerald-100 text-emerald-600 text-[8px] font-black px-1.5 py-0.5 rounded-full">🇹🇭</span>';
-          return '<tr class="hover:bg-orange-50/20"><td class="px-4 py-2 font-bold text-slate-700">'+v+'</td><td class="px-4 py-2 text-center">'+badge+'</td><td class="px-4 py-2 text-center">'+d.po.size+'</td><td class="px-4 py-2 text-center">'+d.parts+'</td><td class="px-4 py-2 text-center font-black">'+d.qP.toLocaleString()+'</td><td class="px-4 py-2 text-center font-black">'+d.qR.toLocaleString()+'</td><td class="px-4 py-2 text-center '+fc+'">'+fr+(fr!=='—'?'%':'')+'</td></tr>';
-        }).join('')||'<tr><td colspan="7" class="text-center py-4 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
+      unplFiltered.forEach(function(u) {
+        const w = getWeekKey(u.created_at);
+        unplByWeek[w] = (unplByWeek[w]||0) + 1;
+      });
+
+      const allWeeks = [...new Set([...Object.keys(urgByWeek),...Object.keys(unplByWeek)])].sort();
+      const urgVals  = allWeeks.map(function(w){ return urgByWeek[w]||0; });
+      const unplVals = allWeeks.map(function(w){ return unplByWeek[w]||0; });
+
+      // Urgent chart
+      const urgCtx = document.getElementById('plandash-urgent-chart');
+      if (urgCtx) {
+        if (_pdUrgentChart) _pdUrgentChart.destroy();
+        _pdUrgentChart = new Chart(urgCtx, {
+          type: 'bar',
+          data: { labels: allWeeks, datasets: [{ label: 'Urgent Parts', data: urgVals, backgroundColor: 'rgba(239,68,68,0.7)', borderRadius: 6 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+        });
+      }
+
+      // Unplanned chart
+      const unplCtx = document.getElementById('plandash-unplanned-chart');
+      if (unplCtx) {
+        if (_pdUnplannedChart) _pdUnplannedChart.destroy();
+        _pdUnplannedChart = new Chart(unplCtx, {
+          type: 'bar',
+          data: { labels: allWeeks, datasets: [{ label: 'งานนอกแผน', data: unplVals, backgroundColor: 'rgba(245,158,11,0.7)', borderRadius: 6 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+        });
+      }
+
+      // Member comparison bar chart
+      const memCtx = document.getElementById('plandash-member-chart');
+      if (memCtx && _planningTeam.length > 0) {
+        const memLabels = _planningTeam.map(function(m){ return m.name; });
+        const urgData   = _planningTeam.map(function(m){ return urgFiltered.filter(function(u){ return (u.submitted_by||u.created_by||'')===m.name; }).length; });
+        const unplData  = _planningTeam.map(function(m){ return unplFiltered.filter(function(u){ return (u.submitted_by||u.created_by||'')===m.name; }).length; });
+        if (_pdMemberChart) _pdMemberChart.destroy();
+        _pdMemberChart = new Chart(memCtx, {
+          type: 'bar',
+          data: {
+            labels: memLabels,
+            datasets: [
+              { label: '🚨 Urgent', data: urgData,  backgroundColor: 'rgba(239,68,68,0.75)',  borderRadius: 6 },
+              { label: '⚡ นอกแผน', data: unplData, backgroundColor: 'rgba(245,158,11,0.75)', borderRadius: 6 },
+            ]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+        });
       }
     };
 
@@ -8318,18 +8377,10 @@
       const tbody = document.getElementById('urgent-table-body');
       const empty = document.getElementById('urgent-list-empty');
       if (!tbody) return;
-      let data = _urgentAll;
-      if (_urgentFilter === 'pending')  data = data.filter(function(u){ return u.status === 'pending'; });
-      if (_urgentFilter === 'received') data = data.filter(function(u){ return u.status === 'received'; });
-      data.sort(function(a,b){ return (a.notify_date||'').localeCompare(b.notify_date||''); });
-      if (data.length === 0) { tbody.innerHTML = ''; if (empty) empty.classList.remove('hidden'); return; }
-      if (empty) empty.classList.add('hidden');
       const today = getThaiDate();
-      tbody.innerHTML = data.map(function(u) {
-        const isPending  = u.status === 'pending';
-        const isOverdue  = isPending && u.arrival_date && u.arrival_date < today;
 
-        // ดึงสถานะรับของจาก PartDetail จริงๆ
+      // คำนวณ effective status จาก PartDetail ก่อน filter
+      const dataWithStatus = (_urgentAll || []).map(function(u) {
         let partStatus = null;
         if (u.part_id || (u.po_no && u.part_no)) {
           const matched = allPartData.find(function(p) {
@@ -8339,6 +8390,24 @@
           });
           if (matched) partStatus = matched.status;
         }
+        // effective status อิงจาก PartDetail เป็นหลัก
+        let effectiveStatus = u.status;
+        if (partStatus === 'completed' || partStatus === 'short') effectiveStatus = 'received';
+        return Object.assign({}, u, { _partStatus: partStatus, _effectiveStatus: effectiveStatus });
+      });
+
+      let data = dataWithStatus;
+      if (_urgentFilter === 'pending')  data = data.filter(function(u){ return u._effectiveStatus === 'pending'; });
+      if (_urgentFilter === 'received') data = data.filter(function(u){ return u._effectiveStatus === 'received'; });
+      data.sort(function(a,b){ return (a.notify_date||'').localeCompare(b.notify_date||''); });
+
+      if (data.length === 0) { tbody.innerHTML = ''; if (empty) empty.classList.remove('hidden'); return; }
+      if (empty) empty.classList.add('hidden');
+
+      tbody.innerHTML = data.map(function(u) {
+        const isPending  = u._effectiveStatus === 'pending';
+        const partStatus = u._partStatus;
+        const isOverdue  = isPending && u.arrival_date && u.arrival_date < today;
 
         let statusHtml;
         if (u.status === 'received') {
@@ -8356,7 +8425,7 @@
         }
 
         const dateStr = u.notify_date ? new Date(u.notify_date.replace(' ','T')).toLocaleDateString('th-TH',{day:'numeric',month:'short'}) : '—';
-        const canMark = isPending && partStatus !== 'completed';
+        const canMark = isPending && partStatus !== 'completed' && partStatus !== 'short';
         return '<tr class="hover:bg-orange-50/30 ' + (isOverdue ? 'bg-rose-50/30' : '') + '">' +
           '<td class="px-4 py-2.5 text-slate-500">' + dateStr + '</td>' +
           '<td class="px-4 py-2.5 font-bold text-slate-700">' + (u.vendor||u.po_no||'—') + '</td>' +
@@ -8369,7 +8438,8 @@
           '<td class="px-4 py-2.5 text-slate-400 max-w-[120px] truncate">' + (u.remark||'—') + '</td>' +
           '<td class="px-4 py-2.5 text-center">' + statusHtml + '</td>' +
           '<td class="px-4 py-2.5 text-center">' +
-            (canMark ? '<button type="button" data-id="' + (u.id||'') + '" onclick="markUrgentDone(this.dataset.id)" class="bg-emerald-500 hover:bg-emerald-600 text-white text-[9px] font-black px-3 py-1 rounded-lg cursor-pointer whitespace-nowrap">✅ รับแล้ว</button>' : '<span class="text-[9px] text-slate-400">' + (u.received_by||'เสร็จแล้ว') + '</span>') +
+            (canMark ? '<button type="button" data-id="' + (u.id||'') + '" onclick="markUrgentDone(this.dataset.id)" class="bg-emerald-500 hover:bg-emerald-600 text-white text-[9px] font-black px-3 py-1 rounded-lg cursor-pointer whitespace-nowrap">✅ รับแล้ว</button>'
+                     : '<span class="text-[9px] text-slate-400">' + (u.received_by||'เสร็จแล้ว') + '</span>') +
           '</td>' +
         '</tr>';
       }).join('') || '<tr><td colspan="11" class="text-center py-6 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
