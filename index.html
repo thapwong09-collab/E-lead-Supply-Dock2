@@ -5203,7 +5203,10 @@
     }
 
     function updateKPIUI(checkinData, partsData, visits) {
-      const set = function(id, v){ const e=document.getElementById(id); if(e) e.innerText=v; };
+      // set ทุก element ที่มี id นั้น (มีหลาย dashboard page ใน DOM)
+      const set = function(id, v) {
+        document.querySelectorAll('#' + id).forEach(function(e){ e.innerText = v; });
+      };
       set('pd-visits', visits);
       const done     = checkinData.filter(function(r){ return r.status==='completed'||r.status==='exited'; }).length;
       const ontime   = checkinData.filter(function(r){ return String(r.plan_status||'').includes('ตรงเวลา'); }).length;
@@ -5361,7 +5364,13 @@
         return qP > 0 ? parseFloat((qR/qP*100).toFixed(1)) : 0;
       });
 
-      const barCanvas = document.getElementById('pdBarChart');
+      // หา canvas ใน active page
+      const _activePageForChart = ['page-parts','pic-page-parts-receiving','pic-page-pic-dashboard',
+        'planning-page-dashboard','mgr-page-dashboard'].find(function(id) {
+        const el = document.getElementById(id); return el && !el.classList.contains('hidden');
+      }) || 'page-parts';
+      const _activePg   = document.getElementById(_activePageForChart);
+      const barCanvas   = _activePg ? _activePg.querySelector('#pdBarChart') : document.getElementById('pdBarChart');
       if (barCanvas && typeof Chart !== 'undefined') {
         if (pdBarChart) { pdBarChart.destroy(); pdBarChart = null; }
         pdBarChart = new Chart(barCanvas.getContext('2d'), {
@@ -5436,6 +5445,7 @@
     }
 
     function updatePdPerfTable(checkinData, partsData) {
+      const _activePg = document.getElementById(['page-parts','pic-page-parts-receiving','pic-page-pic-dashboard','planning-page-dashboard','mgr-page-dashboard'].find(function(id){ const el=document.getElementById(id); return el&&!el.classList.contains('hidden'); })||'page-parts');
       const vendors = [...new Set([
         ...checkinData.map(function(r){ return r.company_name||''; }),
         ...partsData.map(function(p){ return p.vendor||''; })
