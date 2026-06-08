@@ -1878,7 +1878,6 @@
                   <th class="px-4 py-3 text-center">งานเข้า</th><th class="px-4 py-3 text-center">ขึ้นผลิต</th>
                   <th class="px-4 py-3">เหตุผล</th>
                   <th class="px-4 py-3 text-center">สถานะ</th>
-                  <th class="px-4 py-3 text-center">Action</th>
                 </tr>
               </thead>
               <tbody id="urgent-table-body" class="divide-y divide-slate-50"></tbody>
@@ -5145,8 +5144,20 @@
 
     function updatePartsDashboard() {
       if (!allPartData) return;
-      const mVal = (document.getElementById('parts-month')?.value || 'ALL');
-      const sVal = (document.getElementById('parts-supplier')?.value || 'ALL');
+
+      // หา active dashboard page
+      const activePageId = ['page-parts','pic-page-parts-receiving','pic-page-pic-dashboard',
+        'planning-page-dashboard','mgr-page-dashboard'].find(function(id) {
+        const el = document.getElementById(id);
+        return el && !el.classList.contains('hidden');
+      }) || 'page-parts';
+      const activePage = document.getElementById(activePageId);
+
+      // ดึง filter จาก active page
+      const mEl = activePage ? activePage.querySelector('[id$="-month"],[id="parts-month"]') : document.getElementById('parts-month');
+      const sEl = activePage ? activePage.querySelector('[id$="-supplier"],[id="parts-supplier"]') : document.getElementById('parts-supplier');
+      const mVal = (mEl ? mEl.value : '') || 'ALL';
+      const sVal = (sEl ? sEl.value : '') || 'ALL';
 
       const isTypeMatch = function(vendorName) {
         if (_pdFilter === 'all') return true;
@@ -7333,7 +7344,7 @@
           '<td class="px-3 py-2 text-[10px] text-purple-600 max-w-[100px] truncate" title="' + String(r.pic_note||'').replace(/"/g,'') + '">' + (r.pic_note || '<span class="text-slate-300">—</span>') + '</td>' +
           '<td class="px-3 py-2 text-center"><button type="button" onclick="openPartNoteModal(\''+rowId+'\',\''+rowPo+'\',\''+rowPt+'\',\''+(r.erp_status||'')+'\',\''+rowNote+'\')" class="text-violet-500 hover:text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 px-2 py-1 rounded-lg text-[9px] font-black cursor-pointer">✏️</button></td>' +
         '</tr>';
-      }).join('') || '<tr><td colspan="11" class="text-center py-6 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
+      }).join('') || '<tr><td colspan="10" class="text-center py-6 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
     }
 
     function _renderPlanningWeeklyRows(data) {
@@ -8526,12 +8537,8 @@
           '<td class="px-4 py-2.5 text-center text-violet-600 font-bold">' + (u.production_date||'—') + '</td>' +
           '<td class="px-4 py-2.5 text-slate-400 max-w-[120px] truncate">' + (u.remark||'—') + '</td>' +
           '<td class="px-4 py-2.5 text-center">' + statusHtml + '</td>' +
-          '<td class="px-4 py-2.5 text-center">' +
-            (canMark ? '<button type="button" data-id="' + (u.id||'') + '" onclick="markUrgentDone(this.dataset.id)" class="bg-emerald-500 hover:bg-emerald-600 text-white text-[9px] font-black px-3 py-1 rounded-lg cursor-pointer whitespace-nowrap">✅ รับแล้ว</button>'
-                     : '<span class="text-[9px] text-slate-400">' + (u.received_by||'เสร็จแล้ว') + '</span>') +
-          '</td>' +
         '</tr>';
-      }).join('') || '<tr><td colspan="11" class="text-center py-6 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
+      }).join('') || '<tr><td colspan="10" class="text-center py-6 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
     }
 
     window.markUrgentDone = async function(id) {
@@ -8569,27 +8576,44 @@
       renderUrgentPartOptions(vendor ? _urgentPartOptions.filter(function(p){ return (p.vendor||'')===vendor; }) : _urgentPartOptions);
     };
 
+    window.toggleUrgRow = function(tr) {
+      const cb = tr.querySelector('.urg-part-check');
+      if (cb) cb.checked = !cb.checked;
+    };
+
     function renderUrgentPartOptions(parts) {
       const container = document.getElementById('urg-part-options');
       if (!container) return;
-      if (!parts.length) { container.innerHTML = '<div class="text-center py-6 text-slate-300 text-xs font-bold">ไม่มีพาร์ทในวันนั้น</div>'; return; }
-      container.innerHTML = parts.map(function(p) {
-        const stBadge = p.status==='completed' ? '<span class="bg-emerald-100 text-emerald-600 text-[8px] font-black px-2 py-0.5 rounded-full">✅ รับแล้ว</span>'
-          : p.status==='short' ? '<span class="bg-amber-100 text-amber-600 text-[8px] font-black px-2 py-0.5 rounded-full">⚠️ ไม่ครบ</span>'
-          : '<span class="bg-slate-100 text-slate-500 text-[8px] font-black px-2 py-0.5 rounded-full">⏳ รอ</span>';
-        return '<label class="flex items-center gap-3 px-4 py-3 hover:bg-orange-50 cursor-pointer border-b border-slate-50 last:border-0">' +
-          '<input type="checkbox" data-part-id="' + (p.id||'') + '" data-po="' + (p.po_no||'') + '" ' +
-          'data-part="' + (p.part_no||'') + '" data-vendor="' + (p.vendor||'') + '" ' +
-          'class="urg-part-check w-4 h-4 accent-orange-500 cursor-pointer flex-shrink-0">' +
-          '<div class="flex-1 min-w-0">' +
-            '<div class="flex items-center gap-2 flex-wrap">' +
-              '<span class="font-mono text-[10px] text-slate-400">' + (p.po_no||'-') + '</span>' +
-              '<span class="font-bold text-violet-700 text-xs">' + (p.part_no||'-') + '</span>' +
-              '<span class="text-[9px] text-slate-400 truncate">' + (p.vendor||'-') + '</span>' +
-            '</div>' +
-            '<div class="text-[9px] text-slate-400 mt-0.5">QTY: ' + (p.qty_plan||0) + ' · ' + (p.time_slot||'-') + '</div>' +
-          '</div>' + stBadge + '</label>';
-      }).join('');
+      if (!parts.length) {
+        container.innerHTML = '<div class="text-center py-6 text-slate-300 text-xs font-bold">ไม่มีพาร์ทในวันนั้น</div>';
+        return;
+      }
+      container.innerHTML = '<table class="w-full text-xs">' +
+        '<thead class="bg-slate-50 border-b"><tr class="text-[9px] font-black text-slate-400 uppercase">' +
+          '<th class="px-3 py-2 w-8"></th>' +
+          '<th class="px-3 py-2 text-left">PO No.</th>' +
+          '<th class="px-3 py-2 text-left">Part No.</th>' +
+          '<th class="px-3 py-2 text-left">Supplier</th>' +
+          '<th class="px-3 py-2 text-center">QTY</th>' +
+          '<th class="px-3 py-2 text-center">Time</th>' +
+          '<th class="px-3 py-2 text-center">สถานะ</th>' +
+        '</tr></thead><tbody class="divide-y divide-slate-50">' +
+        parts.map(function(p) {
+          const st = p.status === 'completed'
+            ? '<span class="bg-emerald-100 text-emerald-600 text-[8px] font-black px-1.5 py-0.5 rounded-full">✅</span>'
+            : p.status === 'short'
+              ? '<span class="bg-amber-100 text-amber-600 text-[8px] font-black px-1.5 py-0.5 rounded-full">⚠️</span>'
+              : '<span class="bg-slate-100 text-slate-500 text-[8px] font-black px-1.5 py-0.5 rounded-full">⏳</span>';
+          return '<tr class="hover:bg-orange-50 cursor-pointer" onclick="toggleUrgRow(this)">' +
+            '<td class="px-3 py-2" onclick="event.stopPropagation()"><input type="checkbox" data-part-id="' + (p.id||'') + '" data-po="' + (p.po_no||'') + '" data-part="' + (p.part_no||'') + '" data-vendor="' + (p.vendor||'') + '" class="urg-part-check w-4 h-4 accent-orange-500 cursor-pointer"></td>' +
+            '<td class="px-3 py-2 font-mono text-slate-500">' + (p.po_no||'-') + '</td>' +
+            '<td class="px-3 py-2 font-bold text-violet-700">' + (p.part_no||'-') + '</td>' +
+            '<td class="px-3 py-2 text-slate-600 max-w-[140px] truncate">' + (p.vendor||'-') + '</td>' +
+            '<td class="px-3 py-2 text-center font-black">' + (p.qty_plan||0) + '</td>' +
+            '<td class="px-3 py-2 text-center text-slate-500">' + (p.time_slot||'-') + '</td>' +
+            '<td class="px-3 py-2 text-center">' + st + '</td>' +
+          '</tr>';
+        }).join('') + '</tbody></table>';
     }
 
     window.saveUrgentPart = async function() {
@@ -8603,23 +8627,31 @@
       if (!arrDate || !reason) { showToast('กรุณาใส่ Arrival Date และเหตุผล', 'error'); return; }
       const checked = document.querySelectorAll('.urg-part-check:checked');
       if (!checked.length) { showToast('กรุณาเลือกพาร์ทอย่างน้อย 1 รายการ', 'error'); return; }
-      let ok = 0;
-      for (const cb of checked) {
-        const res = await callAPI('saveUrgentPart', {
+
+      const btn = document.querySelector('button[onclick="saveUrgentPart()"]');
+      if (btn) { btn.disabled = true; btn.innerText = '⏳ กำลังบันทึก...'; }
+
+      // บันทึกพร้อมกันทั้งหมด (Promise.all แทน sequential await)
+      const promises = Array.from(checked).map(function(cb) {
+        return callAPI('saveUrgentPart', {
           notify_date: getBkkTimeStr(), part_id: cb.dataset.partId||'',
           po_no: cb.dataset.po||'', part_no: cb.dataset.part||'', vendor: cb.dataset.vendor||'',
           arrival_date: arrDate, production_date: prodDate, wo_no: wo, model: model,
-          origin: 'local', remark: reason, status: 'pending',
-          submitted_by: submittedBy,
+          origin: 'local', remark: reason, status: 'pending', submitted_by: submittedBy,
         });
-        if (res && res.success) ok++;
-      }
+      });
+
+      const results = await Promise.all(promises);
+      const ok = results.filter(function(r){ return r && r.success; }).length;
+      if (btn) { btn.disabled = false; btn.innerText = '🚨 บันทึก Urgent Part'; }
+
       if (ok > 0) {
         showToast('🚨 บันทึก Urgent ' + ok + ' รายการแล้ว');
         ['urg-submitted-by','urg-arrival-date','urg-production-date','urg-reason','urg-wo','urg-model'].forEach(function(id){ const e=document.getElementById(id); if(e) e.value=''; });
-        const c = document.getElementById('urg-part-options'); if(c) c.innerHTML='<div class="text-center py-6 text-slate-300 text-xs font-bold">เลือก Arrival Date ก่อน</div>';
+        const c = document.getElementById('urg-part-options');
+        if (c) c.innerHTML = '<div class="text-center py-6 text-slate-300 text-xs font-bold">เลือก Arrival Date ก่อน</div>';
         await loadUrgentList();
-      } else { showToast('บันทึกไม่สำเร็จ','error'); }
+      } else { showToast('บันทึกไม่สำเร็จ', 'error'); }
     };
 
     function updatePlanningDashboard() {
@@ -9266,7 +9298,7 @@
             '<td class="px-4 py-2.5 text-[10px]">'+(u.logistics_by||'-')+'</td>' +
             '<td class="px-4 py-2.5 text-[10px]">'+(u.factory_by||(u.rejected_by?'❌ '+u.rejected_by:'-'))+'</td>' +
           '</tr>';
-        }).join('') || '<tr><td colspan="11" class="text-center py-6 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
+        }).join('') || '<tr><td colspan="10" class="text-center py-6 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
       } catch(e){ showToast('โหลดไม่สำเร็จ'); }
     }
 
