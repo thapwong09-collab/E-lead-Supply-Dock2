@@ -223,6 +223,7 @@
           <button type="button" onclick="showStaffTab('daily')" id="tab-daily" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">สรุปวันนี้</button>
           <button type="button" onclick="showStaffTab('parts')" id="tab-parts" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📦 Parts Dashboard</button>
           <button type="button" onclick="showStaffTab('trend')" id="tab-trend" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">📈 เปรียบเทียบ</button>
+          <button type="button" onclick="showStaffTab('receiving-team')" id="tab-receiving-team" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer">👥 ทีม Receiving</button>
           <button type="button" onclick="showStaffTab('settings')" id="tab-settings" class="bg-slate-100 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer relative">⚙️ ตั้งค่า<span id="staff-urgent-badge" class="hidden absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full"></span></button>
         </div>
       </div>
@@ -786,6 +787,34 @@
       </div><!-- end page-parts -->
 
       <!-- Tab: ตั้งค่า -->
+      <!-- Tab: ทีม Receiving Warehouse -->
+      <div id="page-receiving-team" class="hidden max-w-3xl mx-auto p-4 space-y-5 fade-in">
+
+        <!-- เพิ่มสมาชิก -->
+        <div class="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+          <div class="font-black text-slate-700 text-sm mb-4">👥 ทีม Receiving Warehouse</div>
+          <div class="flex gap-3 flex-wrap">
+            <input type="text" id="recv-team-name" placeholder="ชื่อ-นามสกุล *"
+              class="flex-1 min-w-[180px] border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-500 font-bold text-sm">
+            <input type="text" id="recv-team-position" placeholder="ตำแหน่ง (เช่น พนักงานรับสินค้า)"
+              class="flex-1 min-w-[180px] border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-500 font-bold text-sm">
+            <button type="button" onclick="addReceivingMember()"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-black text-sm cursor-pointer shadow-md">+ เพิ่ม</button>
+          </div>
+        </div>
+
+        <!-- รายชื่อ -->
+        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+          <div class="px-5 py-4 border-b flex items-center justify-between">
+            <div class="font-black text-slate-700 text-sm">รายชื่อพนักงาน</div>
+            <span id="recv-team-count" class="text-[9px] font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">0 คน</span>
+          </div>
+          <div id="recv-team-list" class="divide-y divide-slate-50">
+            <div class="text-center py-8 text-slate-300 text-xs font-bold">ยังไม่มีสมาชิก</div>
+          </div>
+        </div>
+      </div>
+
       <div id="page-settings" class="hidden max-w-3xl mx-auto p-4 space-y-4 fade-in">
 
         <div class="flex items-center justify-between">
@@ -2541,11 +2570,20 @@
         </div>
 
         <!-- Footer -->
-        <div class="px-8 py-5 border-t border-slate-100 flex gap-3 flex-shrink-0">
-          <button type="button" onclick="closePartsModal()" class="flex-1 bg-slate-100 text-slate-500 py-3 rounded-2xl font-bold text-sm cursor-pointer hover:bg-slate-200">ยกเลิก</button>
-          <button type="button" onclick="submitPartsConfirm()" id="pcm-submit-btn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl font-bold text-sm shadow-md cursor-pointer transition-colors">
-            ✓ ยืนยันและเรียกเข้าพื้นที่
-          </button>
+        <div class="px-8 py-5 border-t border-slate-100 flex-shrink-0 space-y-3">
+          <!-- ชื่อผู้รับ -->
+          <div>
+            <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ผู้รับวัตถุดิบ *</label>
+            <select id="pcm-receiver" class="w-full border-2 border-blue-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-500 font-bold text-sm cursor-pointer">
+              <option value="">-- เลือกพนักงาน --</option>
+            </select>
+          </div>
+          <div class="flex gap-3">
+            <button type="button" onclick="closePartsModal()" class="flex-1 bg-slate-100 text-slate-500 py-3 rounded-2xl font-bold text-sm cursor-pointer hover:bg-slate-200">ยกเลิก</button>
+            <button type="button" onclick="submitPartsConfirm()" id="pcm-submit-btn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl font-bold text-sm shadow-md cursor-pointer transition-colors">
+              ✓ ยืนยันและเรียกเข้าพื้นที่
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -2686,18 +2724,10 @@
       callAPI('readAllData').then(res => {
         if (res && res.success) {
           _fetchFailCount = 0;
-          allData = res.data || [];
-          // DEBUG — ลบออกได้ทีหลัง
-          if (res.plans) globalPlanData = res.plans; // legacy — ไม่ใช้แล้ว
-          if (res.parts) {
-            allPartData = res.parts || [];
-            // NOTE: ไม่ auto-sync PIC Master แล้ว เพื่อไม่ให้ทับข้อมูลที่กรอกมือ
-          }
-          if (res.vehicles && res.vehicles.length > 0) {
-            _vehicleData = res.vehicles;
-          }
+          allData     = res.data  || [];
+          if (res.parts)     allPartData   = res.parts     || [];
+          if (res.vehicles && res.vehicles.length > 0) _vehicleData = res.vehicles;
           if (res.picMaster) {
-            // ไม่ทับถ้ากำลังอยู่ในหน้า PIC Master และมีข้อมูลแล้ว (ป้องกัน ลบแล้วกลับมา)
             const picMasterPage = document.getElementById('pic-page-pic-master');
             const isOnPicMaster = picMasterPage && !picMasterPage.classList.contains('hidden');
             if (!isOnPicMaster || allPicMaster.length === 0) {
@@ -2706,12 +2736,24 @@
           }
           if (res.settings) applySettings(res.settings);
           _partsDashboardDirty = true;
+          // ซ่อน offline banner ถ้ามี
+          const offBanner = document.getElementById('offline-banner');
+          if (offBanner) offBanner.classList.add('hidden');
           refreshUI();
         } else {
           _fetchFailCount++;
-          if (_fetchFailCount > 5) {
-            console.warn('[fetchAll] ล้มเหลว ' + _fetchFailCount + ' ครั้งติดต่อกัน');
+          if (_fetchFailCount === 6) {
+            // แสดง banner แจ้งเตือนเมื่อล้มเหลวต่อเนื่อง
+            let b = document.getElementById('offline-banner');
+            if (!b) {
+              b = document.createElement('div');
+              b.id = 'offline-banner';
+              b.className = 'fixed top-0 left-0 right-0 z-50 bg-rose-500 text-white text-center text-xs font-black py-2 px-4';
+              b.innerHTML = '⚠️ ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ — กำลังลองใหม่อัตโนมัติ... <button onclick="fetchAll()" class="ml-3 bg-white text-rose-600 px-3 py-0.5 rounded-full font-black cursor-pointer">ลองใหม่</button>';
+              document.body.prepend(b);
+            }
           }
+          console.warn('[fetchAll] ล้มเหลว ' + _fetchFailCount + ' ครั้งติดต่อกัน');
         }
       }).catch(function(err) {
         _fetchFailCount++;
@@ -3964,6 +4006,8 @@
     }
 
     async function submitPartsConfirm() {
+      const receiver = ((document.getElementById('pcm-receiver')||{}).value||'').trim();
+      if (!receiver) { showToast('กรุณาเลือกพนักงานผู้รับวัตถุดิบ', 'error'); return; }
       // Collect qty data
       const qtyInputs = document.querySelectorAll('#pcm-parts-tbody .qty-input');
       const receivedData = [];
@@ -3984,7 +4028,7 @@
           date:         getThaiDate(),
           queueNumber:  pcmQueueNum,
           receivedData: JSON.stringify(receivedData),
-          approvedBy:   '',
+          approvedBy:   receiver,
           remark:       ''
         });
 
@@ -4680,12 +4724,15 @@
     // Complete flow — เปิด Parts Modal สำหรับ loading → completed
     async function openCompletePartsModal(qNum, company) {
       pcmQueueNum = qNum;
-      pcmFactory = null; // ไม่ต้องเลือกโรงงานอีกแล้ว
+      pcmFactory = null;
 
       const titleEl = document.getElementById('pcm-title');
       const subtitleEl = document.getElementById('pcm-subtitle');
       if (titleEl) titleEl.innerText = `ยืนยันรับพาร์ท — #${qNum} ${company}`;
       if (subtitleEl) subtitleEl.innerText = 'กรอก Qty ที่รับได้จริงแล้วกดยืนยัน';
+
+      // อัพเดท dropdown ผู้รับ
+      updateReceiverDropdowns();
 
       const modal = document.getElementById('parts-confirm-modal');
       if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
@@ -4776,7 +4823,7 @@
       if (tab === _lastStaffTab) return;
       _lastStaffTab = tab;
 
-      ['queue','weekly','daily','parts','trend','settings'].forEach(t => {
+      ['queue','weekly','daily','parts','trend','settings','receiving-team'].forEach(t => {
         const p = document.getElementById('page-' + t);
         const b = document.getElementById('tab-' + t);
         if (p) p.classList.toggle('hidden', t !== tab);
@@ -4805,6 +4852,7 @@
         if (dp && !dp.value) dp.value = getThaiDate();
         loadDailySummary();
       }
+      if (tab === 'receiving-team') loadReceivingTeam();
       if (tab === 'trend')    { onTrendModeChange('pd'); loadStaffTrend(); }
       if (tab === 'settings') initSettingsPage();
     }
@@ -8501,7 +8549,98 @@
       document.getElementById('planning-weekly-table-wrap')?.classList.remove('hidden');
     }
     // =====================================================
-    // SOUND NOTIFICATIONS
+    // RECEIVING TEAM MANAGEMENT
+    // =====================================================
+    const RECV_TEAM_KEY = 'receiving_team_v1';
+    let _receivingTeam  = [];
+
+    function loadReceivingTeam() {
+      try { _receivingTeam = JSON.parse(localStorage.getItem(RECV_TEAM_KEY) || '[]'); } catch(e) { _receivingTeam = []; }
+      renderReceivingTeam();
+      updateReceiverDropdowns();
+    }
+
+    function saveReceivingTeam() {
+      try { localStorage.setItem(RECV_TEAM_KEY, JSON.stringify(_receivingTeam)); } catch(e) {}
+      updateReceiverDropdowns();
+    }
+
+    function renderReceivingTeam() {
+      const list  = document.getElementById('recv-team-list');
+      const count = document.getElementById('recv-team-count');
+      if (count) count.innerText = _receivingTeam.length + ' คน';
+      if (!list) return;
+      if (_receivingTeam.length === 0) {
+        list.innerHTML = '<div class="text-center py-8 text-slate-300 text-xs font-bold">ยังไม่มีสมาชิก</div>';
+        return;
+      }
+      list.innerHTML = _receivingTeam.map(function(m, i) {
+        return '<div class="flex items-center justify-between px-5 py-3.5 hover:bg-slate-50 group">' +
+          '<div class="flex items-center gap-3">' +
+            '<div class="w-9 h-9 rounded-full bg-blue-100 text-blue-600 font-black text-sm flex items-center justify-center flex-shrink-0">' +
+              m.name.charAt(0).toUpperCase() +
+            '</div>' +
+            '<div>' +
+              '<div class="font-bold text-slate-700">' + m.name + '</div>' +
+              '<div class="text-[10px] text-slate-400">' + (m.position||'Receiving') + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">' +
+            '<button type="button" onclick="editReceivingMember(' + i + ')" ' +
+              'class="text-[10px] font-black text-blue-500 hover:text-blue-700 cursor-pointer px-2 py-1 rounded-lg hover:bg-blue-50">แก้ไข</button>' +
+            '<button type="button" onclick="removeReceivingMember(' + i + ')" ' +
+              'class="text-[10px] font-black text-rose-400 hover:text-rose-600 cursor-pointer px-2 py-1 rounded-lg hover:bg-rose-50">ลบ</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    window.addReceivingMember = function() {
+      const name = ((document.getElementById('recv-team-name')||{}).value||'').trim();
+      const pos  = ((document.getElementById('recv-team-position')||{}).value||'').trim();
+      if (!name) { showToast('กรุณากรอกชื่อ', 'error'); return; }
+      if (_receivingTeam.find(function(m){ return m.name === name; })) {
+        showToast('มีชื่อนี้อยู่แล้ว', 'error'); return;
+      }
+      _receivingTeam.push({ name: name, position: pos||'Receiving' });
+      saveReceivingTeam(); renderReceivingTeam();
+      const ni = document.getElementById('recv-team-name');     if(ni) ni.value='';
+      const pi = document.getElementById('recv-team-position'); if(pi) pi.value='';
+      showToast('เพิ่ม ' + name + ' แล้ว');
+    };
+
+    window.removeReceivingMember = function(idx) {
+      const name = _receivingTeam[idx]?.name || '';
+      if (!confirm('ลบ ' + name + ' ?')) return;
+      _receivingTeam.splice(idx, 1);
+      saveReceivingTeam(); renderReceivingTeam();
+      showToast('ลบ ' + name + ' แล้ว');
+    };
+
+    window.editReceivingMember = function(idx) {
+      const m    = _receivingTeam[idx];
+      const name = prompt('ชื่อ:', m.name);
+      if (!name || !name.trim()) return;
+      const pos  = prompt('ตำแหน่ง:', m.position||'Receiving');
+      _receivingTeam[idx] = { name: name.trim(), position: (pos||'Receiving').trim() };
+      saveReceivingTeam(); renderReceivingTeam();
+      showToast('แก้ไขแล้ว');
+    };
+
+    function updateReceiverDropdowns() {
+      // โหลด team ถ้ายังว่าง
+      if (_receivingTeam.length === 0) {
+        try { _receivingTeam = JSON.parse(localStorage.getItem(RECV_TEAM_KEY)||'[]'); } catch(e) {}
+      }
+      const opts = '<option value="">-- เลือกพนักงาน --</option>' +
+        _receivingTeam.map(function(m){
+          return '<option value="' + m.name + '">' + m.name + (m.position ? ' ('+m.position+')' : '') + '</option>';
+        }).join('');
+      const sel = document.getElementById('pcm-receiver');
+      if (sel) sel.innerHTML = opts;
+    }
+
+    // =====================================================
     // =====================================================
     let _audioCtx = null;
 
