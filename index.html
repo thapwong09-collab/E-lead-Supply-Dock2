@@ -1887,41 +1887,6 @@
 
       </div><!-- end planning-page-urgent -->
 
-        <!-- รายการ Urgent Parts -->
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-          <div class="px-5 py-4 border-b flex items-center justify-between">
-            <div class="font-black text-slate-700 text-sm">รายการพาร์ทเร่งด่วน</div>
-            <div class="flex gap-2">
-              <button type="button" onclick="setUrgentFilter('all')" id="uf-all"
-                class="px-3 py-1 rounded-lg text-[10px] font-black cursor-pointer bg-slate-700 text-white">ทั้งหมด</button>
-              <button type="button" onclick="setUrgentFilter('pending')" id="uf-pending"
-                class="px-3 py-1 rounded-lg text-[10px] font-black cursor-pointer bg-slate-100 text-slate-500">⏳ รอรับ</button>
-              <button type="button" onclick="setUrgentFilter('received')" id="uf-received"
-                class="px-3 py-1 rounded-lg text-[10px] font-black cursor-pointer bg-slate-100 text-slate-500">✅ รับแล้ว</button>
-            </div>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-xs">
-              <thead class="bg-slate-50 border-b border-slate-100">
-                <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                  <th class="px-4 py-3">วันที่แจ้ง</th>
-                  <th class="px-4 py-3">Supplier</th>
-                  <th class="px-4 py-3">PO No.</th>
-                  <th class="px-4 py-3">Part No.</th>
-                  <th class="px-4 py-3">Model</th>
-                  <th class="px-4 py-3">WO</th>
-                  <th class="px-4 py-3 text-center">งานเข้า</th>
-                  <th class="px-4 py-3 text-center">ขึ้นผลิต</th>
-                  <th class="px-4 py-3">เหตุผล</th>
-                  <th class="px-4 py-3 text-center">สถานะ</th>
-                  <th class="px-4 py-3 text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody id="urgent-table-body" class="divide-y divide-slate-50"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
 
 
       <!-- Weekly Plan Tab (read-only) -->
