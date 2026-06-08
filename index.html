@@ -5485,6 +5485,32 @@
       fetchAll();
     }
 
+    window.renamePic = async function(oldName) {
+      const newName = prompt('เปลี่ยนชื่อ PIC จาก "' + oldName + '" เป็น:', oldName);
+      if (!newName || !newName.trim() || newName.trim() === oldName) return;
+      const name = newName.trim();
+
+      // แสดง loading
+      showToast('⏳ กำลังเปลี่ยนชื่อ...');
+
+      try {
+        // เรียก API เพื่ออัพเดทชื่อ PIC ใน Sheet
+        const res = await callAPI('renamePicMaster', { oldName: oldName, newName: name });
+        if (res && res.success) {
+          // อัพเดท allPicMaster ใน memory
+          allPicMaster.forEach(function(m) {
+            if ((m.pic_name||'').trim() === oldName) m.pic_name = name;
+          });
+          showToast('✅ เปลี่ยนชื่อ PIC เป็น "' + name + '" แล้ว');
+          _renderPicResponsibility();
+        } else {
+          showToast('ไม่สำเร็จ: ' + (res?.message||''), 'error');
+        }
+      } catch(e) {
+        showToast('Error: ' + e.message, 'error');
+      }
+    };
+
     function _populatePicRespFilter() {
       const sel = document.getElementById('pic-resp-filter');
       if (!sel) return;
@@ -5609,6 +5635,10 @@
                 '<div class="font-black text-white text-base">👤 ' + pic + '</div>' +
                 '<div class="text-violet-200 text-[10px] mt-0.5">' + suppliers.length + ' Supplier · ' + picParts.length + ' พาร์ทวันนี้ · QTY ' + totalQty.toLocaleString() + '</div>' +
               '</div>' +
+              '<button type="button" onclick="renamePic(' + JSON.stringify(pic) + ')" ' +
+                'class="bg-white/20 hover:bg-white/30 text-white text-[9px] font-black px-3 py-1.5 rounded-xl cursor-pointer flex items-center gap-1 transition-colors">' +
+                '✏️ เปลี่ยนชื่อ PIC' +
+              '</button>' +
             '</div>' +
           '</div>' +
           '<div class="divide-y divide-slate-50">' + vendorItems + '</div>' +
