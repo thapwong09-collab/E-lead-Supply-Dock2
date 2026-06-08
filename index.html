@@ -5485,168 +5485,109 @@
     }
 
     function _renderPicResponsibility() {
-      const dateEl = document.getElementById('pic-resp-date');
-      const filterEl = document.getElementById('pic-resp-filter');
-      const dateVal = dateEl?.value || getThaiDate();
+      const dateEl    = document.getElementById('pic-resp-date');
+      const filterEl  = document.getElementById('pic-resp-filter');
+      const dateVal   = dateEl?.value || getThaiDate();
       const picFilter = filterEl?.value || 'ALL';
       _hashParts = '';
 
-      // กรองข้อมูล
-      const filtered = allPartData.filter(p => {
-        if (dateVal && String(p.date||'').trim() !== dateVal) return false;
-        if (picFilter !== 'ALL' && String(p.pic||'').trim() !== picFilter) return false;
-        return true;
-      });
-
-      // Summary cards
-      const uniquePics = [...new Set(filtered.map(p => p.pic).filter(Boolean))];
-      const uniqueSups = [...new Set(filtered.map(p => p.vendor).filter(Boolean))];
-      const set = (id,v) => { const el=document.getElementById(id); if(el) el.innerText=v; };
-      set('pic-resp-total-pic',   uniquePics.length);
-      set('pic-resp-total-sup',   uniqueSups.length);
-      set('pic-resp-total-parts', filtered.length);
-      const cntEl = document.getElementById('pic-resp-count');
-      if (cntEl) cntEl.innerText = filtered.length + ' รายการ';
-
-      // Group by PIC → Suppliers
-      const picMap = {};
-      filtered.forEach(p => {
-        const pic     = p.pic     || '(ไม่ระบุ PIC)';
-        const vendor  = p.vendor  || '(ไม่ระบุ)';
-        const timeSlot= p.time_slot || '';
-        if (!picMap[pic]) picMap[pic] = {};
-        if (!picMap[pic][vendor]) picMap[pic][vendor] = { parts:[], timeSlot };
-        picMap[pic][vendor].parts.push(p);
-        if (timeSlot) picMap[pic][vendor].timeSlot = timeSlot;
-      });
-
-      // PIC Cards
-      const grid = document.getElementById('pic-resp-grid');
-      if (grid) {
-        const sortedPics = Object.keys(picMap).sort();
-        if (sortedPics.length === 0) {
-          grid.innerHTML = '<div class="col-span-3 py-12 text-center text-slate-300 font-bold text-sm">ไม่มีข้อมูล PIC สำหรับวันที่เลือก</div>';
-        } else {
-          grid.innerHTML = sortedPics.map(pic => {
-            const vendors = picMap[pic];
-            const vendorList = Object.keys(vendors).sort();
-            const totalParts = vendorList.reduce((s,v) => s + vendors[v].parts.length, 0);
-            const totalQty   = vendorList.reduce((s,v) =>
-              s + vendors[v].parts.reduce((q,p) =>
-                q + (parseFloat(String(p.qty_plan||0).replace(/,/g,''))||0), 0), 0);
-
-            return `
-            <div class="bg-white rounded-2xl shadow-sm border overflow-hidden fade-in">
-              <div class="bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-4">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <div class="font-black text-white text-base">👤 ${pic}</div>
-                    <div class="text-violet-200 text-[10px] font-bold mt-0.5">${vendorList.length} Supplier · ${totalParts} พาร์ท</div>
-                  </div>
-                  <div class="text-right">
-                    <div class="text-white font-black text-lg">${Number(totalQty).toLocaleString()}</div>
-                    <div class="text-violet-200 text-[9px] font-bold">QTY รวม</div>
-                  </div>
-                </div>
-              </div>
-              <div class="divide-y divide-slate-50">
-                ${vendorList.map(v => {
-                  const info = vendors[v];
-                  const partCount = info.parts.length;
-                  const qty = info.parts.reduce((s,p) => s+(parseFloat(String(p.qty_plan||0).replace(/,/g,''))||0), 0);
-                  const timeColor = info.timeSlot==='AM' ? 'bg-blue-100 text-blue-700'
-                    : info.timeSlot==='PM' ? 'bg-orange-100 text-orange-700'
-                    : 'bg-slate-100 text-slate-500';
-                  const hasCheckin = allData.some(r =>
-                    r.date === dateVal && (r.company_name === v || vendorScore(r.company_name, v) >= 60)
-                    && r.status !== 'cancelled'
-                  );
-                  return `
-                  <div class="px-5 py-3 hover:bg-slate-50 transition-colors">
-                    <div class="flex items-start justify-between gap-2">
-                      <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 mb-1 flex-wrap">
-                          <span class="font-bold text-slate-700 text-sm truncate">${v}</span>
-                          ${hasCheckin ? '<span class="text-[9px] bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded font-black flex-shrink-0">เช็คอินแล้ว ✅</span>' : '<span class="text-[9px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded font-black flex-shrink-0">ยังไม่มา</span>'}
-                          <button type="button" onclick="toggleSupplierTypeFromCard(this)"
-                            data-supplier="${v.replace(/"/g,'&quot;')}"
-                            class="text-[9px] font-black px-2 py-0.5 rounded-full border cursor-pointer transition-all ${getSupplierType(v)==='overseas' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}">
-                            ${getSupplierType(v)==='overseas' ? '🌏 Overseas' : '🇹🇭 Local'}
-                          </button>
-                        </div>
-                        <div class="flex flex-wrap gap-1">
-                          ${info.parts.slice(0,3).map(p =>
-                            `<span class="text-[9px] font-mono bg-violet-50 text-violet-600 px-1.5 py-0.5 rounded border border-violet-100">${p.part_no||p.part_number||'-'}</span>`
-                          ).join('')}
-                          ${info.parts.length > 3 ? `<span class="text-[9px] text-slate-400 font-bold">+${info.parts.length-3}</span>` : ''}
-                        </div>
-                      </div>
-                      <div class="flex flex-col items-end gap-1 flex-shrink-0">
-                        ${info.timeSlot ? `<span class="text-[9px] font-black px-2 py-0.5 rounded-lg ${timeColor}">${info.timeSlot}</span>` : ''}
-                        <span class="text-xs font-black text-slate-600">${Number(qty).toLocaleString()} QTY</span>
-                      </div>
-                    </div>
-                  </div>`;
-                }).join('')}
-              </div>
-            </div>`;
-          }).join('');
+      // ── Source หลัก = allPicMaster (ทะเบียนที่กรอกไว้) ──
+      const picMasterMap = {}; // { picName: [{ supplier, type }] }
+      allPicMaster.forEach(function(m) {
+        const pic = (m.pic_name||'').trim();
+        const sup = (m.supplier||'').trim();
+        if (!pic) return;
+        if (!picMasterMap[pic]) picMasterMap[pic] = [];
+        if (sup && !picMasterMap[pic].find(function(x){ return x.supplier === sup; })) {
+          picMasterMap[pic].push({ supplier: sup, type: getSupplierType(sup) });
         }
-      }
+      });
 
-      // Supplier-PIC Table
-      const tbody = document.getElementById('pic-resp-table');
-      if (!tbody) return;
+      // Part วันที่เลือก
+      const dayParts = allPartData.filter(function(p) {
+        return normalizeDate(p.date) === dateVal;
+      });
 
-      if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-300 font-bold text-xs uppercase">ไม่มีข้อมูล</td></tr>';
+      let pics = Object.keys(picMasterMap).sort();
+      if (picFilter !== 'ALL') pics = pics.filter(function(p){ return p === picFilter; });
+
+      const set = function(id,v){ const el=document.getElementById(id); if(el) el.innerText=v; };
+      const allSups = [...new Set(allPicMaster.map(function(m){ return m.supplier||''; }).filter(Boolean))];
+      set('pic-resp-total-pic',   pics.length);
+      set('pic-resp-total-sup',   allSups.length);
+      set('pic-resp-total-parts', dayParts.length);
+      const cntEl = document.getElementById('pic-resp-count');
+      if (cntEl) cntEl.innerText = pics.length + ' PIC · ' + allSups.length + ' Supplier ที่ลงทะเบียน';
+
+      const grid = document.getElementById('pic-resp-grid');
+      if (!grid) return;
+
+      if (pics.length === 0) {
+        grid.innerHTML = '<div class="col-span-3 py-12 text-center text-slate-300 font-bold text-sm">ยังไม่มีการลงทะเบียน PIC<br>ไปที่ PIC Master เพื่อเพิ่มข้อมูล</div>';
         return;
       }
 
-      // Group by vendor+date
-      const rowMap = {};
-      filtered.forEach(p => {
-        const key = `${p.date}||${p.vendor}||${p.pic}`;
-        if (!rowMap[key]) rowMap[key] = { vendor: p.vendor, pic: p.pic, date: p.date,
-          timeSlot: p.time_slot, parts: [], qtyTotal: 0 };
-        rowMap[key].parts.push(p);
-        rowMap[key].qtyTotal += parseFloat(String(p.qty_plan||0).replace(/,/g,''))||0;
-      });
+      grid.innerHTML = pics.map(function(pic) {
+        const suppliers = picMasterMap[pic];
+        const picParts  = dayParts.filter(function(p){ return String(p.pic||'').trim() === pic; });
+        const totalQty  = picParts.reduce(function(s,p){ return s+(parseFloat(p.qty_plan)||0); }, 0);
 
-      const rows = Object.values(rowMap).sort((a,b) => {
-        if (a.pic < b.pic) return -1; if (a.pic > b.pic) return 1;
-        return String(a.vendor).localeCompare(String(b.vendor));
-      });
+        const vendorItems = suppliers.map(function(s) {
+          const v = s.supplier;
+          const vNorm   = normalizeVendor(v.toLowerCase());
+          const vParts  = dayParts.filter(function(p){
+            const pv = normalizeVendor((p.vendor||'').toLowerCase());
+            return pv === vNorm || (vNorm.length>=4 && (pv.includes(vNorm)||vNorm.includes(pv)));
+          });
+          const hasCheckin = allData.some(function(r){
+            return normalizeDate(r.date) === dateVal && r.status !== 'cancelled' &&
+              normalizeVendor((r.company_name||'').toLowerCase()).includes(vNorm.substring(0,Math.min(6,vNorm.length)));
+          });
+          const qty      = vParts.reduce(function(s,p){ return s+(parseFloat(p.qty_plan)||0); }, 0);
+          const timeSlot = vParts.length > 0 ? (vParts[0].time_slot||'') : '';
+          const timeColor = timeSlot==='AM' ? 'bg-amber-100 text-amber-700' : timeSlot==='PM' ? 'bg-blue-100 text-blue-700' : timeSlot.toLowerCase().includes('pick') ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500';
+          const isOverseas = s.type === 'overseas';
 
-      tbody.innerHTML = rows.map(r => {
-        const statusCounts = { completed:0, short:0, missing:0, pending:0 };
-        r.parts.forEach(p => { const s = p.status||'pending'; statusCounts[s] = (statusCounts[s]||0)+1; });
-        const hasCheckin = allData.some(d =>
-          d.date === r.date && (d.company_name === r.vendor || vendorScore(d.company_name, r.vendor) >= 60)
-          && d.status !== 'cancelled'
-        );
-        const timeBadge = r.timeSlot
-          ? `<span class="px-2 py-0.5 rounded text-[9px] font-black ${r.timeSlot==='AM'?'bg-blue-100 text-blue-700':r.timeSlot==='PM'?'bg-orange-100 text-orange-700':'bg-slate-100 text-slate-500'}">${r.timeSlot}</span>`
-          : '<span class="text-slate-300 text-xs">-</span>';
-        const statusBadge = statusCounts.completed > 0
-          ? `<span class="text-[9px] font-black bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded">ครบ ${statusCounts.completed}</span>`
-          : statusCounts.short > 0
-          ? `<span class="text-[9px] font-black bg-amber-100 text-amber-600 px-2 py-0.5 rounded">ไม่ครบ ${statusCounts.short}</span>`
-          : hasCheckin
-          ? `<span class="text-[9px] font-black bg-blue-100 text-blue-600 px-2 py-0.5 rounded">เช็คอินแล้ว</span>`
-          : `<span class="text-[9px] font-bold bg-slate-100 text-slate-400 px-2 py-0.5 rounded">รอ</span>`;
-        return `
-        <tr class="hover:bg-slate-50 transition-colors">
-          <td class="px-5 py-3 font-bold text-slate-700">${r.vendor||'-'}</td>
-          <td class="px-5 py-3">
-            <span class="bg-violet-100 text-violet-700 px-2 py-0.5 rounded-lg text-xs font-bold">👤 ${r.pic||'-'}</span>
-          </td>
-          <td class="px-5 py-3 text-center text-slate-500 text-xs">${r.date||'-'}</td>
-          <td class="px-5 py-3 text-center">${timeBadge}</td>
-          <td class="px-5 py-3 text-center font-black text-slate-600">${r.parts.length}</td>
-          <td class="px-5 py-3 text-center font-black text-slate-700">${Number(r.qtyTotal).toLocaleString()}</td>
-          <td class="px-5 py-3 text-center">${statusBadge}</td>
-        </tr>`;
+          return '<div class="px-5 py-3 hover:bg-slate-50 transition-colors">' +
+            '<div class="flex items-start justify-between gap-2">' +
+              '<div class="flex-1 min-w-0">' +
+                '<div class="flex items-center gap-2 mb-1 flex-wrap">' +
+                  '<span class="font-bold text-slate-700 text-sm">' + v + '</span>' +
+                  (hasCheckin
+                    ? '<span class="text-[9px] bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded font-black">เช็คอินแล้ว ✅</span>'
+                    : '<span class="text-[9px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded font-black">ยังไม่มา</span>') +
+                  '<button type="button" data-supplier="' + v.replace(/"/g,'&quot;') + '" onclick="toggleSupplierTypeFromCard(this)" ' +
+                    'class="text-[9px] font-black px-2 py-0.5 rounded-full border cursor-pointer ' +
+                    (isOverseas ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200') + '">' +
+                    (isOverseas ? '🌏 Overseas' : '🇹🇭 Local') +
+                  '</button>' +
+                '</div>' +
+                '<div class="flex flex-wrap gap-1">' +
+                  (vParts.length > 0
+                    ? vParts.slice(0,3).map(function(p){ return '<span class="text-[9px] font-mono bg-violet-50 text-violet-600 px-1.5 py-0.5 rounded border border-violet-100">' + (p.part_no||'-') + '</span>'; }).join('') +
+                      (vParts.length > 3 ? '<span class="text-[9px] text-slate-400 font-bold">+' + (vParts.length-3) + '</span>' : '')
+                    : '<span class="text-[9px] text-slate-300">ไม่มีพาร์ทวันนี้</span>') +
+                '</div>' +
+              '</div>' +
+              '<div class="flex flex-col items-end gap-1 flex-shrink-0">' +
+                (timeSlot ? '<span class="text-[9px] font-black px-2 py-0.5 rounded-lg ' + timeColor + '">' + timeSlot + '</span>' : '') +
+                (qty > 0 ? '<span class="text-xs font-black text-slate-600">' + qty.toLocaleString() + ' QTY</span>' : '') +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+
+        return '<div class="bg-white rounded-2xl shadow-sm border overflow-hidden fade-in">' +
+          '<div class="bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-4">' +
+            '<div class="flex items-center justify-between">' +
+              '<div>' +
+                '<div class="font-black text-white text-base">👤 ' + pic + '</div>' +
+                '<div class="text-violet-200 text-[10px] mt-0.5">' + suppliers.length + ' Supplier · ' + picParts.length + ' พาร์ทวันนี้ · QTY ' + totalQty.toLocaleString() + '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="divide-y divide-slate-50">' + vendorItems + '</div>' +
+        '</div>';
       }).join('');
     }
 
