@@ -5183,6 +5183,7 @@
       };
 
       const filteredCheckin = allData.filter(function(r) {
+        if (!r.date || !r.queue_number) return false;  // ข้าม record ที่ไม่สมบูรณ์
         if (r.status === 'cancelled') return false;
         if (!isTypeMatch(r.company_name)) return false;
         if (mVal !== 'ALL') {
@@ -5192,7 +5193,7 @@
         if (sVal !== 'ALL' && !String(r.company_name||'').toLowerCase().includes(sVal.toLowerCase())) return false;
         return true;
       });
-      const visits = new Set(filteredCheckin.map(function(r){ return r.date+'_'+r.queue_number; })).size;
+      const visits = new Set(filteredCheckin.map(function(r){ return normalizeDate(r.date)+'_'+r.queue_number; })).size;
 
       const filteredParts = allPartData.filter(function(p) {
         if (!isTypeMatch(p.vendor)) return false;
