@@ -5074,52 +5074,74 @@
       dailyChart = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{ label:'คิว', data:counts, backgroundColor:'#4f46e5', borderRadius:8 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks: { precision: 0 } } } } });
     }
 
-    let _pdFilter = 'all'; // 'all' | 'local' | 'overseas'
-
-    window.setPdFilter = function(filter) {
-      _pdFilter = filter;
-      ['all','local','overseas'].forEach(function(f) {
-        const btn = document.getElementById('pd-filter-' + f);
-        if (!btn) return;
-        if (f === filter) {
-          btn.className = 'px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer bg-white text-slate-700 shadow-sm';
-        } else {
-          btn.className = 'px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer text-slate-500';
-        }
-      });
-      updatePartsDashboard();
-    };
-
     // =====================================================
     let pdTimeChart = null;
     let pdQtyChart  = null;
     let pdBarChart  = null;
     let pdLineChart = null;
 
-    function populatePartsDashboardFilters() {
-      const mSel = document.getElementById('parts-month');
-      if (mSel && mSel.options.length === 0) {
-        mSel.add(new Option('ทุกเดือน', 'ALL'));
-        const now = new Date();
-        for (let i = 0; i < 24; i++) {
-          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-          mSel.add(new Option(
-            d.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' }),
-            `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
-          ));
-        }
-      }
-      const sSel = document.getElementById('parts-supplier');
-      if (!sSel) return;
-      const cur = sSel.value;
-      sSel.innerHTML = '<option value="ALL">ทั้งหมด</option>';
-      const vendors = [...new Set([
-        ...allData.map(r => r.company_name),
-        ...allPartData.map(p => p.vendor)
-      ].filter(Boolean))].sort();
-      vendors.forEach(v => sSel.add(new Option(v, v)));
-      if (cur && vendors.includes(cur)) sSel.value = cur;
+    const PD_PAGES = ['page-parts','pic-page-parts-receiving','pic-page-pic-dashboard','planning-page-dashboard','mgr-page-dashboard'];
+
+    function getActivePdPage() {
+      return PD_PAGES.find(function(id) {
+        const el = document.getElementById(id);
+        return el && !el.classList.contains('hidden');
+      }) || 'page-parts';
     }
+
+    function populatePartsDashboardFilters() {
+      const vendors = [...new Set([
+        ...allData.map(function(r){ return r.company_name||''; }),
+        ...allPartData.map(function(p){ return p.vendor||''; })
+      ].filter(Boolean))].sort();
+
+      // populate ทุก page พร้อมกัน
+      PD_PAGES.forEach(function(pageId) {
+        const page = document.getElementById(pageId);
+        if (!page) return;
+
+        // Month filter
+        const mSel = page.querySelector('#parts-month');
+        if (mSel && mSel.options.length === 0) {
+          mSel.add(new Option('ทุกเดือน','ALL'));
+          const now = new Date();
+          for (let i = 0; i < 24; i++) {
+            const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+            mSel.add(new Option(
+              d.toLocaleDateString('th-TH',{month:'long',year:'numeric'}),
+              d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')
+            ));
+          }
+        }
+
+        // Supplier filter
+        const sSel = page.querySelector('#parts-supplier');
+        if (sSel) {
+          const cur = sSel.value;
+          sSel.innerHTML = '<option value="ALL">ทั้งหมด</option>';
+          vendors.forEach(function(v){ sSel.add(new Option(v,v)); });
+          if (cur && vendors.includes(cur)) sSel.value = cur;
+        }
+      });
+    }
+
+    let _pdFilter = 'all';
+
+    window.setPdFilter = function(filter) {
+      _pdFilter = filter;
+      // แก้ปุ่มใน active page เท่านั้น
+      const activePage = document.getElementById(getActivePdPage());
+      if (activePage) {
+        ['all','local','overseas'].forEach(function(f) {
+          const btn = activePage.querySelector('#pd-filter-'+f);
+          if (!btn) return;
+          btn.className = f === filter
+            ? 'px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer bg-white text-slate-700 shadow-sm'
+            : 'px-4 py-1.5 rounded-lg text-xs font-black cursor-pointer text-slate-500';
+        });
+      }
+      updatePartsDashboard();
+    };
 
     function getOriginBadge(origin) {
       if (!origin || origin === 'local') return '<span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[9px] font-black">🏠 Local</span>';
@@ -5145,19 +5167,14 @@
     function updatePartsDashboard() {
       if (!allPartData) return;
 
-      // หา active dashboard page
-      const activePageId = ['page-parts','pic-page-parts-receiving','pic-page-pic-dashboard',
-        'planning-page-dashboard','mgr-page-dashboard'].find(function(id) {
-        const el = document.getElementById(id);
-        return el && !el.classList.contains('hidden');
-      }) || 'page-parts';
-      const activePage = document.getElementById(activePageId);
+      const activePageId = getActivePdPage();
+      const activePage   = document.getElementById(activePageId);
 
-      // ดึง filter จาก active page
-      const mEl = activePage ? activePage.querySelector('[id$="-month"],[id="parts-month"]') : document.getElementById('parts-month');
-      const sEl = activePage ? activePage.querySelector('[id$="-supplier"],[id="parts-supplier"]') : document.getElementById('parts-supplier');
-      const mVal = (mEl ? mEl.value : '') || 'ALL';
-      const sVal = (sEl ? sEl.value : '') || 'ALL';
+      // ดึง filter จาก active page โดยตรง
+      const mEl  = activePage ? activePage.querySelector('#parts-month')    : null;
+      const sEl  = activePage ? activePage.querySelector('#parts-supplier') : null;
+      const mVal = (mEl && mEl.value) ? mEl.value : 'ALL';
+      const sVal = (sEl && sEl.value) ? sEl.value : 'ALL';
 
       const isTypeMatch = function(vendorName) {
         if (_pdFilter === 'all') return true;
@@ -5365,11 +5382,7 @@
       });
 
       // หา canvas ใน active page
-      const _activePageForChart = ['page-parts','pic-page-parts-receiving','pic-page-pic-dashboard',
-        'planning-page-dashboard','mgr-page-dashboard'].find(function(id) {
-        const el = document.getElementById(id); return el && !el.classList.contains('hidden');
-      }) || 'page-parts';
-      const _activePg   = document.getElementById(_activePageForChart);
+      const _activePg   = document.getElementById(getActivePdPage());
       const barCanvas   = _activePg ? _activePg.querySelector('#pdBarChart') : document.getElementById('pdBarChart');
       if (barCanvas && typeof Chart !== 'undefined') {
         if (pdBarChart) { pdBarChart.destroy(); pdBarChart = null; }
