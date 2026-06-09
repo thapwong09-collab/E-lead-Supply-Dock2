@@ -4664,7 +4664,7 @@
       const compList   = myData.filter(function(r){ return r.status === 'completed' || r.status === 'exited'; });
       const cancelList = myData.filter(function(r){ return r.status === 'cancelled'; });
 
-      // ── ตรวจ status เปลี่ยน → เล่นเสียงทุกเครื่องที่เปิด Staff ──
+      // ── เสียง: schedule ก่อน render UI เพื่อให้มาพร้อมกัน ──
       if (_prevWaitCount >= 0) {
         if (waitList.length   > _prevWaitCount)   playBell();
         if (loadList.length   > _prevLoadCount)   playBeep('call');
@@ -4797,9 +4797,11 @@
                 '<div class="flex justify-between items-center mb-1"><div class="flex items-center gap-2"><span class="font-black text-slate-400">#' + r.queue_number + '</span></div>' + statusBadge + '</div>' +
                 '<div class="text-sm font-bold text-slate-600 mb-1">' + r.company_name + '</div>' +
                 '<div class="text-[9px] font-bold text-slate-500 mb-0.5">ทะเบียน: <span class="text-slate-700">' + (r.license_plate||'-') + '</span></div>' +
-                (receiver ? '<div class="text-[9px] font-bold text-violet-600 mb-1">👤 รับโดย: ' + receiver + '</div>' : '') +
-                (r.factory ? '<div class="text-[9px] font-black text-indigo-600 mb-2">🏭 ' + r.factory + '</div>' : '<div class="mb-2"></div>') +
-                '<div class="grid grid-cols-2 gap-1 text-[8px] font-bold text-slate-400 border-t pt-2">' +
+                '<div class="text-[9px] font-bold text-slate-500 mb-1.5">ทะเบียน: <span class="text-slate-700">' + (r.license_plate||'-') + '</span></div>' +
+                '<div class="flex items-center justify-between mb-2">' +
+                  (r.factory ? '<div class="text-[9px] font-black text-indigo-600">🏭 ' + r.factory + '</div>' : '<div></div>') +
+                  (receiver ? '<div class="text-[9px] font-bold text-violet-600">👤 ' + receiver + '</div>' : '') +
+                '</div>' +
                 '<div>เช็คอิน: <span class="text-slate-800">' + (ciTime !== '-' ? ciTime : '<span class="text-slate-300">—</span>') + '</span></div>' +
                 '<div>เริ่มเข้า: <span class="text-blue-500">' + (ldTime !== '-' ? ldTime : '<span class="text-slate-300">—</span>') + '</span></div>' +
                 '<div class="col-span-2 text-right">จบงาน: <span class="text-emerald-500 text-[10px] font-black">' + (cpTime !== '-' ? cpTime : '<span class="text-slate-300">—</span>') + '</span></div>' +
@@ -9104,6 +9106,7 @@
     // =====================================================
     // =====================================================
     let _audioCtx = null;
+    let _audioReady = false;
 
     function _getAudioCtx() {
       if (!_audioCtx) {
@@ -9114,28 +9117,54 @@
       return _audioCtx;
     }
 
-    // warm up context หลัง user กดครั้งแรก
-    document.addEventListener('click', function warmUp() {
+    function _warmUpAudio() {
+      if (_audioReady) return;
       const ctx = _getAudioCtx();
-      if (ctx && ctx.state === 'suspended') ctx.resume();
-      document.removeEventListener('click', warmUp);
-    }, { once: true });
+      if (!ctx) return;
+      const doWarm = function() {
+        try {
+          const buf = ctx.createBuffer(1, 1, 22050);
+          const src = ctx.createBufferSource();
+          src.buffer = buf;
+          src.connect(ctx.destination);
+          src.start(0);
+          _audioReady = true;
+        } catch(e) {}
+      };
+      if (ctx.state === 'suspended') { ctx.resume().then(doWarm); }
+      else { doWarm(); }
+    }
 
-    function playBeep(type) {
+    // warm up ทันทีที่ user interact ครั้งแรก
+    ['click','touchstart','keydown','touchend'].forEach(function(evt) {
+      document.addEventListener(evt, function warmUp() {
+        _warmUpAudio();
+      }, { once: true });
+    });
+
+    // keep context alive — resume ทุก 30 วินาทีถ้า suspended
+    setInterval(function() {
+      const ctx = _getAudioCtx();
+      if (ctx && ctx.state === 'suspended') ctx.resume().then(function(){ _audioReady = true; });
+    }, 30000);
+
+    function _scheduleSound(fn) {
       const ctx = _getAudioCtx();
       if (!ctx) return;
       if (ctx.state === 'suspended') {
-        ctx.resume().then(function(){ _doBeep(ctx, type); });
+        ctx.resume().then(function() { _audioReady = true; fn(ctx); });
       } else {
-        _doBeep(ctx, type);
+        // เล่นทันที — ไม่มี async delay
+        fn(ctx);
       }
     }
 
+    function playBeep(type) {
+      _scheduleSound(function(ctx) { _doBeep(ctx, type); });
+    }
+
     function playBell() {
-      const ctx = _getAudioCtx();
-      if (!ctx) return;
-      const resume = ctx.state === 'suspended' ? ctx.resume() : Promise.resolve();
-      resume.then(function() {
+      _scheduleSound(function(ctx) {
         const now = ctx.currentTime;
         // กระดิ่ง 3 ครั้ง ห่างกัน 0.5 วินาที — เสียงยาวขึ้น decay ช้าลง
         [0, 0.5, 1.0].forEach(function(offset) {
