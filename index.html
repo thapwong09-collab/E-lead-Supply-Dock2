@@ -2611,8 +2611,31 @@
     function safeRemoveSession(key) { try { sessionStorage.removeItem(key); } catch(e) {} }
 
     let allData = [];
-    let globalPlanData = [];
-    let allPartData = [];       // ← NEW: Part ที่ PIC กรอกไว้
+    let allPartData = [];       // ← Part ที่ PIC กรอกไว้
+
+    // ── Index/Map สำหรับ lookup O(1) แทน O(n) filter ──
+    let _partByQueueDate    = {};  // "queue_date" → [parts]
+    let _checkinByQueueDate = {};  // "queue_date" → checkin record
+    let _partByPoAndPart    = {};  // "po|part" → [parts]
+
+    function _rebuildIndexes() {
+      _partByQueueDate = {}; _checkinByQueueDate = {}; _partByPoAndPart = {};
+      allPartData.forEach(function(p) {
+        if (p.queue_number && p.date) {
+          const k = String(p.queue_number)+'_'+normalizeDate(p.date);
+          (_partByQueueDate[k] = _partByQueueDate[k]||[]).push(p);
+        }
+        if (p.po_no && p.part_no) {
+          const k2 = String(p.po_no)+'|'+String(p.part_no);
+          (_partByPoAndPart[k2] = _partByPoAndPart[k2]||[]).push(p);
+        }
+      });
+      allData.forEach(function(r) {
+        if (r.queue_number && r.date)
+          _checkinByQueueDate[String(r.queue_number)+'_'+normalizeDate(r.date)] = r;
+      });
+    }
+
     let currentSupplierRecord = null;
     let isStaffLoggedIn    = false;
     let isPICLoggedIn      = false;
@@ -2718,6 +2741,12 @@
           if (res.parts)     allPartData   = res.parts     || [];
           if (res.vehicles && res.vehicles.length > 0) _vehicleData = res.vehicles;
           if (res.suppliers && res.suppliers.length > 0) _supplierMasterList = res.suppliers;
+          // rebuild indexes สำหรับ O(1) lookup
+          _rebuildIndexes();
+          // ล้าง normalizeDate cache เป็นระยะ (ป้องกัน memory leak)
+          if (Object.keys(_normDateCache).length > 5000) {
+            for (const k in _normDateCache) delete _normDateCache[k];
+          }
           if (res.picMaster) {
             const picMasterPage = document.getElementById('pic-page-pic-master');
             const isOnPicMaster = picMasterPage && !picMasterPage.classList.contains('hidden');
@@ -3231,19 +3260,20 @@
              ' '+pad(bkk.getUTCHours())+':'+pad(bkk.getUTCMinutes())+':'+pad(bkk.getUTCSeconds());
     }
 
+    const _normDateCache = {};
     function normalizeDate(raw) {
-      if (!raw) return '';  // ไม่มีวัน → return '' ไม่ใช่วันนี้
-      const v = String(raw).replace(/^'/,'').trim();
-      if (!v) return '';
-      // YYYY/MM/DD หรือ YYYY-MM-DD
+      if (!raw) return '';
+      const key = String(raw);
+      if (_normDateCache[key] !== undefined) return _normDateCache[key];
+      const v = key.replace(/^'/,'').trim();
+      if (!v) return (_normDateCache[key] = '');
       const ymd = v.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
-      if (ymd) return `${ymd[1]}-${ymd[2].padStart(2,'0')}-${ymd[3].padStart(2,'0')}`;
-      // DD/MM/YYYY
+      if (ymd) return (_normDateCache[key] = `${ymd[1]}-${ymd[2].padStart(2,'0')}-${ymd[3].padStart(2,'0')}`);
       const dmy = v.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
-      if (dmy) return `${dmy[3]}-${dmy[2].padStart(2,'0')}-${dmy[1].padStart(2,'0')}`;
+      if (dmy) return (_normDateCache[key] = `${dmy[3]}-${dmy[2].padStart(2,'0')}-${dmy[1].padStart(2,'0')}`);
       const d = new Date(v);
-      if (!isNaN(d)) return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-      return '';
+      if (!isNaN(d)) return (_normDateCache[key] = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
+      return (_normDateCache[key] = '');
     }
 
     function normalizeTime(raw) {
@@ -4583,6 +4613,14 @@
       return getPlanStatusFromParts(r.company_name, normalizeDate(r.date), r.checkin_time);
     }
 
+    // helper: ดึง plan_status โดยใช้ index O(1) แทน allData.find O(n)
+    function _getPlanStatusFromIndex(queueNumber, date) {
+      const k = String(queueNumber) + '_' + normalizeDate(String(date));
+      const ci = _checkinByQueueDate[k];
+      return ci ? String(ci.plan_status||'') : '';
+    }
+
+
     // ดึง Parts ของ Supplier โดย match ชื่อแบบ fuzzy
     // lookup type จาก Supplier Master — return 'overseas' | 'local' | ''
     function getSupplierType(companyName) {
@@ -4787,11 +4825,9 @@
               const ldTime   = formatThaiTime(r.loading_time);
               const cpTime   = formatThaiTime(r.completed_time);
               // หาชื่อผู้รับจาก PartDetail
-              const receiver = (allPartData.find(function(p){
-                return String(p.queue_number) === String(r.queue_number) &&
-                       normalizeDate(p.date) === normalizeDate(r.date) &&
-                       p.confirmed_by;
-              }) || {}).confirmed_by || '';
+              const _qdKey  = String(r.queue_number) + '_' + normalizeDate(r.date);
+              const _qParts = _partByQueueDate[_qdKey] || [];
+              const receiver = (_qParts.find(function(p){ return p.confirmed_by; }) || {}).confirmed_by || '';
 
               return '<div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 opacity-80 fade-in text-left">' +
                 '<div class="flex justify-between items-center mb-1"><div class="flex items-center gap-2"><span class="font-black text-slate-400">#' + r.queue_number + '</span></div>' + statusBadge + '</div>' +
@@ -7559,14 +7595,7 @@
         const qR = parseFloat(r.qty_received)||0;
 
         // หา plan_status จาก checkin record ที่ตรงกับ queue_number และ date
-        let planStatus = '';
-        if (r.queue_number && r.date) {
-          const ci = allData.find(function(c){
-            return String(c.queue_number) === String(r.queue_number) &&
-                   normalizeDate(c.date) === normalizeDate(r.date);
-          });
-          if (ci) planStatus = String(ci.plan_status||'');
-        }
+        const planStatus = _getPlanStatusFromIndex(r.queue_number, r.date);
         const isLate   = planStatus.includes('ล่าช้า');
         const isOnTime = planStatus.includes('ตรงเวลา') || planStatus.includes('มาก่อนเวลา');
 
@@ -7623,11 +7652,7 @@
         const hasUrgent = _urgentAll.some(function(u){ return u.po_no===r.po_no && u.part_no===r.part_no && u.status==='pending'; });
         const _qP = parseFloat(r.qty_plan)||0; const _qR = parseFloat(r.qty_received)||0;
         // หา plan_status จาก checkin record
-        let _planSt3 = '';
-        if (r.queue_number && r.date) {
-          const _ci3 = allData.find(function(c){ return String(c.queue_number)===String(r.queue_number) && normalizeDate(c.date)===normalizeDate(r.date); });
-          if (_ci3) _planSt3 = String(_ci3.plan_status||'');
-        }
+        const _planSt3 = _getPlanStatusFromIndex(r.queue_number, r.date);
         const _isLate3 = _planSt3.includes('ล่าช้า');
         const stBadge = (r.status==='completed' && _qR > _qP && _qP > 0)
           ? '<span class="bg-purple-100 text-purple-700 text-[9px] font-black px-2 py-0.5 rounded-full whitespace-nowrap">⬆️ รับเกิน</span>'
@@ -10132,11 +10157,7 @@
       tbody.innerHTML = data.map(function(r) {
         const st = r.status || '';
         // หา plan_status จาก checkin record
-        let _planSt2 = '';
-        if (r.queue_number && r.date) {
-          const _ci2 = allData.find(function(c){ return String(c.queue_number)===String(r.queue_number) && normalizeDate(c.date)===normalizeDate(r.date); });
-          if (_ci2) _planSt2 = String(_ci2.plan_status||'');
-        }
+        const _planSt2 = _getPlanStatusFromIndex(r.queue_number, r.date);
         const _isLate2 = _planSt2.includes('ล่าช้า');
         const stBadge = st==='completed'
           ? (_isLate2
