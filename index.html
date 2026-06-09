@@ -7399,12 +7399,35 @@
         const st = r.status || '';
         const qP = parseFloat(r.qty_plan)||0;
         const qR = parseFloat(r.qty_received)||0;
+
+        // หา plan_status จาก checkin record ที่ตรงกับ queue_number และ date
+        let planStatus = '';
+        if (r.queue_number && r.date) {
+          const ci = allData.find(function(c){
+            return String(c.queue_number) === String(r.queue_number) &&
+                   normalizeDate(c.date) === normalizeDate(r.date);
+          });
+          if (ci) planStatus = String(ci.plan_status||'');
+        }
+        const isLate   = planStatus.includes('ล่าช้า');
+        const isOnTime = planStatus.includes('ตรงเวลา') || planStatus.includes('มาก่อนเวลา');
+
         let statusHtml = '';
-        if (st === 'pending') statusHtml = '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-1 rounded-full">⏳ รอรับ</span>';
-        else if (st === 'completed' && qR > qP && qP > 0) statusHtml = '<span class="bg-purple-100 text-purple-700 font-black text-[9px] px-2 py-1 rounded-full whitespace-nowrap">⬆️ รับเกิน</span>';
-        else if (st === 'completed') { const onTime = r.confirmed_time && r.date && new Date(r.confirmed_time) <= new Date(r.date + 'T23:59:59'); statusHtml = onTime ? '<span class="bg-emerald-100 text-emerald-600 font-black text-[9px] px-2 py-1 rounded-full whitespace-nowrap">✅ ครบ/ตรงเวลา</span>' : '<span class="bg-blue-100 text-blue-600 font-black text-[9px] px-2 py-1 rounded-full whitespace-nowrap">✅ ครบ/ช้า</span>'; }
-        else if (st === 'short')   statusHtml = '<span class="bg-rose-100 text-rose-600 font-black text-[9px] px-2 py-1 rounded-full">⚠️ ไม่ครบ</span>';
-        else if (st === 'missing') statusHtml = '<span class="bg-slate-100 text-slate-500 font-black text-[9px] px-2 py-1 rounded-full">❌ ไม่ได้รับ</span>';
+        if (st === 'pending') {
+          statusHtml = '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-1 rounded-full">⏳ รอรับ</span>';
+        } else if (st === 'completed' && qR > qP && qP > 0) {
+          statusHtml = '<span class="bg-purple-100 text-purple-700 font-black text-[9px] px-2 py-1 rounded-full whitespace-nowrap">⬆️ รับเกิน</span>';
+        } else if (st === 'completed') {
+          statusHtml = isLate
+            ? '<span class="bg-rose-100 text-rose-600 font-black text-[9px] px-2 py-1 rounded-full whitespace-nowrap">✅ ครบ/ล่าช้า</span>'
+            : '<span class="bg-emerald-100 text-emerald-600 font-black text-[9px] px-2 py-1 rounded-full whitespace-nowrap">✅ ครบ/ตรงเวลา</span>';
+        } else if (st === 'short') {
+          statusHtml = isLate
+            ? '<span class="bg-rose-100 text-rose-600 font-black text-[9px] px-2 py-1 rounded-full">⚠️ ไม่ครบ/ล่าช้า</span>'
+            : '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-1 rounded-full">⚠️ ไม่ครบ</span>';
+        } else if (st === 'missing') {
+          statusHtml = '<span class="bg-slate-100 text-slate-500 font-black text-[9px] px-2 py-1 rounded-full">❌ ไม่ได้รับ</span>';
+        }
         const qtyRecvHtml = st==='pending' ? '<span class="text-slate-300 text-[9px]">—</span>' : '<span class="font-black text-' + (qR > qP && qP > 0 ? 'purple' : qR < qP ? 'rose' : 'emerald') + '-600 text-xs">' + qR + '</span>';
         const erp = r.erp_status||'';
         const erpHtml = erp==='Pending ERP' ? '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-1 rounded-full whitespace-nowrap">⏳ Pending</span>'
@@ -7441,9 +7464,19 @@
       tbody.innerHTML = data.map(function(r) {
         const hasUrgent = _urgentAll.some(function(u){ return u.po_no===r.po_no && u.part_no===r.part_no && u.status==='pending'; });
         const _qP = parseFloat(r.qty_plan)||0; const _qR = parseFloat(r.qty_received)||0;
-        const stBadge = (r.status==='completed' && _qR > _qP && _qP > 0) ? '<span class="bg-purple-100 text-purple-700 text-[9px] font-black px-2 py-0.5 rounded-full whitespace-nowrap">⬆️ รับเกิน</span>'
-          : r.status==='completed' ? '<span class="bg-emerald-100 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-full">✅ รับแล้ว</span>'
-          : r.status==='short' ? '<span class="bg-amber-100 text-amber-600 text-[9px] font-black px-2 py-0.5 rounded-full">⚠️ ไม่ครบ</span>'
+        // หา plan_status จาก checkin record
+        let _planSt3 = '';
+        if (r.queue_number && r.date) {
+          const _ci3 = allData.find(function(c){ return String(c.queue_number)===String(r.queue_number) && normalizeDate(c.date)===normalizeDate(r.date); });
+          if (_ci3) _planSt3 = String(_ci3.plan_status||'');
+        }
+        const _isLate3 = _planSt3.includes('ล่าช้า');
+        const stBadge = (r.status==='completed' && _qR > _qP && _qP > 0)
+          ? '<span class="bg-purple-100 text-purple-700 text-[9px] font-black px-2 py-0.5 rounded-full whitespace-nowrap">⬆️ รับเกิน</span>'
+          : r.status==='completed'
+            ? (_isLate3 ? '<span class="bg-rose-100 text-rose-600 text-[9px] font-black px-2 py-0.5 rounded-full whitespace-nowrap">✅ ครบ/ล่าช้า</span>' : '<span class="bg-emerald-100 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-full">✅ ครบ/ตรงเวลา</span>')
+          : r.status==='short'
+            ? (_isLate3 ? '<span class="bg-rose-100 text-rose-600 text-[9px] font-black px-2 py-0.5 rounded-full">⚠️ ไม่ครบ/ล่าช้า</span>' : '<span class="bg-amber-100 text-amber-600 text-[9px] font-black px-2 py-0.5 rounded-full">⚠️ ไม่ครบ</span>')
           : r.status==='missing' ? '<span class="bg-rose-100 text-rose-500 text-[9px] font-black px-2 py-0.5 rounded-full">❌ ไม่ได้รับ</span>'
           : '<span class="bg-slate-100 text-slate-500 text-[9px] font-black px-2 py-0.5 rounded-full">⏳ รอรับ</span>';
         const plQtyHtml = r.status==='pending' ? '<span class="text-slate-300 text-[9px]">—</span>' : '<span class="font-black text-' + (_qR > _qP && _qP > 0 ? 'purple' : _qR < _qP ? 'rose' : 'emerald') + '-600">' + _qR + '</span>';
@@ -9914,10 +9947,21 @@
     function _renderConfirmedRows(data, tbody, sub) {
       tbody.innerHTML = data.map(function(r) {
         const st = r.status || '';
+        // หา plan_status จาก checkin record
+        let _planSt2 = '';
+        if (r.queue_number && r.date) {
+          const _ci2 = allData.find(function(c){ return String(c.queue_number)===String(r.queue_number) && normalizeDate(c.date)===normalizeDate(r.date); });
+          if (_ci2) _planSt2 = String(_ci2.plan_status||'');
+        }
+        const _isLate2 = _planSt2.includes('ล่าช้า');
         const stBadge = st==='completed'
-          ? '<span class="bg-emerald-100 text-emerald-600 font-black text-[9px] px-2 py-0.5 rounded-full whitespace-nowrap">✅ รับแล้ว</span>'
+          ? (_isLate2
+              ? '<span class="bg-rose-100 text-rose-600 font-black text-[9px] px-2 py-0.5 rounded-full whitespace-nowrap">✅ ครบ/ล่าช้า</span>'
+              : '<span class="bg-emerald-100 text-emerald-600 font-black text-[9px] px-2 py-0.5 rounded-full whitespace-nowrap">✅ ครบ/ตรงเวลา</span>')
           : st==='short'
-            ? '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-0.5 rounded-full">⚠️ ไม่ครบ</span>'
+            ? (_isLate2
+                ? '<span class="bg-rose-100 text-rose-600 font-black text-[9px] px-2 py-0.5 rounded-full">⚠️ ไม่ครบ/ล่าช้า</span>'
+                : '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-0.5 rounded-full">⚠️ ไม่ครบ</span>')
             : st==='missing'
               ? '<span class="bg-rose-100 text-rose-500 font-black text-[9px] px-2 py-0.5 rounded-full">❌ ไม่ได้รับ</span>'
               : '<span class="bg-slate-100 text-slate-400 font-black text-[9px] px-2 py-0.5 rounded-full">⏳ รอรับ</span>';
