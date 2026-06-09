@@ -5308,8 +5308,9 @@
       };
 
       const filteredCheckin = allData.filter(function(r) {
-        if (!r.date || !r.queue_number) return false;  // ข้าม record ที่ไม่สมบูรณ์
-        if (r.status === 'cancelled') return false;
+        if (!r.date || !r.queue_number) return false;
+        // นับเฉพาะที่ผ่านกระบวนการครบ (completed/exited) ไม่นับ waiting, loading, cancelled
+        if (r.status !== 'completed' && r.status !== 'exited') return false;
         if (!isTypeMatch(r.company_name)) return false;
         if (mVal !== 'ALL') {
           const p = mVal.split('-'); const d = String(r.date||'').split('-');
@@ -9726,13 +9727,13 @@
         return ['pending','completed','short','missing'].includes(p.status||'');
       });
 
-      // กรอง checkins
+      // กรอง checkins — นับเฉพาะที่ผ่านกระบวนการครบ (completed/exited)
       const checkins = allData.filter(function(r) {
         if (!r.date) return false;
         const d = normalizeDate(r.date);
         if (year && !d.startsWith(year)) return false;
         if (month && d.slice(5,7) !== month.padStart(2,'0')) return false;
-        return r.status !== 'cancelled';
+        return r.status === 'completed' || r.status === 'exited';
       });
 
       const unplanned = _unplannedData || [];
