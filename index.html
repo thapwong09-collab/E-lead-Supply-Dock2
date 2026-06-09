@@ -3994,8 +3994,20 @@
     }
 
     async function submitPartsConfirm() {
+      // โหลด team ถ้ายังว่าง
+      if (_receivingTeam.length === 0) {
+        try { _receivingTeam = JSON.parse(localStorage.getItem(RECV_TEAM_KEY)||'[]'); } catch(e) {}
+        updateReceiverDropdowns();
+      }
       const receiver = ((document.getElementById('pcm-receiver')||{}).value||'').trim();
-      if (!receiver) { showToast('กรุณาเลือกพนักงานผู้รับวัตถุดิบ', 'error'); return; }
+      if (!receiver) {
+        if (_receivingTeam.length === 0) {
+          showToast('กรุณาเพิ่มทีม Receiving ก่อน (Tab ทีม Receiving)', 'error');
+        } else {
+          showToast('กรุณาเลือกพนักงานผู้รับวัตถุดิบ', 'error');
+        }
+        return;
+      }
       // Collect qty data
       const qtyInputs = document.querySelectorAll('#pcm-parts-tbody .qty-input');
       const receivedData = [];
@@ -4144,10 +4156,40 @@
         showGuardErrorResult("🛑 รออยู่ด้านนอก", "พนักงานคลังสินค้า ยังไม่ได้เรียกคิวนี้", "bg-amber-500", match);
       } else if (match.status === 'exited') {
         showGuardErrorResult("⚠️ ออกไปแล้ว", "รถคันนี้ทำการสแกนออกจากพื้นที่ไปเรียบร้อยแล้ว", "bg-slate-600", match);
+      } else if (match.status === 'cancelled') {
+        // เคยถูกยกเลิก → สร้าง checkin ใหม่ได้
+        const overlay = document.getElementById('guard-result-overlay');
+        overlay.className = 'fixed inset-0 z-50 flex flex-col items-center justify-center p-4 md:p-8 bg-orange-500 fade-in';
+        overlay.innerHTML = `
+          <div class="bg-white rounded-[3rem] shadow-[0_30px_60px_rgba(0,0,0,0.4)] p-8 md:p-12 w-full max-w-3xl text-center flex flex-col items-center">
+            <div class="w-32 h-32 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-7xl mx-auto mb-6">🔄</div>
+            <h2 class="text-4xl font-black text-orange-600 mb-4">เคยถูกยกเลิกไปแล้ว</h2>
+            <p class="text-slate-500 font-bold mb-8">ต้องการเช็คอินใหม่สำหรับ<br><span class="text-slate-800 text-xl">${match.company_name}</span> หรือไม่?</p>
+            <div class="grid grid-cols-2 gap-4 w-full">
+              <button type="button" onclick="closeGuardResult()" class="w-full bg-slate-200 text-slate-700 text-xl font-bold py-6 rounded-3xl cursor-pointer">ยกเลิก</button>
+              <button type="button" onclick="guardReCheckin('${match.company_name.replace(/'/g,"\\'")}','${(match.license_plate||'').replace(/'/g,"\\'")}'); closeGuardResult();"
+                class="w-full bg-orange-500 hover:bg-orange-600 text-white text-xl font-bold py-6 rounded-3xl shadow-xl cursor-pointer">✅ เช็คอินใหม่</button>
+            </div>
+          </div>`;
+        overlay.classList.remove('hidden');
       } else {
-        showGuardErrorResult("⚠️ เข้าไม่ได้", "คิวนี้ถูกยกเลิกไปแล้ว", "bg-rose-600", match);
+        showGuardErrorResult("⚠️ เข้าไม่ได้", "ไม่พบสถานะที่รองรับ", "bg-rose-600", match);
       }
     }
+
+    window.guardReCheckin = async function(companyName, licensePlate) {
+      try {
+        const res = await callAPI('createRecord', { companyName: companyName, licensePlate: licensePlate });
+        if (res && res.success) {
+          showToast('✅ เช็คอินใหม่สำเร็จ #' + res.record.queue_number + ' — ' + companyName);
+          fetchAll();
+        } else {
+          showToast('เช็คอินไม่สำเร็จ: ' + (res?.message||''), 'error');
+        }
+      } catch(e) {
+        showToast('Error: ' + e.message, 'error');
+      }
+    };
 
     function showGuardErrorResult(title, subtitle, bgColorClass, match = null) {
       const overlay = document.getElementById('guard-result-overlay');
@@ -4685,15 +4727,26 @@
                 : _sysSettings.guard_scan_enabled
                   ? '<span class="text-[8px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200 pulse-dot">รอสแกนออก</span>'
                   : '<span class="text-[8px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">✅ เสร็จสิ้น</span>';
+              const ciTime   = formatThaiTime(r.checkin_time);
+              const ldTime   = formatThaiTime(r.loading_time);
+              const cpTime   = formatThaiTime(r.completed_time);
+              // หาชื่อผู้รับจาก PartDetail
+              const receiver = (allPartData.find(function(p){
+                return String(p.queue_number) === String(r.queue_number) &&
+                       normalizeDate(p.date) === normalizeDate(r.date) &&
+                       p.confirmed_by;
+              }) || {}).confirmed_by || '';
+
               return '<div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 opacity-80 fade-in text-left">' +
                 '<div class="flex justify-between items-center mb-1"><div class="flex items-center gap-2"><span class="font-black text-slate-400">#' + r.queue_number + '</span></div>' + statusBadge + '</div>' +
                 '<div class="text-sm font-bold text-slate-600 mb-1">' + r.company_name + '</div>' +
-                '<div class="text-[9px] font-bold text-slate-500 mb-1">ทะเบียน: <span class="text-slate-700">' + (r.license_plate||'-') + '</span></div>' +
+                '<div class="text-[9px] font-bold text-slate-500 mb-0.5">ทะเบียน: <span class="text-slate-700">' + (r.license_plate||'-') + '</span></div>' +
+                (receiver ? '<div class="text-[9px] font-bold text-violet-600 mb-1">👤 รับโดย: ' + receiver + '</div>' : '') +
                 (r.factory ? '<div class="text-[9px] font-black text-indigo-600 mb-2">🏭 ' + r.factory + '</div>' : '<div class="mb-2"></div>') +
                 '<div class="grid grid-cols-2 gap-1 text-[8px] font-bold text-slate-400 border-t pt-2">' +
-                '<div>เช็คอิน: <span class="text-slate-800">' + formatThaiTime(r.checkin_time) + '</span></div>' +
-                '<div>เริ่มเข้า: <span class="text-blue-500">' + formatThaiTime(r.loading_time) + '</span></div>' +
-                '<div class="col-span-2 text-right">จบงาน: <span class="text-emerald-500 text-[10px] font-black">' + formatThaiTime(r.completed_time) + '</span></div>' +
+                '<div>เช็คอิน: <span class="text-slate-800">' + (ciTime !== '-' ? ciTime : '<span class="text-slate-300">—</span>') + '</span></div>' +
+                '<div>เริ่มเข้า: <span class="text-blue-500">' + (ldTime !== '-' ? ldTime : '<span class="text-slate-300">—</span>') + '</span></div>' +
+                '<div class="col-span-2 text-right">จบงาน: <span class="text-emerald-500 text-[10px] font-black">' + (cpTime !== '-' ? cpTime : '<span class="text-slate-300">—</span>') + '</span></div>' +
                 '</div></div>';
             }).join('')
           : '<div class="text-center py-10 text-[9px] text-slate-300 font-bold uppercase tracking-widest">ไม่มีประวัติ</div>';
@@ -5314,11 +5367,14 @@
       });
 
       function getTypeForVendor(vendor) {
-        const v = (vendor||'').toLowerCase().trim();
+        if (!vendor) return 'local';
+        // ถ้า _supplierMasterList ว่าง ใช้ getSupplierType แทน
+        if (_supplierMasterList.length === 0) return 'local';
+        const v = vendor.toLowerCase().trim();
         if (typeMap[v]) return typeMap[v];
         // fuzzy fallback
         const keys = Object.keys(typeMap);
-        const match = keys.find(function(k){ return k.length>=4 && (v.includes(k)||k.includes(v)); });
+        const match = keys.find(function(k){ return k.length>=3 && (v.includes(k)||k.includes(v)); });
         return match ? typeMap[match] : 'local';
       }
 
