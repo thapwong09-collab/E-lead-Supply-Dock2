@@ -1587,152 +1587,53 @@
               <div class="text-[10px] text-rose-400 mt-0.5">ส่งให้ผู้จัดการ Approve 2 ขั้น ก่อนดำเนินการได้</div>
             </div>
           </div>
-
-          <!-- Step 1: เลือกประเภท -->
-          <div class="p-5 border-b border-slate-100">
-            <div class="text-[9px] font-black text-slate-400 uppercase mb-3">ขั้นที่ 1 — เลือกประเภทงานนอกแผน</div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <button type="button" onclick="selectUnpType('unp','reschedule')"
-                id="unp-type-btn-reschedule"
-                class="text-left p-4 rounded-2xl border-2 border-slate-100 hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer group">
-                <div class="text-2xl mb-2">📅</div>
-                <div class="font-black text-slate-700 text-sm group-hover:text-blue-700">เลื่อนวันจากแผนเดิม</div>
-                <div class="text-[10px] text-slate-400 mt-1">มี PO และ Part อยู่แล้วใน Weekly Plan แต่ต้องเปลี่ยน Arrival Date</div>
-              </button>
-              <button type="button" onclick="selectUnpType('unp','new')"
-                id="unp-type-btn-new"
-                class="text-left p-4 rounded-2xl border-2 border-slate-100 hover:border-orange-400 hover:bg-orange-50 transition-all cursor-pointer group">
-                <div class="text-2xl mb-2">⚡</div>
-                <div class="font-black text-slate-700 text-sm group-hover:text-orange-700">งานใหม่กระทันหัน</div>
-                <div class="text-[10px] text-slate-400 mt-1">ไม่มีในแผนเดิม ต้องการเพิ่ม Part ใหม่เข้ามา</div>
-              </button>
+          <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ชื่อผู้กรอก *</label>
+              <select id="unp-submitted-by" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer"><option value="">-- เลือกชื่อ --</option></select>
             </div>
-            <input type="hidden" id="unp-type">
+            <div class="relative">
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Supplier *</label>
+              <input type="text" id="unp-supplier" placeholder="พิมพ์ชื่อ Supplier..." autocomplete="off"
+                oninput="filterUnpSuggest()" onfocus="filterUnpSuggest()" onblur="hideUnpSuggest(200)"
+                class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
+              <div id="unp-supplier-suggest" class="hidden absolute z-20 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 w-full max-h-48 overflow-y-auto"></div>
+            </div>
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ประเภทนอกแผน *</label>
+              <select id="unp-type" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer">
+                <option value="">-- เลือกประเภท --</option>
+                <option value="reschedule">📅 เลื่อนวันจากแผนเดิม (เปลี่ยน Arrival Date)</option>
+                <option value="new">⚡ งานใหม่กระทันหัน (ไม่มีในแผน)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Arrival Date *</label>
+              <input type="date" id="unp-arrival-date" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer">
+            </div>
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PO No.</label>
+              <input type="text" id="unp-po" placeholder="เลข PO (ถ้ามี)" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
+            </div>
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Part No.</label>
+              <input type="text" id="unp-part" placeholder="Part No. (ถ้ามี)" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
+            </div>
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">จำนวน (QTY)</label>
+              <input type="number" id="unp-qty" placeholder="0" min="0" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
+            </div>
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เหตุผล *</label>
+              <input type="text" id="unp-reason" placeholder="ระบุเหตุผล เช่น เลื่อนจากแผนเดิม, งานด่วน..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
+            </div>
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">หมายเหตุ</label>
+              <input type="text" id="unp-remark" placeholder="รายละเอียดเพิ่มเติม..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
+            </div>
           </div>
-
-          <!-- Step 2: กรอกข้อมูล (โชว์หลังเลือกประเภท) -->
-          <div id="unp-form-body" class="hidden">
-
-            <!-- Reschedule form -->
-            <div id="unp-form-reschedule" class="hidden">
-              <div class="mx-5 mt-4 bg-blue-50 border border-blue-200 rounded-2xl p-4">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="text-lg">📅</span>
-                  <span class="font-black text-blue-700 text-sm">เลื่อนวันจากแผนเดิม</span>
-                </div>
-                <div class="text-[10px] text-blue-600 space-y-0.5">
-                  <div>• ระบุ <strong>PO No.</strong> และ <strong>วันที่เดิม</strong> → ระบบจะหา Part และอัพเดทวันอัตโนมัติเมื่ออนุมัติ</div>
-                  <div>• Part เดิมใน Weekly Plan จะถูก <strong>เปลี่ยนวัน</strong> เป็น Arrival Date ใหม่</div>
-                </div>
-              </div>
-              <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ผู้กรอก *</label>
-                  <select id="unp-submitted-by" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm cursor-pointer"><option value="">-- เลือกชื่อ --</option></select>
-                </div>
-                <div class="relative">
-                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Supplier *</label>
-                  <input type="text" id="unp-supplier" placeholder="พิมพ์ชื่อ Supplier..." autocomplete="off"
-                    oninput="filterUnpSuggest()" onfocus="filterUnpSuggest()" onblur="hideUnpSuggest(200)"
-                    class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm">
-                  <div id="unp-supplier-suggest" class="hidden absolute z-20 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 w-full max-h-48 overflow-y-auto"></div>
-                </div>
-                <div>
-                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">วันที่เดิมที่ CF ไว้ *</label>
-                  <input type="date" id="unp-original-date" class="w-full border-2 border-blue-100 rounded-xl px-4 py-2.5 bg-blue-50 outline-none focus:border-blue-400 font-bold text-sm cursor-pointer">
-                </div>
-                <div>
-                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Arrival Date ใหม่ *</label>
-                  <input type="date" id="unp-arrival-date" class="w-full border-2 border-blue-100 rounded-xl px-4 py-2.5 bg-blue-50 outline-none focus:border-blue-400 font-bold text-sm cursor-pointer">
-                </div>
-                <div>
-                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PO No. *</label>
-                  <input type="text" id="unp-po" placeholder="เลข PO ที่ต้องการเลื่อน" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm">
-                </div>
-                <div>
-                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Part No. (ถ้ามีหลาย part)</label>
-                  <input type="text" id="unp-part" placeholder="ระบุถ้าต้องการเลื่อนเฉพาะ part" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm">
-                </div>
-                <div>
-                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เหตุผลที่เลื่อน *</label>
-                  <input type="text" id="unp-reason" placeholder="เช่น ซัพผลิตไม่ทัน, รอวัตถุดิบ..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm">
-                </div>
-                <div>
-                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PIC ที่รับผิดชอบ</label>
-                  <input type="text" id="unp-pic" placeholder="ชื่อ PIC" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm">
-                </div>
-                <div class="md:col-span-2">
-                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">หมายเหตุเพิ่มเติม</label>
-                  <input type="text" id="unp-remark" placeholder="รายละเอียดอื่นๆ" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm">
-                </div>
-                <input type="hidden" id="unp-qty" value="0">
-              </div>
-            </div>
-
-            <!-- New work form -->
-            <div id="unp-form-new" class="hidden">
-              <div class="mx-5 mt-4 bg-orange-50 border border-orange-200 rounded-2xl p-4">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="text-lg">⚡</span>
-                  <span class="font-black text-orange-700 text-sm">งานใหม่กระทันหัน</span>
-                </div>
-                <div class="text-[10px] text-orange-600 space-y-0.5">
-                  <div>• ระบุข้อมูล Supplier + Part + QTY ที่ต้องการเพิ่ม</div>
-                  <div>• เมื่ออนุมัติแล้ว ระบบจะ <strong>สร้าง Part record ใหม่</strong> ใน Weekly Plan อัตโนมัติ</div>
-                </div>
-              </div>
-              <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ผู้กรอก *</label>
-                  <select id="unp-submitted-by" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm cursor-pointer"><option value="">-- เลือกชื่อ --</option></select>
-                </div>
-                <div class="relative">
-                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Supplier *</label>
-                  <input type="text" id="unp-supplier" placeholder="พิมพ์ชื่อ Supplier..." autocomplete="off"
-                    oninput="filterUnpSuggest()" onfocus="filterUnpSuggest()" onblur="hideUnpSuggest(200)"
-                    class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm">
-                  <div id="unp-supplier-suggest" class="hidden absolute z-20 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 w-full max-h-48 overflow-y-auto"></div>
-                </div>
-                <div>
-                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Arrival Date *</label>
-                  <input type="date" id="unp-arrival-date" class="w-full border-2 border-orange-100 rounded-xl px-4 py-2.5 bg-orange-50 outline-none focus:border-orange-400 font-bold text-sm cursor-pointer">
-                </div>
-                <div>
-                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PO No.</label>
-                  <input type="text" id="unp-po" placeholder="เลข PO (ถ้ามี)" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm">
-                </div>
-                <div>
-                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Part No.</label>
-                  <input type="text" id="unp-part" placeholder="Part No. (ถ้ามี)" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm">
-                </div>
-                <div>
-                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">จำนวน (QTY) *</label>
-                  <input type="number" id="unp-qty" placeholder="0" min="0" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm">
-                </div>
-                <div>
-                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เหตุผล *</label>
-                  <input type="text" id="unp-reason" placeholder="เช่น งานเร่งด่วน, เพิ่มออเดอร์..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm">
-                </div>
-                <div>
-                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">หมายเหตุ</label>
-                  <input type="text" id="unp-remark" placeholder="รายละเอียดเพิ่มเติม..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm">
-                </div>
-                <input type="hidden" id="unp-original-date" value="">
-                <input type="hidden" id="unp-pic" value="">
-              </div>
-            </div>
-
-            <!-- Submit button -->
-            <div class="px-5 pb-5 flex items-center gap-3">
-              <button type="button" onclick="submitUnplanned()"
-                class="bg-rose-500 hover:bg-rose-600 text-white px-8 py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">
-                ⚡ ส่งขออนุมัติ
-              </button>
-              <button type="button" onclick="resetUnpForm('unp')"
-                class="text-slate-400 hover:text-slate-600 text-sm font-bold cursor-pointer">
-                ↩ เริ่มใหม่
-              </button>
-            </div>
+          <div class="px-5 pb-5">
+            <button type="button" onclick="submitUnplanned()" class="bg-rose-500 hover:bg-rose-600 text-white px-8 py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">⚡ ส่งขออนุมัติ</button>
           </div>
         </div>
 
@@ -2160,93 +2061,40 @@
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
           <div class="px-5 py-4 border-b bg-rose-50 flex items-center gap-3">
             <span class="text-xl">⚡</span>
-          <div class="p-5 border-b border-slate-100">
-            <div class="text-[9px] font-black text-slate-400 uppercase mb-3">ขั้นที่ 1 — เลือกประเภทงานนอกแผน</div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <button type="button" onclick="selectUnpType('unp2','reschedule')"
-                id="unp2-type-btn-reschedule"
-                class="text-left p-4 rounded-2xl border-2 border-slate-100 hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer group">
-                <div class="text-2xl mb-2">📅</div>
-                <div class="font-black text-slate-700 text-sm group-hover:text-blue-700">เลื่อนวันจากแผนเดิม</div>
-                <div class="text-[10px] text-slate-400 mt-1">มี PO และ Part อยู่แล้วใน Weekly Plan แต่ต้องเปลี่ยน Arrival Date</div>
-              </button>
-              <button type="button" onclick="selectUnpType('unp2','new')"
-                id="unp2-type-btn-new"
-                class="text-left p-4 rounded-2xl border-2 border-slate-100 hover:border-orange-400 hover:bg-orange-50 transition-all cursor-pointer group">
-                <div class="text-2xl mb-2">⚡</div>
-                <div class="font-black text-slate-700 text-sm group-hover:text-orange-700">งานใหม่กระทันหัน</div>
-                <div class="text-[10px] text-slate-400 mt-1">ไม่มีในแผนเดิม ต้องการเพิ่ม Part ใหม่เข้ามา</div>
-              </button>
-            </div>
-            <input type="hidden" id="unp2-type">
+            <div><div class="font-black text-rose-700 text-sm">แจ้งงานนอกแผน (Planning)</div>
+            <div class="text-[10px] text-rose-400 mt-0.5">ส่งให้ผู้จัดการ Approve 2 ขั้น ก่อนดำเนินการ</div></div>
           </div>
-          <div id="unp2-form-body" class="hidden">
-            <div id="unp2-form-reschedule" class="hidden">
-              <div class="mx-5 mt-4 bg-blue-50 border border-blue-200 rounded-2xl p-4">
-                <div class="flex items-center gap-2 mb-2"><span class="text-lg">📅</span><span class="font-black text-blue-700 text-sm">เลื่อนวันจากแผนเดิม</span></div>
-                <div class="text-[10px] text-blue-600 space-y-0.5">
-                  <div>• ระบุ <strong>PO No.</strong> และ <strong>วันที่เดิม</strong> → ระบบจะหา Part และอัพเดทวันอัตโนมัติเมื่ออนุมัติ</div>
-                  <div>• Part เดิมใน Weekly Plan จะถูก <strong>เปลี่ยนวัน</strong> เป็น Arrival Date ใหม่</div>
-                </div>
-              </div>
-              <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ผู้กรอก *</label>
-                  <select id="unp2-submitted-by" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm cursor-pointer"><option value="">-- เลือกชื่อ --</option></select></div>
-                <div class="relative"><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Supplier *</label>
-                  <input type="text" id="unp2-supplier" placeholder="พิมพ์ชื่อ Supplier..." autocomplete="off"
-                    oninput="filterUnpSuggest2()" onfocus="filterUnpSuggest2()" onblur="hideUnpSuggest2(200)"
-                    class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm">
-                  <div id="unp2-supplier-suggest" class="hidden absolute z-20 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 w-full max-h-48 overflow-y-auto"></div></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">วันที่เดิมที่ CF ไว้ *</label>
-                  <input type="date" id="unp2-original-date" class="w-full border-2 border-blue-100 rounded-xl px-4 py-2.5 bg-blue-50 outline-none focus:border-blue-400 font-bold text-sm cursor-pointer"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Arrival Date ใหม่ *</label>
-                  <input type="date" id="unp2-arrival-date" class="w-full border-2 border-blue-100 rounded-xl px-4 py-2.5 bg-blue-50 outline-none focus:border-blue-400 font-bold text-sm cursor-pointer"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PO No. *</label>
-                  <input type="text" id="unp2-po" placeholder="เลข PO ที่ต้องการเลื่อน" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Part No.</label>
-                  <input type="text" id="unp2-part" placeholder="ระบุถ้าต้องการเลื่อนเฉพาะ part" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เหตุผล *</label>
-                  <input type="text" id="unp2-reason" placeholder="เช่น ซัพผลิตไม่ทัน..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">หมายเหตุ</label>
-                  <input type="text" id="unp2-remark" placeholder="รายละเอียดอื่นๆ" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm"></div>
-                <input type="hidden" id="unp2-qty" value="0"><input type="hidden" id="unp2-pic" value="">
-              </div>
+          <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ชื่อผู้กรอก *</label>
+              <select id="unp2-submitted-by" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer"><option value="">-- เลือกชื่อ --</option></select></div>
+            <div class="relative">
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Supplier *</label>
+              <input type="text" id="unp2-supplier" placeholder="พิมพ์ชื่อ Supplier..." autocomplete="off"
+                oninput="filterUnpSuggest2()" onfocus="filterUnpSuggest2()" onblur="hideUnpSuggest2(200)"
+                class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
+              <div id="unp2-supplier-suggest" class="hidden absolute z-20 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 w-full max-h-48 overflow-y-auto"></div>
             </div>
-            <div id="unp2-form-new" class="hidden">
-              <div class="mx-5 mt-4 bg-orange-50 border border-orange-200 rounded-2xl p-4">
-                <div class="flex items-center gap-2 mb-2"><span class="text-lg">⚡</span><span class="font-black text-orange-700 text-sm">งานใหม่กระทันหัน</span></div>
-                <div class="text-[10px] text-orange-600 space-y-0.5">
-                  <div>• ระบุข้อมูล Supplier + Part + QTY ที่ต้องการเพิ่ม</div>
-                  <div>• เมื่ออนุมัติแล้ว ระบบจะ <strong>สร้าง Part record ใหม่</strong> ใน Weekly Plan อัตโนมัติ</div>
-                </div>
-              </div>
-              <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ผู้กรอก *</label>
-                  <select id="unp2-submitted-by" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm cursor-pointer"><option value="">-- เลือกชื่อ --</option></select></div>
-                <div class="relative"><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Supplier *</label>
-                  <input type="text" id="unp2-supplier" placeholder="พิมพ์ชื่อ Supplier..." autocomplete="off"
-                    oninput="filterUnpSuggest2()" onfocus="filterUnpSuggest2()" onblur="hideUnpSuggest2(200)"
-                    class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm">
-                  <div id="unp2-supplier-suggest" class="hidden absolute z-20 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 w-full max-h-48 overflow-y-auto"></div></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Arrival Date *</label>
-                  <input type="date" id="unp2-arrival-date" class="w-full border-2 border-orange-100 rounded-xl px-4 py-2.5 bg-orange-50 outline-none focus:border-orange-400 font-bold text-sm cursor-pointer"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PO No.</label>
-                  <input type="text" id="unp2-po" placeholder="เลข PO (ถ้ามี)" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Part No.</label>
-                  <input type="text" id="unp2-part" placeholder="Part No." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">จำนวน (QTY) *</label>
-                  <input type="number" id="unp2-qty" placeholder="0" min="0" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เหตุผล *</label>
-                  <input type="text" id="unp2-reason" placeholder="เช่น งานเร่งด่วน..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">หมายเหตุ</label>
-                  <input type="text" id="unp2-remark" placeholder="รายละเอียดเพิ่มเติม..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm"></div>
-                <input type="hidden" id="unp2-original-date" value=""><input type="hidden" id="unp2-pic" value="">
-              </div>
-            </div>
-            <div class="px-5 pb-5 flex items-center gap-3">
-              <button type="button" onclick="submitUnplanned2()" class="bg-rose-500 hover:bg-rose-600 text-white px-8 py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">⚡ ส่งขออนุมัติ</button>
-              <button type="button" onclick="resetUnpForm('unp2')" class="text-slate-400 hover:text-slate-600 text-sm font-bold cursor-pointer">↩ เริ่มใหม่</button>
-            </div>
+            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ประเภทนอกแผน *</label>
+              <select id="unp2-type" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer">
+                <option value="">-- เลือกประเภท --</option>
+                <option value="reschedule">📅 เลื่อนวันจากแผนเดิม (เปลี่ยน Arrival Date)</option>
+                <option value="new">⚡ งานใหม่กระทันหัน (ไม่มีในแผน)</option>
+              </select></div>
+            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Arrival Date *</label>
+              <input type="date" id="unp2-arrival-date" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer"></div>
+            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PO No.</label>
+              <input type="text" id="unp2-po" placeholder="เลข PO (ถ้ามี)" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm"></div>
+            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Part No.</label>
+              <input type="text" id="unp2-part" placeholder="Part No. (ถ้ามี)" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm"></div>
+            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">จำนวน (QTY)</label>
+              <input type="number" id="unp2-qty" placeholder="0" min="0" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm"></div>
+            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เหตุผล *</label>
+              <input type="text" id="unp2-reason" placeholder="ระบุเหตุผล เช่น เลื่อนจากแผนเดิม, งานด่วน..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm"></div>
+            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">หมายเหตุ</label>
+              <input type="text" id="unp2-remark" placeholder="รายละเอียดเพิ่มเติม..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm"></div>
+          </div>
+          <div class="px-5 pb-5">
+            <button type="button" onclick="submitUnplanned2()" class="bg-rose-500 hover:bg-rose-600 text-white px-8 py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">⚡ ส่งขออนุมัติ</button>
           </div>
         </div>
         <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
@@ -9639,117 +9487,45 @@
     window.hideUnpSuggest2  = function(d){ setTimeout(function(){ const b=document.getElementById('unp2-supplier-suggest'); if(b) b.classList.add('hidden'); }, d||200); };
     window.selectUnpSup2    = function(v){ const i=document.getElementById('unp2-supplier'); if(i) i.value=v; window.hideUnpSuggest2(0); };
 
-    window.selectUnpType = function(prefix, type) {
-      // set hidden input
-      const typeEl = document.getElementById(prefix+'-type');
-      if (typeEl) typeEl.value = type;
-
-      // แสดง form body
-      const body = document.getElementById(prefix+'-form-body');
-      if (body) body.classList.remove('hidden');
-
-      // highlight ปุ่มที่เลือก
-      ['reschedule','new'].forEach(function(t) {
-        const btn = document.getElementById(prefix+'-type-btn-'+t);
-        if (!btn) return;
-        if (t === type) {
-          btn.className = btn.className
-            .replace('border-slate-100','border-blue-500')
-            .replace('border-slate-100','border-orange-500');
-          if (type === 'reschedule') {
-            btn.className = 'text-left p-4 rounded-2xl border-2 border-blue-500 bg-blue-50 cursor-pointer group';
-          } else {
-            btn.className = 'text-left p-4 rounded-2xl border-2 border-orange-500 bg-orange-50 cursor-pointer group';
-          }
-        } else {
-          btn.className = 'text-left p-4 rounded-2xl border-2 border-slate-100 hover:border-' +
-            (t==='reschedule'?'blue':'orange') + '-400 hover:bg-' +
-            (t==='reschedule'?'blue':'orange') + '-50 transition-all cursor-pointer group opacity-50';
-        }
-      });
-
-      // แสดง/ซ่อน sub-form
-      ['reschedule','new'].forEach(function(t) {
-        const form = document.getElementById(prefix+'-form-'+t);
-        if (form) form.classList.toggle('hidden', t !== type);
-      });
-
-      // update dropdown ผู้กรอก
-      updatePicUnplannedDropdown();
-      updatePlanningMemberDropdowns();
-    };
-
-    window.resetUnpForm = function(prefix) {
-      const typeEl = document.getElementById(prefix+'-type');
-      if (typeEl) typeEl.value = '';
-      const body = document.getElementById(prefix+'-form-body');
-      if (body) body.classList.add('hidden');
-      ['reschedule','new'].forEach(function(t) {
-        const form = document.getElementById(prefix+'-form-'+t);
-        if (form) form.classList.add('hidden');
-        const btn = document.getElementById(prefix+'-type-btn-'+t);
-        if (btn) {
-          btn.className = 'text-left p-4 rounded-2xl border-2 border-slate-100 hover:border-' +
-            (t==='reschedule'?'blue':'orange') + '-400 hover:bg-' +
-            (t==='reschedule'?'blue':'orange') + '-50 transition-all cursor-pointer group';
-        }
-      });
-      ['submitted-by','supplier','po','part','qty','reason','remark',
-       'arrival-date','original-date','pic'].forEach(function(f){
-        const el = document.getElementById(prefix+'-'+f);
-        if (el) el.value = '';
-      });
-    };
-
-    window.onUnpTypeChange = function(prefix) {
-      // legacy — ไม่ใช้แล้ว แต่เก็บไว้ไม่ error
-    };
-
     async function doSubmitUnplanned(prefix, roleLabel) {
       const submittedBy  = (document.getElementById(prefix+'-submitted-by')||{}).value?.trim() || '';
       const sup          = (document.getElementById(prefix+'-supplier')||{}).value?.trim() || '';
       const reason       = (document.getElementById(prefix+'-reason')||{}).value || '';
       const unpType      = (document.getElementById(prefix+'-type')||{}).value || '';
       const arrivalDate  = (document.getElementById(prefix+'-arrival-date')||{}).value || '';
-      const originalDate = (document.getElementById(prefix+'-original-date')||{}).value || '';
-      const pic          = (document.getElementById(prefix+'-pic')||{}).value?.trim() || '';
 
       if (!submittedBy)  { showToast('กรุณากรอกชื่อผู้กรอก', 'error'); return; }
       if (!sup)          { showToast('กรุณาระบุ Supplier', 'error'); return; }
       if (!unpType)      { showToast('กรุณาเลือกประเภทนอกแผน', 'error'); return; }
-      if (!arrivalDate)  { showToast('กรุณาระบุ Arrival Date ใหม่', 'error'); return; }
-      if (unpType === 'reschedule' && !originalDate) {
-        showToast('กรณีเลื่อนวัน กรุณาระบุวันที่เดิมที่ CF ไว้', 'error'); return;
-      }
-      if (!reason) { showToast('กรุณาระบุเหตุผล', 'error'); return; }
+      if (!arrivalDate)  { showToast('กรุณาระบุ Arrival Date', 'error'); return; }
+      if (!reason)       { showToast('กรุณาระบุเหตุผล', 'error'); return; }
+
+      const typLabel = unpType === 'reschedule' ? '📅 เลื่อนวันจากแผนเดิม' : '⚡ งานใหม่กระทันหัน';
 
       const payload = {
-        supplier:       sup,
-        po_no:          (document.getElementById(prefix+'-po')||{}).value?.trim()||'',
-        part_no:        (document.getElementById(prefix+'-part')||{}).value?.trim()||'',
-        qty:            parseFloat((document.getElementById(prefix+'-qty')||{}).value||'0')||0,
-        reason:         reason,
-        remark:         (document.getElementById(prefix+'-remark')||{}).value?.trim()||'',
-        submitted_by:   submittedBy,
-        created_by:     submittedBy,
-        created_role:   roleLabel,
+        supplier:      sup,
+        po_no:         (document.getElementById(prefix+'-po')||{}).value?.trim()||'',
+        part_no:       (document.getElementById(prefix+'-part')||{}).value?.trim()||'',
+        qty:           parseFloat((document.getElementById(prefix+'-qty')||{}).value||'0')||0,
+        reason:        reason,
+        remark:        (document.getElementById(prefix+'-remark')||{}).value?.trim()||'',
+        submitted_by:  submittedBy,
+        created_by:    submittedBy,
+        created_role:  roleLabel,
         unplanned_type: unpType,
-        arrival_date:   arrivalDate,
-        original_date:  originalDate,
-        pic_ref:        pic,
+        arrival_date:  arrivalDate,
+        type_label:    typLabel,
       };
       try {
         const res = await callAPI('saveUnplanned', payload);
         if (res && res.success) {
-          showToast('\u2705 ส่งขออนุมัติแล้ว รอ Logistics Manager');
-          ['submitted-by','supplier','po','part','qty','reason','remark',
-           'arrival-date','original-date','pic'].forEach(function(f){
+          showToast('✅ ส่งขออนุมัติแล้ว รอ Logistics Manager');
+          ['submitted-by','supplier','po','part','qty','reason','remark','arrival-date'].forEach(function(f){
             const el = document.getElementById(prefix+'-'+f);
             if (el) el.value = '';
           });
           const typeSel = document.getElementById(prefix+'-type');
           if (typeSel) typeSel.value = '';
-          onUnpTypeChange(prefix);
           await initUnplanned(roleLabel);
         } else { showToast('ไม่สำเร็จ: '+(res?.message||''), 'error'); }
       } catch(e) { showToast('Error: '+e.message, 'error'); }
