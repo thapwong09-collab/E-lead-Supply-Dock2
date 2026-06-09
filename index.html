@@ -1601,15 +1601,37 @@
             </div>
             <div>
               <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ประเภทนอกแผน *</label>
-              <select id="unp-type" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer">
+              <select id="unp-type" onchange="onUnpTypeChange('unp')" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer">
                 <option value="">-- เลือกประเภท --</option>
                 <option value="reschedule">📅 เลื่อนวันจากแผนเดิม (เปลี่ยน Arrival Date)</option>
                 <option value="new">⚡ งานใหม่กระทันหัน (ไม่มีในแผน)</option>
               </select>
             </div>
             <div>
-              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Arrival Date *</label>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Arrival Date ใหม่ *</label>
               <input type="date" id="unp-arrival-date" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer">
+            </div>
+            <!-- Guide + original date (โชว์เฉพาะ reschedule) -->
+            <div id="unp-reschedule-extra" class="hidden md:col-span-2">
+              <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-3">
+                <div class="font-black text-blue-700 text-xs mb-2">📋 คำแนะนำ — กรณีเลื่อนวัน</div>
+                <div class="text-[10px] text-blue-600 space-y-1">
+                  <div>• กรอก <strong>วันที่เดิม</strong> ที่ CF ไว้ และ <strong>PO No.</strong> เพื่อให้ระบบหา Part ที่ถูกต้อง</div>
+                  <div>• เมื่อ Manager <strong>อนุมัติ</strong> → ระบบจะ <strong>อัพเดทวันใน Weekly Plan</strong> เป็นวันใหม่อัตโนมัติ</div>
+                  <div>• Part เดิมจะยังอยู่ใน Weekly Plan แต่ Arrival Date จะเปลี่ยนเป็นวันใหม่</div>
+                  <div>• หากไม่ได้กรอก PO No. ระบบจะสร้าง record ใหม่แทน</div>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">วันที่เดิมที่ CF ไว้ *</label>
+                  <input type="date" id="unp-original-date" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer">
+                </div>
+                <div>
+                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PIC ที่รับผิดชอบ</label>
+                  <input type="text" id="unp-pic" placeholder="ชื่อ PIC (ถ้าทราบ)" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
+                </div>
+              </div>
             </div>
             <div>
               <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PO No.</label>
@@ -2075,13 +2097,34 @@
               <div id="unp2-supplier-suggest" class="hidden absolute z-20 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 w-full max-h-48 overflow-y-auto"></div>
             </div>
             <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ประเภทนอกแผน *</label>
-              <select id="unp2-type" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer">
+              <select id="unp2-type" onchange="onUnpTypeChange('unp2')" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer">
                 <option value="">-- เลือกประเภท --</option>
                 <option value="reschedule">📅 เลื่อนวันจากแผนเดิม (เปลี่ยน Arrival Date)</option>
                 <option value="new">⚡ งานใหม่กระทันหัน (ไม่มีในแผน)</option>
               </select></div>
-            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Arrival Date *</label>
+            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Arrival Date ใหม่ *</label>
               <input type="date" id="unp2-arrival-date" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer"></div>
+            <div id="unp2-reschedule-extra" class="hidden md:col-span-2">
+              <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-3">
+                <div class="font-black text-blue-700 text-xs mb-2">📋 คำแนะนำ — กรณีเลื่อนวัน</div>
+                <div class="text-[10px] text-blue-600 space-y-1">
+                  <div>• กรอก <strong>วันที่เดิม</strong> ที่ CF ไว้ และ <strong>PO No.</strong> เพื่อให้ระบบหา Part ที่ถูกต้อง</div>
+                  <div>• เมื่อ Manager <strong>อนุมัติ</strong> → ระบบจะ <strong>อัพเดทวันใน Weekly Plan</strong> เป็นวันใหม่อัตโนมัติ</div>
+                  <div>• Part เดิมจะยังอยู่ใน Weekly Plan แต่ Arrival Date จะเปลี่ยนเป็นวันใหม่</div>
+                  <div>• หากไม่ได้กรอก PO No. ระบบจะสร้าง record ใหม่แทน</div>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">วันที่เดิมที่ CF ไว้ *</label>
+                  <input type="date" id="unp2-original-date" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer">
+                </div>
+                <div>
+                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PIC ที่รับผิดชอบ</label>
+                  <input type="text" id="unp2-pic" placeholder="ชื่อ PIC (ถ้าทราบ)" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
+                </div>
+              </div>
+            </div>
             <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PO No.</label>
               <input type="text" id="unp2-po" placeholder="เลข PO (ถ้ามี)" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm"></div>
             <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Part No.</label>
@@ -9487,45 +9530,57 @@
     window.hideUnpSuggest2  = function(d){ setTimeout(function(){ const b=document.getElementById('unp2-supplier-suggest'); if(b) b.classList.add('hidden'); }, d||200); };
     window.selectUnpSup2    = function(v){ const i=document.getElementById('unp2-supplier'); if(i) i.value=v; window.hideUnpSuggest2(0); };
 
+    window.onUnpTypeChange = function(prefix) {
+      const type  = (document.getElementById(prefix+'-type')||{}).value || '';
+      const extra = document.getElementById(prefix+'-reschedule-extra');
+      if (extra) extra.classList.toggle('hidden', type !== 'reschedule');
+    };
+
     async function doSubmitUnplanned(prefix, roleLabel) {
       const submittedBy  = (document.getElementById(prefix+'-submitted-by')||{}).value?.trim() || '';
       const sup          = (document.getElementById(prefix+'-supplier')||{}).value?.trim() || '';
       const reason       = (document.getElementById(prefix+'-reason')||{}).value || '';
       const unpType      = (document.getElementById(prefix+'-type')||{}).value || '';
       const arrivalDate  = (document.getElementById(prefix+'-arrival-date')||{}).value || '';
+      const originalDate = (document.getElementById(prefix+'-original-date')||{}).value || '';
+      const pic          = (document.getElementById(prefix+'-pic')||{}).value?.trim() || '';
 
       if (!submittedBy)  { showToast('กรุณากรอกชื่อผู้กรอก', 'error'); return; }
       if (!sup)          { showToast('กรุณาระบุ Supplier', 'error'); return; }
       if (!unpType)      { showToast('กรุณาเลือกประเภทนอกแผน', 'error'); return; }
-      if (!arrivalDate)  { showToast('กรุณาระบุ Arrival Date', 'error'); return; }
-      if (!reason)       { showToast('กรุณาระบุเหตุผล', 'error'); return; }
-
-      const typLabel = unpType === 'reschedule' ? '📅 เลื่อนวันจากแผนเดิม' : '⚡ งานใหม่กระทันหัน';
+      if (!arrivalDate)  { showToast('กรุณาระบุ Arrival Date ใหม่', 'error'); return; }
+      if (unpType === 'reschedule' && !originalDate) {
+        showToast('กรณีเลื่อนวัน กรุณาระบุวันที่เดิมที่ CF ไว้', 'error'); return;
+      }
+      if (!reason) { showToast('กรุณาระบุเหตุผล', 'error'); return; }
 
       const payload = {
-        supplier:      sup,
-        po_no:         (document.getElementById(prefix+'-po')||{}).value?.trim()||'',
-        part_no:       (document.getElementById(prefix+'-part')||{}).value?.trim()||'',
-        qty:           parseFloat((document.getElementById(prefix+'-qty')||{}).value||'0')||0,
-        reason:        reason,
-        remark:        (document.getElementById(prefix+'-remark')||{}).value?.trim()||'',
-        submitted_by:  submittedBy,
-        created_by:    submittedBy,
-        created_role:  roleLabel,
+        supplier:       sup,
+        po_no:          (document.getElementById(prefix+'-po')||{}).value?.trim()||'',
+        part_no:        (document.getElementById(prefix+'-part')||{}).value?.trim()||'',
+        qty:            parseFloat((document.getElementById(prefix+'-qty')||{}).value||'0')||0,
+        reason:         reason,
+        remark:         (document.getElementById(prefix+'-remark')||{}).value?.trim()||'',
+        submitted_by:   submittedBy,
+        created_by:     submittedBy,
+        created_role:   roleLabel,
         unplanned_type: unpType,
-        arrival_date:  arrivalDate,
-        type_label:    typLabel,
+        arrival_date:   arrivalDate,
+        original_date:  originalDate,
+        pic_ref:        pic,
       };
       try {
         const res = await callAPI('saveUnplanned', payload);
         if (res && res.success) {
-          showToast('✅ ส่งขออนุมัติแล้ว รอ Logistics Manager');
-          ['submitted-by','supplier','po','part','qty','reason','remark','arrival-date'].forEach(function(f){
+          showToast('\u2705 ส่งขออนุมัติแล้ว รอ Logistics Manager');
+          ['submitted-by','supplier','po','part','qty','reason','remark',
+           'arrival-date','original-date','pic'].forEach(function(f){
             const el = document.getElementById(prefix+'-'+f);
             if (el) el.value = '';
           });
           const typeSel = document.getElementById(prefix+'-type');
           if (typeSel) typeSel.value = '';
+          onUnpTypeChange(prefix);
           await initUnplanned(roleLabel);
         } else { showToast('ไม่สำเร็จ: '+(res?.message||''), 'error'); }
       } catch(e) { showToast('Error: '+e.message, 'error'); }
