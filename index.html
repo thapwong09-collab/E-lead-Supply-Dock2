@@ -3994,11 +3994,10 @@
     }
 
     async function submitPartsConfirm() {
-      // โหลด team ถ้ายังว่าง
-      if (_receivingTeam.length === 0) {
-        try { _receivingTeam = JSON.parse(localStorage.getItem(RECV_TEAM_KEY)||'[]'); } catch(e) {}
-        updateReceiverDropdowns();
-      }
+      // โหลด team จาก localStorage ทุกครั้งก่อน check
+      try { _receivingTeam = JSON.parse(localStorage.getItem(RECV_TEAM_KEY)||'[]'); } catch(e) { _receivingTeam = []; }
+      updateReceiverDropdowns();
+
       const receiver = ((document.getElementById('pcm-receiver')||{}).value||'').trim();
       if (!receiver) {
         if (_receivingTeam.length === 0) {
@@ -4006,6 +4005,11 @@
         } else {
           showToast('กรุณาเลือกพนักงานผู้รับวัตถุดิบ', 'error');
         }
+        return;
+      }
+      // ตรวจว่าเป็นชื่อจากทีมจริงๆ
+      if (_receivingTeam.length > 0 && !_receivingTeam.find(function(m){ return m.name === receiver; })) {
+        showToast('กรุณาเลือกพนักงานจากรายชื่อทีม Receiving เท่านั้น', 'error');
         return;
       }
       // Collect qty data
@@ -4177,6 +4181,48 @@
       }
     }
 
+    // ── Dialog เมื่อเช็คอินซ้ำ ──
+    window.showDuplicateCheckinDialog = function(name, license, existingQueue, existingStatus) {
+      const isCancelled = existingStatus === 'cancelled';
+      const overlay = document.createElement('div');
+      overlay.id = 'duplicate-checkin-overlay';
+      overlay.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 fade-in';
+      overlay.innerHTML = `
+        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-sm text-center">
+          <div class="text-5xl mb-4">${isCancelled ? '🔄' : '⚠️'}</div>
+          <div class="font-black text-slate-800 text-lg mb-2">${isCancelled ? 'เคยยกเลิกคิววันนี้' : 'เช็คอินซ้ำในวันเดียวกัน'}</div>
+          <div class="text-slate-500 text-sm mb-6">${name}<br>
+            ${isCancelled
+              ? 'คิว #'+existingQueue+' ถูกยกเลิกไปแล้ว ต้องการเช็คอินใหม่ไหม?'
+              : 'คิว #'+existingQueue+' ('+existingStatus+') ยังมีอยู่<br>ต้องการเช็คอินฉุกเฉินเพิ่มหรือไม่?'
+            }
+          </div>
+          ${!isCancelled ? '<div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-xs text-amber-700 font-bold">⚠️ กรณีฉุกเฉินเท่านั้น เช่น ส่งของรอบ 2, ส่งชิ้นส่วนเพิ่มเติม</div>' : ''}
+          <div class="flex gap-3">
+            <button onclick="document.getElementById('duplicate-checkin-overlay').remove()"
+              class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-2xl font-bold cursor-pointer">ยกเลิก</button>
+            <button onclick="forceCheckin('${name.replace(/'/g,"\\'")}','${license.replace(/'/g,"\\'")}'); document.getElementById('duplicate-checkin-overlay').remove();"
+              class="flex-1 ${isCancelled ? 'bg-orange-500 hover:bg-orange-600' : 'bg-rose-500 hover:bg-rose-600'} text-white py-3 rounded-2xl font-bold cursor-pointer shadow-md">
+              ${isCancelled ? '✅ เช็คอินใหม่' : '🚨 เช็คอินฉุกเฉิน'}
+            </button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+    };
+
+    window.forceCheckin = async function(name, license) {
+      const res = await callAPI('createRecord', { companyName: name, licensePlate: license, forceCheckin: true });
+      if (res && res.success) {
+        currentSupplierRecord = res.record;
+        safeSetLocal('my_active_queue', JSON.stringify(res.record));
+        fetchAll();
+        showSupplierStatus(res.record);
+        showToast('✅ เช็คอินสำเร็จ #' + res.record.queue_number);
+      } else {
+        showToast('ไม่สำเร็จ: ' + (res?.message||''), 'error');
+      }
+    };
+
     window.guardReCheckin = async function(companyName, licensePlate) {
       try {
         const res = await callAPI('createRecord', { companyName: companyName, licensePlate: licensePlate });
@@ -4258,8 +4304,15 @@
             safeSetLocal('my_active_queue', JSON.stringify(res.record));
             fetchAll();
             showSupplierStatus(res.record);
-          } else { showToast('Error: ' + res.message, 'error'); }
-          if (btn) { btn.disabled = false; btn.innerText = 'รับหมายเลขคิว'; }
+          } else if (res.alreadyCheckedIn) {
+            // เช็คอินซ้ำในวันเดียวกัน
+            if (btn) { btn.disabled = false; btn.innerText = 'รับหมายเลขคิว'; }
+            showDuplicateCheckinDialog(name, license, res.existingQueue, res.existingStatus);
+          } else {
+            showToast('Error: ' + res.message, 'error');
+          }
+          if (res.success && btn) { btn.disabled = false; btn.innerText = 'รับหมายเลขคิว'; }
+          if (!res.success && btn) { btn.disabled = false; btn.innerText = 'รับหมายเลขคิว'; }
         });
         return;
       }
@@ -4679,7 +4732,7 @@
           '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>' +
           '<div class="flex justify-between items-center mb-1">' +
           '<div class="flex items-center gap-2"><span class="font-black text-xl text-indigo-600">#' + r.queue_number + '</span>' + getPlanBadge(getEffectivePlanStatus(r)) + '</div>' +
-          '<span class="text-[9px] font-black text-slate-300 uppercase">' + formatThaiTime(r.checkin_time) + '</span></div>' +
+          '<span class="text-[9px] font-bold text-indigo-400">' + formatThaiTime(r.checkin_time) + '</span></div>' +
           '<div class="text-sm font-bold text-slate-500 mb-1 truncate">' + r.company_name + '</div>' +
           '<div class="flex items-center gap-2 mb-4">' +
           '<div class="text-[10px] font-bold text-slate-700 bg-yellow-100 inline-block px-2 py-1 rounded-md border border-yellow-200">ทะเบียน: ' + (r.license_plate||'-') + '</div></div>' +
@@ -4695,7 +4748,7 @@
           '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>' +
           '<div class="flex justify-between items-center mb-1">' +
           '<div class="flex items-center gap-2"><span class="font-black text-xl text-blue-600">#' + r.queue_number + '</span>' + getPlanBadge(getEffectivePlanStatus(r)) + '</div>' +
-          '<span class="text-[9px] font-black text-slate-300 uppercase">' + formatThaiTime(r.loading_time) + '</span></div>' +
+          '<span class="text-[9px] font-bold text-blue-500">' + formatThaiTime(r.loading_time) + '</span></div>' +
           '<div class="text-sm font-bold text-slate-500 mb-1 truncate">' + r.company_name + '</div>' +
           '<div class="flex items-center gap-2 mb-1">' +
           '<div class="text-[10px] font-bold text-slate-700 bg-yellow-100 inline-block px-2 py-1 rounded-md border border-yellow-200">ทะเบียน: ' + (r.license_plate||'-') + '</div>' +
@@ -6575,14 +6628,23 @@
     // ลบ apostrophe นำหน้าที่ GAS อาจใส่ให้ text cell
 
     function formatThaiTime(iso) {
-      if (!iso || iso === '-') return '-';
+      if (!iso || iso === '-' || iso === '') return '—';
       try {
-        // รองรับทั้ง "2026-06-05 09:40:46" และ "2026-06-05T09:40:46.000Z"
-        const clean = String(iso).replace(' ', 'T');
-        const d = new Date(clean.includes('Z') || clean.includes('+') ? clean : clean + '+07:00');
-        if (isNaN(d)) return '-';
+        let d;
+        if (iso instanceof Date) {
+          // Date object จาก Google Sheets — แปลงเป็น Bangkok time
+          d = new Date(iso.getTime() + (7 * 60 * 60 * 1000));
+          return String(d.getUTCHours()).padStart(2,'0') + ':' + String(d.getUTCMinutes()).padStart(2,'0');
+        }
+        // ลบ ' นำหน้า (จาก Google Sheet format), trim
+        const raw = String(iso).replace(/^'+/, '').trim();
+        if (!raw || raw === '-') return '—';
+        // รองรับ "2026-06-05 09:40:46", ISO, etc.
+        const clean = raw.replace(' ', 'T');
+        d = new Date(clean.includes('Z') || clean.includes('+') ? clean : clean + '+07:00');
+        if (isNaN(d)) return '—';
         return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
-      } catch(e) { return '-'; }
+      } catch(e) { return '—'; }
     }
 
     function showToast(msg, type) {
@@ -8987,18 +9049,17 @@
     };
 
     function updateReceiverDropdowns() {
-      if (_receivingTeam.length === 0) {
-        try { _receivingTeam = JSON.parse(localStorage.getItem(RECV_TEAM_KEY)||'[]'); } catch(e) {}
-      }
+      // โหลดจาก localStorage ทุกครั้ง
+      try { _receivingTeam = JSON.parse(localStorage.getItem(RECV_TEAM_KEY)||'[]'); } catch(e) { _receivingTeam = []; }
       const sel = document.getElementById('pcm-receiver');
       if (!sel) return;
-      sel.innerHTML = '<option value="">-- เลือกพนักงานผู้รับ --</option>' +
-        _receivingTeam.map(function(m){
-          return '<option value="' + m.name + '">' + m.name + (m.position ? ' ('+m.position+')' : '') + '</option>';
-        }).join('');
-      // ถ้ายังไม่มีทีม แจ้งให้ไปเพิ่มก่อน
       if (_receivingTeam.length === 0) {
         sel.innerHTML = '<option value="">⚠️ ยังไม่มีทีม — ไปเพิ่มที่ Tab ทีม Receiving</option>';
+      } else {
+        sel.innerHTML = '<option value="">-- เลือกพนักงานผู้รับ --</option>' +
+          _receivingTeam.map(function(m){
+            return '<option value="' + m.name + '">' + m.name + (m.position ? ' ('+m.position+')' : '') + '</option>';
+          }).join('');
       }
     }
 
