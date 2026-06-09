@@ -997,6 +997,9 @@
           <div class="font-bold text-slate-500 text-sm">กำลังอ่านไฟล์...</div>
         </div>
 
+        <!-- แจ้งเตือนวันที่ 26-31 -->
+        <div id="upload503-blocked-warning" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-4 text-amber-800 mb-2"></div>
+
         <!-- สรุปหลังอัพโหลด -->
         <div id="upload503-preview" class="hidden bg-white rounded-2xl shadow-sm border overflow-hidden">
           <div class="px-6 py-5 border-b bg-violet-50">
@@ -6820,8 +6823,42 @@
               return r.arrival_date >= range503.from && r.arrival_date <= range503.to;
             });
           }
-          const filteredOut = totalRaw - upload503Data.length;
-          console.log('[503] range:', range503.from, '—', range503.to, '| ทั้งหมด:', totalRaw, '| เหลือ:', upload503Data.length, '| ตัดออก:', filteredOut);
+
+          // ── กรองวันที่ 26-31 ออก (บริษัทไม่รับวัตถุดิบช่วงนี้) ──
+          const blocked2631 = upload503Data.filter(function(r) {
+            if (!r.arrival_date) return false;
+            const day = parseInt(r.arrival_date.split('-')[2] || '0');
+            return day >= 26;
+          });
+          upload503Data = upload503Data.filter(function(r) {
+            if (!r.arrival_date) return true;
+            const day = parseInt(r.arrival_date.split('-')[2] || '0');
+            return day < 26;
+          });
+
+          if (blocked2631.length > 0) {
+            // แสดงแจ้งเตือน
+            const dates2631 = [...new Set(blocked2631.map(function(r){ return r.arrival_date; }))].sort();
+            const warnEl = document.getElementById('upload503-blocked-warning');
+            if (warnEl) {
+              warnEl.classList.remove('hidden');
+              warnEl.innerHTML =
+                '<div class="flex gap-3 items-start">' +
+                  '<span class="text-xl flex-shrink-0">⚠️</span>' +
+                  '<div>' +
+                    '<div class="font-black text-amber-800 text-sm mb-1">ตัด ' + blocked2631.length + ' รายการออก — วันที่ 26-31 (ต้องทำเป็นงานนอกแผน)</div>' +
+                    '<div class="text-xs text-amber-700">วันที่ที่ถูกตัด: <span class="font-bold">' + dates2631.join(', ') + '</span></div>' +
+                    '<div class="text-xs text-amber-600 mt-1">หากต้องการนำพาร์ทเหล่านี้เข้า กรุณาส่งคำขอ <strong>นอกแผน</strong> แทน</div>' +
+                  '</div>' +
+                '</div>';
+            }
+          } else {
+            const warnEl = document.getElementById('upload503-blocked-warning');
+            if (warnEl) warnEl.classList.add('hidden');
+          }
+
+          const filteredOut = totalRaw - upload503Data.length - blocked2631.length;
+          console.log('[503] range:', range503.from, '—', range503.to, '| ทั้งหมด:', totalRaw, '| เหลือ:', upload503Data.length, '| ตัดออก:', filteredOut, '| ตัด 26-31:', blocked2631.length);
 
           show503Preview();
 
