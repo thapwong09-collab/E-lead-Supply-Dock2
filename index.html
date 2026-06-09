@@ -1600,6 +1600,18 @@
               <div id="unp-supplier-suggest" class="hidden absolute z-20 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 w-full max-h-48 overflow-y-auto"></div>
             </div>
             <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ประเภทนอกแผน *</label>
+              <select id="unp-type" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer">
+                <option value="">-- เลือกประเภท --</option>
+                <option value="reschedule">📅 เลื่อนวันจากแผนเดิม (เปลี่ยน Arrival Date)</option>
+                <option value="new">⚡ งานใหม่กระทันหัน (ไม่มีในแผน)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Arrival Date *</label>
+              <input type="date" id="unp-arrival-date" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer">
+            </div>
+            <div>
               <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PO No.</label>
               <input type="text" id="unp-po" placeholder="เลข PO (ถ้ามี)" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
             </div>
@@ -1613,7 +1625,7 @@
             </div>
             <div>
               <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เหตุผล *</label>
-              <input type="text" id="unp-reason" placeholder="ระบุเหตุผล เช่น ส่งเพิ่มเติม, เร่งด่วน..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
+              <input type="text" id="unp-reason" placeholder="ระบุเหตุผล เช่น เลื่อนจากแผนเดิม, งานด่วน..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
             </div>
             <div>
               <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">หมายเหตุ</label>
@@ -1643,7 +1655,10 @@
                 <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
                   <th class="px-4 py-3">วันที่</th><th class="px-4 py-3">ผู้กรอก</th>
                   <th class="px-4 py-3">Supplier</th><th class="px-4 py-3">PO</th>
-                  <th class="px-4 py-3 text-center">QTY</th><th class="px-4 py-3">เหตุผล</th>
+                  <th class="px-4 py-3 text-center">QTY</th>
+                  <th class="px-4 py-3 text-center">ประเภท</th>
+                  <th class="px-4 py-3 text-center">Arrival Date</th>
+                  <th class="px-4 py-3">เหตุผล</th>
                   <th class="px-4 py-3 text-center">สถานะ</th>
                   <th class="px-4 py-3">Logistics</th><th class="px-4 py-3">โรงงาน</th>
                 </tr>
@@ -2059,6 +2074,14 @@
                 class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm">
               <div id="unp2-supplier-suggest" class="hidden absolute z-20 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 w-full max-h-48 overflow-y-auto"></div>
             </div>
+            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ประเภทนอกแผน *</label>
+              <select id="unp2-type" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer">
+                <option value="">-- เลือกประเภท --</option>
+                <option value="reschedule">📅 เลื่อนวันจากแผนเดิม (เปลี่ยน Arrival Date)</option>
+                <option value="new">⚡ งานใหม่กระทันหัน (ไม่มีในแผน)</option>
+              </select></div>
+            <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Arrival Date *</label>
+              <input type="date" id="unp2-arrival-date" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm cursor-pointer"></div>
             <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PO No.</label>
               <input type="text" id="unp2-po" placeholder="เลข PO (ถ้ามี)" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm"></div>
             <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Part No.</label>
@@ -2066,7 +2089,7 @@
             <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">จำนวน (QTY)</label>
               <input type="number" id="unp2-qty" placeholder="0" min="0" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm"></div>
             <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เหตุผล *</label>
-              <input type="text" id="unp2-reason" placeholder="ระบุเหตุผล เช่น ส่งเพิ่มเติม, เร่งด่วน..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm"></div>
+              <input type="text" id="unp2-reason" placeholder="ระบุเหตุผล เช่น เลื่อนจากแผนเดิม, งานด่วน..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm"></div>
             <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">หมายเหตุ</label>
               <input type="text" id="unp2-remark" placeholder="รายละเอียดเพิ่มเติม..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-rose-400 font-bold text-sm"></div>
           </div>
@@ -2083,7 +2106,10 @@
                 <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
                   <th class="px-4 py-3">วันที่</th><th class="px-4 py-3">ผู้กรอก</th>
                   <th class="px-4 py-3">Supplier</th><th class="px-4 py-3">PO</th>
-                  <th class="px-4 py-3 text-center">QTY</th><th class="px-4 py-3">เหตุผล</th>
+                  <th class="px-4 py-3 text-center">QTY</th>
+                  <th class="px-4 py-3 text-center">ประเภท</th>
+                  <th class="px-4 py-3 text-center">Arrival Date</th>
+                  <th class="px-4 py-3">เหตุผล</th>
                   <th class="px-4 py-3 text-center">สถานะ</th>
                   <th class="px-4 py-3">Logistics</th><th class="px-4 py-3">โรงงาน</th>
                 </tr>
@@ -9392,19 +9418,26 @@
         : data.filter(function(u){ return u.status===f; });
       if (empty) empty.classList.toggle('hidden', filtered.length>0);
       tbody.innerHTML = filtered.map(function(u) {
-        const d = u.created_at ? new Date(u.created_at).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}) : '-';
+        const d = u.created_at ? new Date(String(u.created_at).replace(' ','T')).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}) : '—';
+        const typeBadge = u.unplanned_type === 'reschedule'
+          ? '<span class="bg-blue-100 text-blue-600 text-[8px] font-black px-1.5 py-0.5 rounded-full whitespace-nowrap">📅 เลื่อนวัน</span>'
+          : u.unplanned_type === 'new'
+            ? '<span class="bg-orange-100 text-orange-600 text-[8px] font-black px-1.5 py-0.5 rounded-full whitespace-nowrap">⚡ งานใหม่</span>'
+            : '<span class="text-slate-300 text-[8px]">—</span>';
         return '<tr class="hover:bg-slate-50">' +
           '<td class="px-4 py-2.5 text-slate-500">'+d+'</td>' +
-          '<td class="px-4 py-2.5"><div class="font-bold text-slate-700">'+(u.created_by||'-')+'</div><div class="text-[9px] text-slate-400">'+(u.created_role||'')+'</div></td>' +
-          '<td class="px-4 py-2.5 font-bold text-slate-700">'+(u.supplier||'-')+'</td>' +
-          '<td class="px-4 py-2.5 text-slate-600">'+(u.po_no||'-')+'</td>' +
+          '<td class="px-4 py-2.5"><div class="font-bold text-slate-700">'+(u.created_by||'—')+'</div><div class="text-[9px] text-slate-400">'+(u.created_role||'')+'</div></td>' +
+          '<td class="px-4 py-2.5 font-bold text-slate-700">'+(u.supplier||'—')+'</td>' +
+          '<td class="px-4 py-2.5 text-slate-600">'+(u.po_no||'—')+'</td>' +
           '<td class="px-4 py-2.5 text-center font-bold">'+(u.qty||0)+'</td>' +
-          '<td class="px-4 py-2.5 text-slate-500">'+(u.reason||'-')+'</td>' +
+          '<td class="px-4 py-2.5 text-center">' + typeBadge + '</td>' +
+          '<td class="px-4 py-2.5 text-center font-bold text-emerald-600 text-xs">'+(u.arrival_date||'—')+'</td>' +
+          '<td class="px-4 py-2.5 text-slate-500 max-w-[120px] truncate">'+(u.reason||'—')+'</td>' +
           '<td class="px-4 py-2.5 text-center">'+getUnpStatusBadge(u.status)+'</td>' +
-          '<td class="px-4 py-2.5 text-[10px] text-slate-500">'+(u.logistics_by ? '✅ '+u.logistics_by : '-')+'</td>' +
-          '<td class="px-4 py-2.5 text-[10px] text-slate-500">'+(u.factory_by ? '✅ '+u.factory_by : (u.rejected_by ? '❌ '+u.rejected_by : '-'))+'</td>' +
+          '<td class="px-4 py-2.5 text-[10px] text-slate-500">'+(u.logistics_by ? '✅ '+u.logistics_by : '—')+'</td>' +
+          '<td class="px-4 py-2.5 text-[10px] text-slate-500">'+(u.factory_by ? '✅ '+u.factory_by : (u.rejected_by ? '❌ '+u.rejected_by : '—'))+'</td>' +
         '</tr>';
-      }).join('') || '<tr><td colspan="9" class="text-center py-6 text-slate-300 text-xs font-bold">ไม่มีข้อมูล</td></tr>';
+      }).join('') || '<tr><td colspan="11" class="text-center py-6 text-slate-300 text-xs font-bold">ไม่มีข้อมูล</td></tr>';
     }
 
     async function initUnplanned(role) {
@@ -9455,29 +9488,47 @@
     window.selectUnpSup2    = function(v){ const i=document.getElementById('unp2-supplier'); if(i) i.value=v; window.hideUnpSuggest2(0); };
 
     async function doSubmitUnplanned(prefix, roleLabel) {
-      const submittedBy = (document.getElementById(prefix+'-submitted-by')||{}).value?.trim() || '';
-      const sup    = (document.getElementById(prefix+'-supplier')||{}).value?.trim() || '';
-      const reason = (document.getElementById(prefix+'-reason')||{}).value || '';
-      if (!submittedBy) { showToast('กรุณากรอกชื่อผู้กรอก', 'error'); return; }
-      if (!sup)         { showToast('กรุณาระบุ Supplier', 'error'); return; }
-      if (!reason)      { showToast('กรุณาระบุเหตุผล', 'error'); return; }
+      const submittedBy  = (document.getElementById(prefix+'-submitted-by')||{}).value?.trim() || '';
+      const sup          = (document.getElementById(prefix+'-supplier')||{}).value?.trim() || '';
+      const reason       = (document.getElementById(prefix+'-reason')||{}).value || '';
+      const unpType      = (document.getElementById(prefix+'-type')||{}).value || '';
+      const arrivalDate  = (document.getElementById(prefix+'-arrival-date')||{}).value || '';
+
+      if (!submittedBy)  { showToast('กรุณากรอกชื่อผู้กรอก', 'error'); return; }
+      if (!sup)          { showToast('กรุณาระบุ Supplier', 'error'); return; }
+      if (!unpType)      { showToast('กรุณาเลือกประเภทนอกแผน', 'error'); return; }
+      if (!arrivalDate)  { showToast('กรุณาระบุ Arrival Date', 'error'); return; }
+      if (!reason)       { showToast('กรุณาระบุเหตุผล', 'error'); return; }
+
+      const typLabel = unpType === 'reschedule' ? '📅 เลื่อนวันจากแผนเดิม' : '⚡ งานใหม่กระทันหัน';
+
       const payload = {
-        supplier: sup, po_no: (document.getElementById(prefix+'-po')||{}).value?.trim()||'',
-        part_no: (document.getElementById(prefix+'-part')||{}).value?.trim()||'',
-        qty: parseFloat((document.getElementById(prefix+'-qty')||{}).value||'0')||0,
-        reason: reason, remark: (document.getElementById(prefix+'-remark')||{}).value?.trim()||'',
-        submitted_by: submittedBy,
-        created_by: submittedBy,
-        created_role: roleLabel,
+        supplier:      sup,
+        po_no:         (document.getElementById(prefix+'-po')||{}).value?.trim()||'',
+        part_no:       (document.getElementById(prefix+'-part')||{}).value?.trim()||'',
+        qty:           parseFloat((document.getElementById(prefix+'-qty')||{}).value||'0')||0,
+        reason:        reason,
+        remark:        (document.getElementById(prefix+'-remark')||{}).value?.trim()||'',
+        submitted_by:  submittedBy,
+        created_by:    submittedBy,
+        created_role:  roleLabel,
+        unplanned_type: unpType,
+        arrival_date:  arrivalDate,
+        type_label:    typLabel,
       };
       try {
         const res = await callAPI('saveUnplanned', payload);
         if (res && res.success) {
-          showToast('ส่งขออนุมัติแล้ว รอ Logistics Manager');
-          ['submitted-by','supplier','po','part','qty','reason','remark'].forEach(function(f){ const el=document.getElementById(prefix+'-'+f); if(el) el.value=''; });
+          showToast('✅ ส่งขออนุมัติแล้ว รอ Logistics Manager');
+          ['submitted-by','supplier','po','part','qty','reason','remark','arrival-date'].forEach(function(f){
+            const el = document.getElementById(prefix+'-'+f);
+            if (el) el.value = '';
+          });
+          const typeSel = document.getElementById(prefix+'-type');
+          if (typeSel) typeSel.value = '';
           await initUnplanned(roleLabel);
-        } else { showToast('ไม่สำเร็จ: '+(res?.message||'')); }
-      } catch(e) { showToast('Error: '+e.message); }
+        } else { showToast('ไม่สำเร็จ: '+(res?.message||''), 'error'); }
+      } catch(e) { showToast('Error: '+e.message, 'error'); }
     }
     window.submitUnplanned  = function(){ doSubmitUnplanned('unp',  'PIC/จัดซื้อ'); };
     window.submitUnplanned2 = function(){ doSubmitUnplanned('unp2', 'Planning'); };
