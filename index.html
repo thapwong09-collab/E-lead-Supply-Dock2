@@ -7137,37 +7137,46 @@
     };
 
     function getTargetWeekRange() {
-      // โหมดย้อนหลัง — ใช้ช่วงที่ผู้ใช้เลือก (ชั่วคราวใน session)
+      // โหมดย้อนหลัง — ใช้ช่วงที่ผู้ใช้เลือก
       if (_retroMode) {
         const from = (document.getElementById('upload503-retro-from')||{}).value || '';
         const to   = (document.getElementById('upload503-retro-to')||{}).value   || '';
         if (from && to) return { from: from, to: to };
       }
 
-      // โหมดปกติ — กรองตาม logic สัปดาห์
-      const now   = new Date();
-      const day   = now.getDay();
-      const h     = now.getHours();
-      const min   = now.getMinutes();
-      const isMonday = day === 1;
-      const isBeforeDeadline = isMonday && (h < 8 || (h === 8 && min < 30));
-
-      const thisMonday = new Date(now);
-      const daysToMon  = (day === 0) ? -6 : 1 - day;
-      thisMonday.setDate(now.getDate() + daysToMon);
-      thisMonday.setHours(0,0,0,0);
-
-      const targetMonday = new Date(thisMonday);
-      if (!isBeforeDeadline) targetMonday.setDate(thisMonday.getDate() + 7);
-
-      const targetSaturday = new Date(targetMonday);
-      targetSaturday.setDate(targetMonday.getDate() + 5);
-
       const fmt = function(d) {
         return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
       };
 
-      return { from: fmt(targetMonday), to: fmt(targetSaturday) };
+      const now  = new Date();
+      const day  = now.getDay(); // 0=อา, 1=จ, ..., 6=ส
+      const h    = now.getHours();
+      const min  = now.getMinutes();
+
+      // หา Monday ของสัปดาห์นี้
+      const thisMonday = new Date(now);
+      const diffToMon  = day === 0 ? -6 : 1 - day;
+      thisMonday.setDate(now.getDate() + diffToMon);
+      thisMonday.setHours(0,0,0,0);
+
+      // หา Sunday ของสัปดาห์นี้ (Mon+6)
+      const thisSunday = new Date(thisMonday);
+      thisSunday.setDate(thisMonday.getDate() + 6);
+
+      // หา Monday สัปดาห์หน้า
+      const nextMonday = new Date(thisMonday);
+      nextMonday.setDate(thisMonday.getDate() + 7);
+      const nextSunday = new Date(nextMonday);
+      nextSunday.setDate(nextMonday.getDate() + 6);
+
+      // Logic: วันจันทร์ก่อน 08:30 → สัปดาห์นี้, วันอื่นๆ → สัปดาห์หน้า
+      const isBeforeDeadline = (day === 1) && (h < 8 || (h === 8 && min < 30));
+
+      if (isBeforeDeadline) {
+        return { from: fmt(thisMonday), to: fmt(thisSunday) };
+      } else {
+        return { from: fmt(nextMonday), to: fmt(nextSunday) };
+      }
     }
 
     function get503Filtered() {
