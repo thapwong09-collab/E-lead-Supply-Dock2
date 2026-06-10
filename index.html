@@ -9839,9 +9839,11 @@
       const empty = document.getElementById(emptyId);
       if (!tbody) return;
       const f = _unplannedFilter;
-      const filtered = f==='all' ? data
-        : f==='pending' ? data.filter(function(u){ return u.status==='pending_l'||u.status==='pending_f'; })
-        : data.filter(function(u){ return u.status===f; });
+      // กรองแถวว่าง (ไม่มี supplier และ id)
+      const validData = data.filter(function(u){ return u.id && String(u.id).trim() !== ''; });
+      const filtered = f==='all' ? validData
+        : f==='pending' ? validData.filter(function(u){ return u.status==='pending_l'||u.status==='pending_f'; })
+        : validData.filter(function(u){ return u.status===f; });
       if (empty) empty.classList.toggle('hidden', filtered.length>0);
       tbody.innerHTML = filtered.map(function(u) {
         const d = u.created_at ? new Date(String(u.created_at).replace(' ','T')).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}) : '—';
