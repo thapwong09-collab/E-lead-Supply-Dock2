@@ -10396,8 +10396,21 @@
     }
 
     async function loadMyParts() {
-      const week = getWeekRange();
-      const startDate = week.start.getFullYear() + '-' + String(week.start.getMonth()+1).padStart(2,'0') + '-' + String(week.start.getDate()).padStart(2,'0');
+      let startDate, endDate;
+
+      if (_retroMode) {
+        // ใช้วันที่จาก retro picker
+        startDate = (document.getElementById('upload503-retro-from')||{}).value || '';
+        endDate   = (document.getElementById('upload503-retro-to')||{}).value   || '';
+        if (!startDate) {
+          // fallback — ใช้สัปดาห์ปัจจุบัน
+          const week = getWeekRange();
+          startDate = week.start.getFullYear() + '-' + String(week.start.getMonth()+1).padStart(2,'0') + '-' + String(week.start.getDate()).padStart(2,'0');
+        }
+      } else {
+        const week = getWeekRange();
+        startDate = week.start.getFullYear() + '-' + String(week.start.getMonth()+1).padStart(2,'0') + '-' + String(week.start.getDate()).padStart(2,'0');
+      }
 
       document.getElementById('myparts-loading').classList.remove('hidden');
       document.getElementById('myparts-empty').classList.add('hidden');
@@ -10406,7 +10419,7 @@
       document.getElementById('myparts-confirmed-section').classList.add('hidden');
       try {
         // โหลดทั้งสัปดาห์ครั้งเดียว (1 API call แทน 6)
-        const res = await callAPI('getPartsByWeek', { startDate: startDate });
+        const res = await callAPI('getPartsByWeek', { startDate: startDate, endDate: endDate||'' });
         document.getElementById('myparts-loading').classList.add('hidden');
         const allRows = (res && res.data) ? res.data : [];
 
