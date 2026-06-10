@@ -7686,7 +7686,10 @@
       document.getElementById('weekly-loading')?.classList.add('hidden');
 
       let filtered = allRows.filter(function(r) {
-        return r.status === 'pending' || r.status === 'completed' || r.status === 'short' || r.status === 'missing';
+        const validStatus = ['pending','completed','short','missing','pickup_late','pickup_short_late'];
+        // โหมดย้อนหลัง: รวม draft ด้วยเพื่อดูข้อมูลที่ยังรอ CF
+        if (_retroMode) validStatus.push('draft');
+        return validStatus.includes(r.status);
       });
       if (picFilter)    filtered = filtered.filter(function(r){ return (r.pic||'') === picFilter; });
       if (vendorFilter) filtered = filtered.filter(function(r){ return (r.vendor||'') === vendorFilter; });
@@ -7823,7 +7826,7 @@
           '<td class="px-3 py-2 font-mono text-violet-700 font-bold text-xs">' + (r.part_no||'-') + '</td>' +
           '<td class="px-3 py-2 text-center font-black text-slate-700 text-xs">' + (r.qty_plan||0) + '</td>' +
           '<td class="px-3 py-2 text-center text-xs">' + qtyRecvHtml + '</td>' +
-          '<td class="px-3 py-2 text-center text-emerald-600 font-bold text-xs">' + (r.date||'-') + '</td>' +
+          '<td class="px-3 py-2 text-center text-emerald-600 font-bold text-xs">' + String(r.date||'-').split(' ')[0] + '</td>' +
           '<td class="px-3 py-2 text-center font-bold text-slate-600 text-xs">' + (r.time_slot||'-') + '</td>' +
           '<td class="px-3 py-2 text-center">' + statusHtml + '</td>' +
           '<td class="px-3 py-2 text-center text-[10px] font-bold text-slate-600">' + (r.confirmed_by || '<span class="text-slate-300">—</span>') + '</td>' +
@@ -10522,7 +10525,7 @@
           '<td class="px-4 py-2 text-slate-600 text-xs">' + (r.po_no||'-') + '</td>' +
           '<td class="px-4 py-2 font-mono text-violet-700 font-bold text-xs">' + (r.part_no||'-') + '</td>' +
           '<td class="px-4 py-2 text-center font-black text-slate-700 text-xs">' + (r.qty_plan||0) + '</td>' +
-          '<td class="px-4 py-2 text-center text-emerald-600 font-bold text-xs">' + (r.date||'-') + '</td>' +
+          '<td class="px-4 py-2 text-center text-emerald-600 font-bold text-xs">' + String(r.date||'-').split(' ')[0] + '</td>' +
           '<td class="px-4 py-2 text-center font-bold text-slate-600 text-xs">' + (r.time_slot||'-') + '</td>' +
           '<td class="px-4 py-2 text-center">' + stBadge + '</td>' +
           '<td class="px-4 py-2 text-center text-[10px] font-bold text-slate-600">' + (r.confirmed_by || '<span class="text-slate-300">—</span>') + '</td>' +
