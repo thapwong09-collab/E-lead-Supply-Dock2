@@ -452,10 +452,10 @@
                   <th class="px-3 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('staff','time_slot')">AM/PM <span id="ws-icon-time_slot"></span></th>
                   <th class="px-3 py-3 text-center">สถานะรับของ</th>
                   <th class="px-3 py-3 text-center">รับโดย</th>
+                  <th class="px-3 py-3 text-center">เวลารับ</th>
                   <th class="px-3 py-3 text-center">ERP</th>
                   <th class="px-3 py-3">Note Staff</th>
                   <th class="px-3 py-3">หมายเหตุจัดซื้อ</th>
-                  <th class="px-3 py-3 text-center">✏️</th>
                 </tr>
               </thead>
               <tbody id="weekly-table-body" class="divide-y divide-slate-50"></tbody>
@@ -504,7 +504,22 @@
       </div>
 
 
-      <!-- Tab: เปรียบเทียบรายเดือน -->
+      <!-- Modal: Staff Note -->
+      <div id="staff-note-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl">
+          <div class="font-black text-slate-700 mb-1">📝 Note Staff</div>
+          <div id="staff-note-part-label" class="text-xs text-violet-600 font-bold mb-4"></div>
+          <textarea id="staff-note-text" rows="4" placeholder="กรอกหมายเหตุ เช่น รอ GR จาก ERP, Hold ชั่วคราว..."
+            class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm resize-none"></textarea>
+          <input type="hidden" id="staff-note-id">
+          <div class="flex gap-3 mt-4">
+            <button type="button" onclick="closeStaffNoteModal()" class="flex-1 bg-slate-100 text-slate-500 py-3 rounded-xl font-bold text-sm cursor-pointer">ยกเลิก</button>
+            <button type="button" onclick="saveStaffNoteModal()" class="flex-1 bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">💾 ยืนยันบันทึก</button>
+          </div>
+        </div>
+      </div>
+
+
       <div id="page-trend" class="hidden max-w-6xl mx-auto p-4 space-y-5 fade-in">
         <div class="flex items-start justify-between flex-wrap gap-4">
           <div>
@@ -1527,6 +1542,7 @@
                   <th class="px-4 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortConfirmed('time_slot')">AM/PM <span id="sort-icon-time_slot"></span></th>
                   <th class="px-4 py-3 text-center">สถานะรับ</th>
                   <th class="px-4 py-3 text-center">รับโดย</th>
+                  <th class="px-4 py-3 text-center">เวลารับ</th>
                   <th class="px-4 py-3 text-center">ERP</th>
                   <th class="px-4 py-3">Note Staff</th>
                 </tr>
@@ -7847,7 +7863,14 @@
         const erp      = r.erp_status||'';
         const erpChecked = (erp === 'Done') ? 'checked' : '';
         const erpHtml  = '<input type="checkbox" data-erp-id="'+rowId+'" '+erpChecked+' onchange="toggleErpDone(\''+rowId+'\',this.checked)" class="w-4 h-4 accent-emerald-500 cursor-pointer">';
-        const noteHtml = '<input type="text" data-note-id="'+rowId+'" value="'+String(r.staff_note||'').replace(/"/g,'&quot;')+'" placeholder="หมายเหตุ..." onblur="saveStaffNote(\''+rowId+'\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()" class="w-full min-w-[120px] border border-slate-200 rounded-lg px-2 py-1 text-[10px] text-slate-700 focus:border-violet-400 outline-none bg-white">';
+        // Note Staff — ปุ่มกดเพื่อแก้ไข
+        const noteSnippet = r.staff_note ? String(r.staff_note).substring(0,20)+(r.staff_note.length>20?'…':'') : '—';
+        const noteHtml = '<button type="button" onclick="openStaffNoteModal(\''+rowId+'\',\''+encodeURIComponent(r.staff_note||'')+'\')" ' +
+          'class="text-left w-full text-[10px] '+(r.staff_note?'text-slate-700 font-bold':'text-slate-300')+' hover:text-violet-600 cursor-pointer" title="'+(r.staff_note||'คลิกเพื่อเพิ่มหมายเหตุ')+'">'+noteSnippet+'</button>';
+        // เวลารับ — แสดงเฉพาะเวลา HH:MM จาก confirmed_time
+        const confirmedTimeHtml = r.confirmed_time
+          ? '<span class="text-[10px] font-bold text-blue-600">' + String(r.confirmed_time).replace(/^\d{4}-\d{2}-\d{2}\s*/,'').substring(0,5) + '</span>'
+          : '<span class="text-slate-300 text-[9px]">—</span>';
         return '<tr class="hover:bg-violet-50/30 transition-colors" data-vendor-key="'+vendorKey+'">' +
           '<td class="px-3 py-2 font-bold text-slate-700 text-xs">' + (r.pic||'-') + '</td>' +
           '<td class="px-3 py-2 text-slate-600 text-xs max-w-[140px]">' +
@@ -7865,12 +7888,10 @@
           '<td class="px-3 py-2 text-center font-bold text-slate-600 text-xs">' + (r.time_slot||'-') + '</td>' +
           '<td class="px-3 py-2 text-center">' + statusHtml + '</td>' +
           '<td class="px-3 py-2 text-center text-[10px] font-bold text-slate-600">' + (r.confirmed_by || '<span class="text-slate-300">—</span>') + '</td>' +
+          '<td class="px-3 py-2 text-center">' + confirmedTimeHtml + '</td>' +
           '<td class="px-3 py-2 text-center">' + erpHtml + '</td>' +
-          '<td class="px-3 py-2">' + noteHtml + '</td>' +
+          '<td class="px-3 py-2 min-w-[100px]">' + noteHtml + '</td>' +
           '<td class="px-3 py-2 text-[10px] text-purple-600 max-w-[100px] truncate" title="' + String(r.pic_note||'').replace(/"/g,'') + '">' + (r.pic_note || '<span class="text-slate-300">—</span>') + '</td>' +
-          '<td class="px-3 py-2 text-center">' +
-          (isPickup && (st==='pending'||st==='') ? '<button type="button" onclick="openPickupConfirmModal(\''+rowId+'\')" class="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-black cursor-pointer whitespace-nowrap">📦 รับ</button>' : '<span class="text-slate-300 text-[9px]">—</span>') +
-          '</td>' +
         '</tr>';
       }).join('') || '<tr><td colspan="10" class="text-center py-6 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
     }
@@ -8004,6 +8025,59 @@
           showToast('ไม่สำเร็จ: ' + (res?.message||''), 'error');
         }
       });
+    };
+
+    // ── Staff Note Modal ──
+    window.openStaffNoteModal = function(id, encodedNote) {
+      const note = encodedNote ? decodeURIComponent(encodedNote) : '';
+      const p    = allPartData.find(function(x){ return String(x.id) === String(id); });
+      document.getElementById('staff-note-id').value    = id;
+      document.getElementById('staff-note-text').value  = note;
+      document.getElementById('staff-note-part-label').innerText = p ? (p.vendor||'') + ' · ' + (p.part_no||'') : '';
+      const modal = document.getElementById('staff-note-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      setTimeout(function(){ document.getElementById('staff-note-text').focus(); }, 100);
+    };
+
+    window.closeStaffNoteModal = function() {
+      const modal = document.getElementById('staff-note-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    };
+
+    window.saveStaffNoteModal = async function() {
+      const id   = document.getElementById('staff-note-id').value;
+      const note = document.getElementById('staff-note-text').value;
+      const p    = allPartData.find(function(x){ return String(x.id) === String(id); });
+      const btn  = document.querySelector('#staff-note-modal button[onclick="saveStaffNoteModal()"]');
+      if (btn) { btn.disabled = true; btn.innerText = '⏳ กำลังบันทึก...'; }
+
+      try {
+        const res = await callAPI('updatePartNote', {
+          id:          id,
+          erp_status:  (p && p.erp_status) || '',
+          staff_note:  note
+        });
+        if (res && res.success) {
+          // อัพเดท memory
+          if (p) p.staff_note = note;
+          // อัพเดท button text ใน row ทันที
+          const noteBtn = document.querySelector('button[onclick*="openStaffNoteModal(\''+String(id).replace(/'/g,"\\'")+'\'"]');
+          if (noteBtn) {
+            const snippet = note ? note.substring(0,20)+(note.length>20?'…':'') : '—';
+            noteBtn.textContent = snippet;
+            noteBtn.className = 'text-left w-full text-[10px] '+(note?'text-slate-700 font-bold':'text-slate-300')+' hover:text-violet-600 cursor-pointer';
+            // อัพเดท encoded note ใน onclick
+            noteBtn.setAttribute('onclick', 'openStaffNoteModal(\''+String(id).replace(/'/g,"\\'")+'\',\''+encodeURIComponent(note)+'\')');
+          }
+          showToast('✅ บันทึก Note แล้ว');
+          closeStaffNoteModal();
+        } else {
+          showToast('ไม่สำเร็จ: '+(res?.message||''), 'error');
+        }
+      } catch(e) { showToast('Error: '+e.message, 'error'); }
+      if (btn) { btn.disabled = false; btn.innerText = '💾 ยืนยันบันทึก'; }
     };
 
     // ── ERP checkbox ──
@@ -10626,6 +10700,9 @@
         const noteHtml = r.staff_note
           ? '<span class="text-[10px] text-slate-600 max-w-[120px] block truncate" title="'+String(r.staff_note||'').replace(/"/g,'')+'">'+r.staff_note+'</span>'
           : '<span class="text-slate-300 text-[9px]">—</span>';
+        const confirmedTime2 = r.confirmed_time
+          ? '<span class="text-[10px] font-bold text-blue-600">' + String(r.confirmed_time).replace(/^\d{4}-\d{2}-\d{2}\s*/,'').substring(0,5) + '</span>'
+          : '<span class="text-slate-300 text-[9px]">—</span>';
         return '<tr class="hover:bg-slate-50">' +
           '<td class="px-4 py-2 font-bold text-slate-700 text-xs">' + (r.pic||'-') + '</td>' +
           '<td class="px-4 py-2 text-slate-600 text-xs max-w-[150px] truncate">' + (r.vendor||'-') + '</td>' +
@@ -10637,6 +10714,7 @@
           '<td class="px-4 py-2 text-center font-bold text-slate-600 text-xs">' + (r.time_slot||'-') + '</td>' +
           '<td class="px-4 py-2 text-center">' + stBadge + '</td>' +
           '<td class="px-4 py-2 text-center text-[10px] font-bold text-slate-600">' + (r.confirmed_by || '<span class="text-slate-300">—</span>') + '</td>' +
+          '<td class="px-4 py-2 text-center">' + confirmedTime2 + '</td>' +
           '<td class="px-4 py-2 text-center">' + erpBadge + '</td>' +
           '<td class="px-4 py-2">' + noteHtml + '</td>' +
           '<td class="px-4 py-2">' +
