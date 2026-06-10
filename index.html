@@ -10872,9 +10872,28 @@
         const res = await callAPI('confirmPlanParts', { items: JSON.stringify(toConfirm) });
         if (res && res.success) {
           showToast('Confirm สำเร็จ ' + (res.confirmed||0) + ' รายการ');
+
+          // อัพเดท local data ใน allPartData โดยไม่ reload
+          toConfirm.forEach(function(item) {
+            const p = allPartData.find(function(x){ return String(x.id) === String(item.part_id); });
+            if (p) {
+              p.status    = 'pending';
+              p.time_slot = item.time_slot || p.time_slot;
+            }
+          });
+
+          // อัพเดทเฉพาะ badge บน card ที่ CF ไป ไม่ต้อง reload ทั้งหน้า
+          const picName = document.getElementById('myparts-modal-pic-name')?.textContent?.trim() || '';
+          const picKey  = picName.replace(/[^a-zA-Z0-9]/g,'_');
+          if (picKey) {
+            const badge = document.getElementById('ampm-badge-' + picKey);
+            if (badge) {
+              badge.className = 'text-white font-black text-sm bg-emerald-500/90 rounded-lg px-3 py-1 mb-1';
+              badge.textContent = '✅ Confirmed';
+            }
+          }
+
           closeMyPartsModal();
-          // reload ข้อมูลทันที ไม่ต้องรอ refresh
-          await loadMyParts();
         } else {
           showToast('ไม่สำเร็จ: ' + ((res&&res.message)||''));
           btn.disabled = false; btn.innerText = '✅ Confirm ของฉัน → ส่งคลัง';
