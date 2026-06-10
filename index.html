@@ -10396,21 +10396,10 @@
     }
 
     async function loadMyParts() {
-      let startDate, endDate;
-
-      if (_retroMode) {
-        // ใช้วันที่จาก retro picker
-        startDate = (document.getElementById('upload503-retro-from')||{}).value || '';
-        endDate   = (document.getElementById('upload503-retro-to')||{}).value   || '';
-        if (!startDate) {
-          // fallback — ใช้สัปดาห์ปัจจุบัน
-          const week = getWeekRange();
-          startDate = week.start.getFullYear() + '-' + String(week.start.getMonth()+1).padStart(2,'0') + '-' + String(week.start.getDate()).padStart(2,'0');
-        }
-      } else {
-        const week = getWeekRange();
-        startDate = week.start.getFullYear() + '-' + String(week.start.getMonth()+1).padStart(2,'0') + '-' + String(week.start.getDate()).padStart(2,'0');
-      }
+      // ใช้ getTargetWeekRange() เหมือน Staff/Planning — มี logic สัปดาห์เป้าหมายและ retro mode
+      const range     = getTargetWeekRange();
+      const startDate = range.from;
+      const endDate   = range.to;
 
       document.getElementById('myparts-loading').classList.remove('hidden');
       document.getElementById('myparts-empty').classList.add('hidden');
