@@ -7980,6 +7980,18 @@
           // อัพเดท allPartData memory
           const idx = allPartData.findIndex(function(p){ return String(p.id) === String(id); });
           if (idx >= 0) allPartData[idx] = Object.assign({}, allPartData[idx], { pic_note: newNote });
+
+          // อัพเดท text และ button ใน row ทันที ไม่ re-render ทั้งหน้า
+          // หา cell ที่มีปุ่มนี้ แล้วอัพเดท span ข้างหน้า
+          const btn = document.querySelector('button[onclick*="openPicNoteModal(\'' + String(id).replace(/'/g,"\\'") + '\'"]');
+          if (btn) {
+            const span = btn.previousElementSibling;
+            if (span) span.innerHTML = newNote || '<span class="text-slate-300">—</span>';
+            // อัพเดท encoded note ใน onclick ด้วย
+            btn.setAttribute('onclick', 'openPicNoteModal(\'' + String(id).replace(/'/g,"\\'") + '\',\'' + encodeURIComponent(newNote) + '\')');
+            btn.closest('td') && (btn.closest('td').title = newNote);
+          }
+
           showToast('✅ บันทึกหมายเหตุจัดซื้อแล้ว');
           renderConfirmedMyParts();
         } else {
