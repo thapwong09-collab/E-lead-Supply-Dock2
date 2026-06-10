@@ -7698,7 +7698,7 @@
             ? '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-1 rounded-full">⚠️ ไม่ครบ/ตรงวัน</span>'
             : (isLate
               ? '<span class="bg-rose-100 text-rose-600 font-black text-[9px] px-2 py-1 rounded-full">⚠️ ไม่ครบ/ล่าช้า</span>'
-              : '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-1 rounded-full">⚠️ ไม่ครบ</span>');
+              : '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-1 rounded-full">⚠️ ไม่ครบ/ตรงเวลา</span>');
         } else if (st === 'missing') {
           statusHtml = '<span class="bg-slate-100 text-slate-500 font-black text-[9px] px-2 py-1 rounded-full">❌ ไม่ได้รับ</span>';
         } else if (st === 'pickup_late') {
@@ -7752,7 +7752,7 @@
           : r.status==='completed'
             ? (_isLate3 ? '<span class="bg-rose-100 text-rose-600 text-[9px] font-black px-2 py-0.5 rounded-full whitespace-nowrap">✅ ครบ/ล่าช้า</span>' : '<span class="bg-emerald-100 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-full">✅ ครบ/ตรงเวลา</span>')
           : r.status==='short'
-            ? (_isLate3 ? '<span class="bg-rose-100 text-rose-600 text-[9px] font-black px-2 py-0.5 rounded-full">⚠️ ไม่ครบ/ล่าช้า</span>' : '<span class="bg-amber-100 text-amber-600 text-[9px] font-black px-2 py-0.5 rounded-full">⚠️ ไม่ครบ</span>')
+            ? (_isLate3 ? '<span class="bg-rose-100 text-rose-600 text-[9px] font-black px-2 py-0.5 rounded-full">⚠️ ไม่ครบ/ล่าช้า</span>' : '<span class="bg-amber-100 text-amber-600 text-[9px] font-black px-2 py-0.5 rounded-full">⚠️ ไม่ครบ/ตรงเวลา</span>')
           : r.status==='missing' ? '<span class="bg-rose-100 text-rose-500 text-[9px] font-black px-2 py-0.5 rounded-full">❌ ไม่ได้รับ</span>'
           : '<span class="bg-slate-100 text-slate-500 text-[9px] font-black px-2 py-0.5 rounded-full">⏳ รอรับ</span>';
         const plQtyHtml = r.status==='pending' ? '<span class="text-slate-300 text-[9px]">—</span>' : '<span class="font-black text-' + (_qR > _qP && _qP > 0 ? 'purple' : _qR < _qP ? 'rose' : 'emerald') + '-600">' + _qR + '</span>';
@@ -10403,7 +10403,7 @@
           : st==='short'
             ? (_isLate2
                 ? '<span class="bg-rose-100 text-rose-600 font-black text-[9px] px-2 py-0.5 rounded-full">⚠️ ไม่ครบ/ล่าช้า</span>'
-                : '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-0.5 rounded-full">⚠️ ไม่ครบ</span>')
+                : '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-0.5 rounded-full">⚠️ ไม่ครบ/ตรงเวลา</span>')
             : st==='missing'
               ? '<span class="bg-rose-100 text-rose-500 font-black text-[9px] px-2 py-0.5 rounded-full">❌ ไม่ได้รับ</span>'
               : '<span class="bg-slate-100 text-slate-400 font-black text-[9px] px-2 py-0.5 rounded-full">⏳ รอรับ</span>';
