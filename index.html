@@ -2855,7 +2855,75 @@
     }
     const LICENSE_FROM_URL = urlParams.get('license') || urlParams.get('plate') || '';
 
-    // Auto-login จาก URL ?role=
+    // ── Handle ?approve=TOKEN หรือ ?reject=TOKEN จาก Line ──
+    (function() {
+      const approveToken = urlParams.get('approve') || '';
+      const rejectToken  = urlParams.get('reject')  || '';
+      if (!approveToken && !rejectToken) return;
+
+      const roleParam = urlParams.get('role') || '';
+      const managerName = roleParam === 'manager_logistics' ? 'Logistics Manager' : 'Factory Manager';
+
+      document.addEventListener('DOMContentLoaded', async function() {
+        hideAll();
+
+        // แสดง loading
+        const overlay = document.createElement('div');
+        overlay.id = 'token-overlay';
+        overlay.className = 'fixed inset-0 z-50 flex items-center justify-center bg-slate-100 p-4';
+        overlay.innerHTML =
+          '<div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-sm text-center">' +
+            '<div class="text-5xl mb-4">' + (approveToken ? '⏳' : '⏳') + '</div>' +
+            '<div id="token-status-text" class="font-black text-slate-800 text-lg mb-2">กำลังดำเนินการ...</div>' +
+            '<div id="token-status-sub" class="text-slate-400 text-sm"></div>' +
+          '</div>';
+        document.body.appendChild(overlay);
+
+        try {
+          let res;
+          if (approveToken) {
+            res = await callAPI('approveUnplanned', { token: approveToken, approvedBy: managerName });
+          } else {
+            const reason = 'ไม่อนุมัติโดย ' + managerName;
+            res = await callAPI('rejectUnplanned', { token: rejectToken, rejectedBy: managerName, reason: reason });
+          }
+
+          const statusText = document.getElementById('token-status-text');
+          const statusSub  = document.getElementById('token-status-sub');
+          const iconEl     = overlay.querySelector('.text-5xl');
+
+          if (res && res.success) {
+            if (approveToken) {
+              if (res.step === 'logistics') {
+                if (iconEl) iconEl.textContent = '✅';
+                if (statusText) statusText.textContent = 'อนุมัติแล้ว!';
+                if (statusSub)  statusSub.textContent  = 'ส่งต่อให้ผู้จัดการโรงงานอนุมัติแล้ว';
+              } else {
+                if (iconEl) iconEl.textContent = '🎉';
+                if (statusText) statusText.textContent = 'อนุมัติครบแล้ว!';
+                if (statusSub)  statusSub.textContent  = 'Part เข้า Weekly Plan เรียบร้อยแล้ว';
+              }
+            } else {
+              if (iconEl) iconEl.textContent = '❌';
+              if (statusText) statusText.textContent = 'ไม่อนุมัติแล้ว';
+              if (statusSub)  statusSub.textContent  = 'บันทึกเรียบร้อยแล้ว';
+            }
+            // เพิ่มปุ่มเข้าระบบ
+            overlay.querySelector('.bg-white').innerHTML +=
+              '<button onclick="window.location.href=\'?role='+roleParam+'\'" ' +
+              'class="mt-6 w-full bg-violet-500 hover:bg-violet-600 text-white py-3 rounded-2xl font-black text-sm cursor-pointer shadow-md">เข้าสู่ระบบ</button>' +
+              '<div class="text-slate-300 text-xs mt-3">หรือปิดหน้าต่างนี้ได้เลย</div>';
+          } else {
+            if (iconEl) iconEl.textContent = '⚠️';
+            if (statusText) statusText.textContent = 'ไม่สำเร็จ';
+            if (statusSub)  statusSub.textContent  = res?.message || 'Token อาจหมดอายุแล้ว (มีอายุ 48 ชั่วโมง)';
+          }
+        } catch(e) {
+          const statusText = document.getElementById('token-status-text');
+          if (statusText) statusText.textContent = 'เกิดข้อผิดพลาด: ' + e.message;
+        }
+      });
+    })();
     (function() {
       const role = urlParams.get('role') || '';
       if (!role) return;
@@ -10104,10 +10172,15 @@
         const res = await callAPI('approveUnplanned', { token: token, approvedBy: name });
         if (res && res.success) {
           if (res.step === 'logistics') {
-            showToast('✅ อนุมัติขั้น 1 แล้ว — รอผู้จัดการโรงงานอนุมัติต่อ');
+            // อัพเดทสถานะใน _unplannedData ทันที
+            const rec = _unplannedData.find(function(u){ return String(u.logistics_token) === String(lTok); });
+            if (rec) rec.status = 'pending_f';
+            showToast('✅ Logistics อนุมัติแล้ว — แจ้ง Factory Manager ทาง Line แล้ว');
           } else {
-            showToast('🎉 อนุมัติครบ 2 ขั้นแล้ว! สร้างแผนพาร์ทให้ Staff แล้ว');
-            // รีเฟรช allPartData เพื่อให้ Staff เห็น part ใหม่
+            // Factory อนุมัติครบ — อัพเดทสถานะ
+            const rec = _unplannedData.find(function(u){ return String(u.factory_token) === String(fTok); });
+            if (rec) rec.status = 'approved';
+            showToast('🎉 อนุมัติครบแล้ว! Part เข้า Weekly Plan แล้ว');
             _hashCheckin = ''; _hashParts = '';
           }
           loadManagerApprove();
