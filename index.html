@@ -7839,15 +7839,15 @@
           statusHtml = '<span class="bg-rose-100 text-rose-600 font-black text-[9px] px-2 py-1 rounded-full whitespace-nowrap">❌ ไม่ครบ/ไม่ตรงวัน</span>';
         }
         const qtyRecvHtml = st==='pending' ? '<span class="text-slate-300 text-[9px]">—</span>' : '<span class="font-black text-' + (qR > qP && qP > 0 ? 'purple' : qR < qP ? 'rose' : 'emerald') + '-600 text-xs">' + qR + '</span>';
-        const erp     = r.erp_status||'';
-        const erpChecked = (erp === 'Done') ? 'checked' : '';
-        const erpHtml = '<input type="checkbox" data-erp-id="'+rowId+'" '+erpChecked+' onchange="toggleErpDone(\''+rowId+'\',this.checked)" class="w-4 h-4 accent-emerald-500 cursor-pointer">';
-        const noteHtml = '<input type="text" data-note-id="'+rowId+'" value="'+String(r.staff_note||'').replace(/"/g,'&quot;')+'" placeholder="หมายเหตุ..." onblur="saveStaffNote(\''+rowId+'\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()" class="w-full min-w-[120px] border border-slate-200 rounded-lg px-2 py-1 text-[10px] text-slate-700 focus:border-violet-400 outline-none bg-white">';
+        const rowId    = String(r.id||'').replace(/'/g,'');
+        const rowPo    = String(r.po_no||'').replace(/'/g,'');
+        const rowPt    = String(r.part_no||'').replace(/'/g,'');
+        const rowNote  = encodeURIComponent(r.staff_note||'');
         const vendorKey = String(r.vendor||'').replace(/[^a-zA-Z0-9]/g,'_')+'_'+String(r.date||'').split(' ')[0];
-        const rowId = String(r.id||'').replace(/'/g,'');
-        const rowPo = String(r.po_no||'').replace(/'/g,'');
-        const rowPt = String(r.part_no||'').replace(/'/g,'');
-        const rowNote = encodeURIComponent(r.staff_note||'');
+        const erp      = r.erp_status||'';
+        const erpChecked = (erp === 'Done') ? 'checked' : '';
+        const erpHtml  = '<input type="checkbox" data-erp-id="'+rowId+'" '+erpChecked+' onchange="toggleErpDone(\''+rowId+'\',this.checked)" class="w-4 h-4 accent-emerald-500 cursor-pointer">';
+        const noteHtml = '<input type="text" data-note-id="'+rowId+'" value="'+String(r.staff_note||'').replace(/"/g,'&quot;')+'" placeholder="หมายเหตุ..." onblur="saveStaffNote(\''+rowId+'\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()" class="w-full min-w-[120px] border border-slate-200 rounded-lg px-2 py-1 text-[10px] text-slate-700 focus:border-violet-400 outline-none bg-white">';
         return '<tr class="hover:bg-violet-50/30 transition-colors" data-vendor-key="'+vendorKey+'">' +
           '<td class="px-3 py-2 font-bold text-slate-700 text-xs">' + (r.pic||'-') + '</td>' +
           '<td class="px-3 py-2 text-slate-600 text-xs max-w-[140px]">' +
