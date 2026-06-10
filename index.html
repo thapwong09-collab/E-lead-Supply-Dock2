@@ -952,6 +952,26 @@
         </div>
 
         <div id="settings-status" class="hidden text-center text-xs font-bold py-2 rounded-xl"></div>
+
+        <!-- Data Window Setting -->
+        <div class="bg-white rounded-2xl border border-slate-100 p-5 mt-4">
+          <div class="font-black text-slate-700 text-sm mb-1">🗄️ ช่วงข้อมูลที่ดึงมาแสดง</div>
+          <div class="text-[10px] text-slate-400 mb-4">กำหนดว่าจะดึงข้อมูลย้อนหลังกี่วัน (แนะนำ 90-180 วัน เพื่อความเร็ว)</div>
+          <div class="flex items-center gap-4">
+            <div class="flex-1">
+              <input type="range" id="set-data_window_days" min="30" max="365" step="30"
+                oninput="document.getElementById('data-window-label').textContent = this.value + ' วัน (' + Math.round(this.value/30) + ' เดือน)'; onSettingChange()"
+                class="w-full accent-violet-500 cursor-pointer">
+              <div class="flex justify-between text-[9px] text-slate-400 mt-1">
+                <span>30 วัน</span><span>90 วัน</span><span>180 วัน</span><span>365 วัน</span>
+              </div>
+            </div>
+            <div id="data-window-label" class="font-black text-violet-600 text-sm w-28 text-center bg-violet-50 rounded-xl px-3 py-2">180 วัน (6 เดือน)</div>
+          </div>
+          <div class="mt-3 text-[10px] text-slate-400">
+            ⚡ ยิ่งน้อยยิ่งเร็ว — ข้อมูลเก่าจะถูกย้ายไป Archive Sheet อัตโนมัติทุกเดือน
+          </div>
+        </div>
       </div>
 
     </div><!-- end staff-view -->
@@ -9531,6 +9551,14 @@
       });
       const msgInput = document.getElementById('set-maintenance_message');
       if (msgInput) msgInput.value = s.maintenance_message || '';
+
+      // Data window slider
+      const slider = document.getElementById('set-data_window_days');
+      const label  = document.getElementById('data-window-label');
+      const days   = parseInt(s.data_window_days || '180');
+      if (slider) slider.value = days;
+      if (label)  label.textContent = days + ' วัน (' + Math.round(days/30) + ' เดือน)';
+
       onSettingChange();
     }
 
@@ -9556,6 +9584,7 @@
         gps_check_enabled:   !!(document.getElementById('set-gps_check_enabled')?.checked),
         guard_scan_enabled:  !!(document.getElementById('set-guard_scan_enabled')?.checked),
         weekly_plan_lock:    !!(document.getElementById('set-weekly_plan_lock')?.checked),
+        data_window_days:    parseInt(document.getElementById('set-data_window_days')?.value || '180'),
       };
 
       try {
