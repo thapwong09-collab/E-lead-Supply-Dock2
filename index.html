@@ -2776,9 +2776,16 @@
         const response = await fetch(GAS_API_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action, ...payload })
+          body: JSON.stringify({ action, ...payload }),
+          redirect: 'follow'
         });
-        return await response.json();
+        const text = await response.text();
+        try {
+          return JSON.parse(text);
+        } catch(e) {
+          console.error("Parse error:", text);
+          return { success: false, message: 'Response parse error' };
+        }
       } catch (err) {
         console.error("API Error:", err);
         return { success: false, message: err.toString() };
@@ -2882,10 +2889,14 @@
         try {
           let res;
           if (approveToken) {
-            res = await callAPI('approveUnplanned', { token: approveToken, approvedBy: managerName });
+            // ใช้ GET เพื่อหลีกเลี่ยง GAS redirect ที่ทำให้ POST body หาย
+            const url = GAS_API_URL + '?action=approveUnplanned&token=' + encodeURIComponent(approveToken) + '&approvedBy=' + encodeURIComponent(managerName);
+            const resp = await fetch(url, { redirect: 'follow' });
+            res = JSON.parse(await resp.text());
           } else {
-            const reason = 'ไม่อนุมัติโดย ' + managerName;
-            res = await callAPI('rejectUnplanned', { token: rejectToken, rejectedBy: managerName, reason: reason });
+            const url = GAS_API_URL + '?action=rejectUnplanned&token=' + encodeURIComponent(rejectToken) + '&rejectedBy=' + encodeURIComponent(managerName) + '&reason=' + encodeURIComponent('ไม่อนุมัติโดย ' + managerName);
+            const resp = await fetch(url, { redirect: 'follow' });
+            res = JSON.parse(await resp.text());
           }
 
           const statusText = document.getElementById('token-status-text');
