@@ -10873,16 +10873,17 @@
         if (res && res.success) {
           showToast('Confirm สำเร็จ ' + (res.confirmed||0) + ' รายการ');
 
-          // อัพเดท local data ใน allPartData โดยไม่ reload
+          // อัพเดท local allPartData โดยไม่ reload
           toConfirm.forEach(function(item) {
             const p = allPartData.find(function(x){ return String(x.id) === String(item.part_id); });
             if (p) {
               p.status    = 'pending';
               p.time_slot = item.time_slot || p.time_slot;
+              p.pic_note  = item.pic_note  || p.pic_note || '';
             }
           });
 
-          // อัพเดทเฉพาะ badge บน card ที่ CF ไป ไม่ต้อง reload ทั้งหน้า
+          // อัพเดท badge บน card ทันที
           const picName = document.getElementById('myparts-modal-pic-name')?.textContent?.trim() || '';
           const picKey  = picName.replace(/[^a-zA-Z0-9]/g,'_');
           if (picKey) {
@@ -10894,6 +10895,21 @@
           }
 
           closeMyPartsModal();
+
+          // refresh Weekly Plan (Staff/Planning) ถ้าเปิดอยู่ — ไม่โหลดใหม่ทั้งหน้า
+          if (typeof renderWeeklyTable === 'function') {
+            const today = getThaiDate();
+            const filtered = allPartData.filter(function(r) {
+              const validStatus = ['pending','completed','short','missing','pickup_late','pickup_short_late'];
+              return validStatus.includes(r.status);
+            });
+            renderWeeklyTable(filtered);
+          }
+          // refresh Planning weekly ถ้าเปิดอยู่
+          if (typeof renderPlanningWeeklyTable === 'function') {
+            renderPlanningWeeklyTable();
+          }
+
         } else {
           showToast('ไม่สำเร็จ: ' + ((res&&res.message)||''));
           btn.disabled = false; btn.innerText = '✅ Confirm ของฉัน → ส่งคลัง';
