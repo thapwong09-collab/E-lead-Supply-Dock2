@@ -735,29 +735,54 @@
           </div>
         </div>
 
-        <!-- Row 4: Combo Matrix -->
+        <!-- Row 4: Status Breakdown -->
         <div class="bg-white rounded-2xl border border-slate-100 p-5">
-          <div class="font-black text-slate-700 text-xs mb-4">Matrix: เวลาเข้า × สถานะรับของ</div>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="font-black text-slate-700 text-xs mb-1">สรุปสถานะรับของ — AM/PM</div>
+          <div class="text-[9px] text-slate-400 mb-3">เปรียบเทียบ เวลาเข้า × จำนวนที่รับได้</div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
             <div class="bg-emerald-50 rounded-xl p-4 text-center border border-emerald-100">
-              <div class="text-[9px] font-black text-emerald-600 uppercase mb-1">ตรงเวลา × ครบ</div>
+              <div class="text-[9px] font-black text-emerald-600 uppercase mb-1">✅ ครบ/ตรงเวลา</div>
               <div id="pd-combo-aa" class="text-3xl font-black text-emerald-700">—</div>
               <div id="pd-combo-aa-pct" class="text-[9px] text-emerald-500 font-bold mt-1">—</div>
             </div>
             <div class="bg-amber-50 rounded-xl p-4 text-center border border-amber-100">
-              <div class="text-[9px] font-black text-amber-600 uppercase mb-1">ตรงเวลา × ไม่ครบ</div>
+              <div class="text-[9px] font-black text-amber-600 uppercase mb-1">⚠️ ไม่ครบ/ตรงเวลา</div>
               <div id="pd-combo-ab" class="text-3xl font-black text-amber-700">—</div>
               <div id="pd-combo-ab-pct" class="text-[9px] text-amber-500 font-bold mt-1">—</div>
             </div>
             <div class="bg-blue-50 rounded-xl p-4 text-center border border-blue-100">
-              <div class="text-[9px] font-black text-blue-600 uppercase mb-1">ล่าช้า × ครบ</div>
+              <div class="text-[9px] font-black text-blue-600 uppercase mb-1">🕐 ครบ/ล่าช้า</div>
               <div id="pd-combo-ba" class="text-3xl font-black text-blue-700">—</div>
               <div id="pd-combo-ba-pct" class="text-[9px] text-blue-500 font-bold mt-1">—</div>
             </div>
             <div class="bg-rose-50 rounded-xl p-4 text-center border border-rose-100">
-              <div class="text-[9px] font-black text-rose-600 uppercase mb-1">ล่าช้า × ไม่ครบ</div>
+              <div class="text-[9px] font-black text-rose-600 uppercase mb-1">❌ ไม่ครบ/ล่าช้า</div>
               <div id="pd-combo-bb" class="text-3xl font-black text-rose-700">—</div>
               <div id="pd-combo-bb-pct" class="text-[9px] text-rose-500 font-bold mt-1">—</div>
+            </div>
+          </div>
+          <div class="font-black text-slate-700 text-xs mb-1">สรุปสถานะรับของ — Pick Up</div>
+          <div class="text-[9px] text-slate-400 mb-3">เปรียบเทียบ วันที่รับ × จำนวนที่รับได้</div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-emerald-50 rounded-xl p-4 text-center border border-emerald-100">
+              <div class="text-[9px] font-black text-emerald-600 uppercase mb-1">✅ ครบ/ตรงวัน</div>
+              <div id="pd-combo-pu-comp" class="text-3xl font-black text-emerald-700">—</div>
+              <div id="pd-combo-pu-comp-pct" class="text-[9px] text-emerald-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-amber-50 rounded-xl p-4 text-center border border-amber-100">
+              <div class="text-[9px] font-black text-amber-600 uppercase mb-1">⚠️ ไม่ครบ/ตรงวัน</div>
+              <div id="pd-combo-pu-short" class="text-3xl font-black text-amber-700">—</div>
+              <div id="pd-combo-pu-short-pct" class="text-[9px] text-amber-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-violet-50 rounded-xl p-4 text-center border border-violet-100">
+              <div class="text-[9px] font-black text-violet-600 uppercase mb-1">🕐 ครบ/ไม่ตรงวัน</div>
+              <div id="pd-combo-pu-late" class="text-3xl font-black text-violet-700">—</div>
+              <div id="pd-combo-pu-late-pct" class="text-[9px] text-violet-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-rose-50 rounded-xl p-4 text-center border border-rose-100">
+              <div class="text-[9px] font-black text-rose-600 uppercase mb-1">❌ ไม่ครบ/ไม่ตรงวัน</div>
+              <div id="pd-combo-pu-short-late" class="text-3xl font-black text-rose-700">—</div>
+              <div id="pd-combo-pu-short-late-pct" class="text-[9px] text-rose-500 font-bold mt-1">—</div>
             </div>
           </div>
         </div>
@@ -1248,29 +1273,54 @@
           </div>
         </div>
 
-        <!-- Row 4: Combo Matrix -->
+        <!-- Row 4: Status Breakdown -->
         <div class="bg-white rounded-2xl border border-slate-100 p-5">
-          <div class="font-black text-slate-700 text-xs mb-4">Matrix: เวลาเข้า × สถานะรับของ</div>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="font-black text-slate-700 text-xs mb-1">สรุปสถานะรับของ — AM/PM</div>
+          <div class="text-[9px] text-slate-400 mb-3">เปรียบเทียบ เวลาเข้า × จำนวนที่รับได้</div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
             <div class="bg-emerald-50 rounded-xl p-4 text-center border border-emerald-100">
-              <div class="text-[9px] font-black text-emerald-600 uppercase mb-1">ตรงเวลา × ครบ</div>
+              <div class="text-[9px] font-black text-emerald-600 uppercase mb-1">✅ ครบ/ตรงเวลา</div>
               <div id="pd-combo-aa" class="text-3xl font-black text-emerald-700">—</div>
               <div id="pd-combo-aa-pct" class="text-[9px] text-emerald-500 font-bold mt-1">—</div>
             </div>
             <div class="bg-amber-50 rounded-xl p-4 text-center border border-amber-100">
-              <div class="text-[9px] font-black text-amber-600 uppercase mb-1">ตรงเวลา × ไม่ครบ</div>
+              <div class="text-[9px] font-black text-amber-600 uppercase mb-1">⚠️ ไม่ครบ/ตรงเวลา</div>
               <div id="pd-combo-ab" class="text-3xl font-black text-amber-700">—</div>
               <div id="pd-combo-ab-pct" class="text-[9px] text-amber-500 font-bold mt-1">—</div>
             </div>
             <div class="bg-blue-50 rounded-xl p-4 text-center border border-blue-100">
-              <div class="text-[9px] font-black text-blue-600 uppercase mb-1">ล่าช้า × ครบ</div>
+              <div class="text-[9px] font-black text-blue-600 uppercase mb-1">🕐 ครบ/ล่าช้า</div>
               <div id="pd-combo-ba" class="text-3xl font-black text-blue-700">—</div>
               <div id="pd-combo-ba-pct" class="text-[9px] text-blue-500 font-bold mt-1">—</div>
             </div>
             <div class="bg-rose-50 rounded-xl p-4 text-center border border-rose-100">
-              <div class="text-[9px] font-black text-rose-600 uppercase mb-1">ล่าช้า × ไม่ครบ</div>
+              <div class="text-[9px] font-black text-rose-600 uppercase mb-1">❌ ไม่ครบ/ล่าช้า</div>
               <div id="pd-combo-bb" class="text-3xl font-black text-rose-700">—</div>
               <div id="pd-combo-bb-pct" class="text-[9px] text-rose-500 font-bold mt-1">—</div>
+            </div>
+          </div>
+          <div class="font-black text-slate-700 text-xs mb-1">สรุปสถานะรับของ — Pick Up</div>
+          <div class="text-[9px] text-slate-400 mb-3">เปรียบเทียบ วันที่รับ × จำนวนที่รับได้</div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-emerald-50 rounded-xl p-4 text-center border border-emerald-100">
+              <div class="text-[9px] font-black text-emerald-600 uppercase mb-1">✅ ครบ/ตรงวัน</div>
+              <div id="pd-combo-pu-comp" class="text-3xl font-black text-emerald-700">—</div>
+              <div id="pd-combo-pu-comp-pct" class="text-[9px] text-emerald-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-amber-50 rounded-xl p-4 text-center border border-amber-100">
+              <div class="text-[9px] font-black text-amber-600 uppercase mb-1">⚠️ ไม่ครบ/ตรงวัน</div>
+              <div id="pd-combo-pu-short" class="text-3xl font-black text-amber-700">—</div>
+              <div id="pd-combo-pu-short-pct" class="text-[9px] text-amber-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-violet-50 rounded-xl p-4 text-center border border-violet-100">
+              <div class="text-[9px] font-black text-violet-600 uppercase mb-1">🕐 ครบ/ไม่ตรงวัน</div>
+              <div id="pd-combo-pu-late" class="text-3xl font-black text-violet-700">—</div>
+              <div id="pd-combo-pu-late-pct" class="text-[9px] text-violet-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-rose-50 rounded-xl p-4 text-center border border-rose-100">
+              <div class="text-[9px] font-black text-rose-600 uppercase mb-1">❌ ไม่ครบ/ไม่ตรงวัน</div>
+              <div id="pd-combo-pu-short-late" class="text-3xl font-black text-rose-700">—</div>
+              <div id="pd-combo-pu-short-late-pct" class="text-[9px] text-rose-500 font-bold mt-1">—</div>
             </div>
           </div>
         </div>
@@ -2438,29 +2488,54 @@
           </div>
         </div>
 
-        <!-- Row 4: Combo Matrix -->
+        <!-- Row 4: Status Breakdown -->
         <div class="bg-white rounded-2xl border border-slate-100 p-5">
-          <div class="font-black text-slate-700 text-xs mb-4">Matrix: เวลาเข้า × สถานะรับของ</div>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="font-black text-slate-700 text-xs mb-1">สรุปสถานะรับของ — AM/PM</div>
+          <div class="text-[9px] text-slate-400 mb-3">เปรียบเทียบ เวลาเข้า × จำนวนที่รับได้</div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
             <div class="bg-emerald-50 rounded-xl p-4 text-center border border-emerald-100">
-              <div class="text-[9px] font-black text-emerald-600 uppercase mb-1">ตรงเวลา × ครบ</div>
+              <div class="text-[9px] font-black text-emerald-600 uppercase mb-1">✅ ครบ/ตรงเวลา</div>
               <div id="pd-combo-aa" class="text-3xl font-black text-emerald-700">—</div>
               <div id="pd-combo-aa-pct" class="text-[9px] text-emerald-500 font-bold mt-1">—</div>
             </div>
             <div class="bg-amber-50 rounded-xl p-4 text-center border border-amber-100">
-              <div class="text-[9px] font-black text-amber-600 uppercase mb-1">ตรงเวลา × ไม่ครบ</div>
+              <div class="text-[9px] font-black text-amber-600 uppercase mb-1">⚠️ ไม่ครบ/ตรงเวลา</div>
               <div id="pd-combo-ab" class="text-3xl font-black text-amber-700">—</div>
               <div id="pd-combo-ab-pct" class="text-[9px] text-amber-500 font-bold mt-1">—</div>
             </div>
             <div class="bg-blue-50 rounded-xl p-4 text-center border border-blue-100">
-              <div class="text-[9px] font-black text-blue-600 uppercase mb-1">ล่าช้า × ครบ</div>
+              <div class="text-[9px] font-black text-blue-600 uppercase mb-1">🕐 ครบ/ล่าช้า</div>
               <div id="pd-combo-ba" class="text-3xl font-black text-blue-700">—</div>
               <div id="pd-combo-ba-pct" class="text-[9px] text-blue-500 font-bold mt-1">—</div>
             </div>
             <div class="bg-rose-50 rounded-xl p-4 text-center border border-rose-100">
-              <div class="text-[9px] font-black text-rose-600 uppercase mb-1">ล่าช้า × ไม่ครบ</div>
+              <div class="text-[9px] font-black text-rose-600 uppercase mb-1">❌ ไม่ครบ/ล่าช้า</div>
               <div id="pd-combo-bb" class="text-3xl font-black text-rose-700">—</div>
               <div id="pd-combo-bb-pct" class="text-[9px] text-rose-500 font-bold mt-1">—</div>
+            </div>
+          </div>
+          <div class="font-black text-slate-700 text-xs mb-1">สรุปสถานะรับของ — Pick Up</div>
+          <div class="text-[9px] text-slate-400 mb-3">เปรียบเทียบ วันที่รับ × จำนวนที่รับได้</div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-emerald-50 rounded-xl p-4 text-center border border-emerald-100">
+              <div class="text-[9px] font-black text-emerald-600 uppercase mb-1">✅ ครบ/ตรงวัน</div>
+              <div id="pd-combo-pu-comp" class="text-3xl font-black text-emerald-700">—</div>
+              <div id="pd-combo-pu-comp-pct" class="text-[9px] text-emerald-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-amber-50 rounded-xl p-4 text-center border border-amber-100">
+              <div class="text-[9px] font-black text-amber-600 uppercase mb-1">⚠️ ไม่ครบ/ตรงวัน</div>
+              <div id="pd-combo-pu-short" class="text-3xl font-black text-amber-700">—</div>
+              <div id="pd-combo-pu-short-pct" class="text-[9px] text-amber-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-violet-50 rounded-xl p-4 text-center border border-violet-100">
+              <div class="text-[9px] font-black text-violet-600 uppercase mb-1">🕐 ครบ/ไม่ตรงวัน</div>
+              <div id="pd-combo-pu-late" class="text-3xl font-black text-violet-700">—</div>
+              <div id="pd-combo-pu-late-pct" class="text-[9px] text-violet-500 font-bold mt-1">—</div>
+            </div>
+            <div class="bg-rose-50 rounded-xl p-4 text-center border border-rose-100">
+              <div class="text-[9px] font-black text-rose-600 uppercase mb-1">❌ ไม่ครบ/ไม่ตรงวัน</div>
+              <div id="pd-combo-pu-short-late" class="text-3xl font-black text-rose-700">—</div>
+              <div id="pd-combo-pu-short-late-pct" class="text-[9px] text-rose-500 font-bold mt-1">—</div>
             </div>
           </div>
         </div>
@@ -5510,24 +5585,48 @@
       set('pd-qty-plan',            qtyP > 0 ? qtyP.toLocaleString() : '—');
       set('pd-qty-recv',            qtyR > 0 ? qtyR.toLocaleString() : '—');
 
-      // Combo: จับคู่ Part กับ Checkin ว่าตรงเวลาไหม
-      const ontimeVendors = new Set(checkinData.filter(function(r){ return String(r.plan_status||'').includes('ตรงเวลา'); }).map(function(r){ return String(r.company_name||'').toLowerCase(); }));
-      const comboAA = partsData.filter(function(p){ return p.status==='completed' && ontimeVendors.has(String(p.vendor||'').toLowerCase()); }).length;
-      const comboAB = partsData.filter(function(p){ return p.status==='completed' && !ontimeVendors.has(String(p.vendor||'').toLowerCase()); }).length;
-      const comboBA = partsData.filter(function(p){ return (p.status==='short'||p.status==='missing') && ontimeVendors.has(String(p.vendor||'').toLowerCase()); }).length;
-      const comboBB = partsData.filter(function(p){ return (p.status==='short'||p.status==='missing') && !ontimeVendors.has(String(p.vendor||'').toLowerCase()); }).length;
-      const comboTot = (comboAA+comboAB+comboBA+comboBB) || 1;
-      set('pd-combo-aa', comboAA); set('pd-combo-aa-pct', Math.round(comboAA/comboTot*100)+'% ของทั้งหมด');
-      set('pd-combo-ab', comboAB); set('pd-combo-ab-pct', Math.round(comboAB/comboTot*100)+'% ของทั้งหมด');
-      set('pd-combo-ba', comboBA); set('pd-combo-ba-pct', Math.round(comboBA/comboTot*100)+'% ของทั้งหมด');
-      set('pd-combo-bb', comboBB); set('pd-combo-bb-pct', Math.round(comboBB/comboTot*100)+'% ของทั้งหมด');
+      // ── Combo AM/PM: นับจาก status ของ Part โดยตรง (ไม่รวม Pickup) ──
+      const isPickupSlot = function(ts){ return String(ts||'').toUpperCase().includes('PICK'); };
+      const ampmParts = partsData.filter(function(p){ return !isPickupSlot(p.time_slot); });
+      const puParts   = partsData.filter(function(p){ return  isPickupSlot(p.time_slot); });
 
-      const puParts  = partsData.filter(function(p){ return String(p.time_slot||'').toLowerCase()==='pick up'; });
-      const puComp   = puParts.filter(function(p){ return p.status==='completed'; }).length;
-      const puShort  = puParts.filter(function(p){ return p.status==='short'||p.status==='missing'; }).length;
-      const puTot    = (puComp+puShort)||1;
-      set('pd-combo-pu-comp',     puComp); set('pd-combo-pu-comp-pct',  Math.round(puComp/puTot*100)+'% ของ Pick Up');
-      set('pd-combo-pu-short',    puShort); set('pd-combo-pu-short-pct', Math.round(puShort/puTot*100)+'% ของ Pick Up');
+      // AM/PM — ใช้ plan_status ของ checkin จับคู่กับ vendor
+      const ontimeVendors = new Set(
+        checkinData.filter(function(r){ return String(r.plan_status||'').includes('ตรงเวลา'); })
+          .map(function(r){ return String(r.company_name||'').toLowerCase(); })
+      );
+      const lateVendors = new Set(
+        checkinData.filter(function(r){ return String(r.plan_status||'').includes('ล่าช้า'); })
+          .map(function(r){ return String(r.company_name||'').toLowerCase(); })
+      );
+      const comboAA = ampmParts.filter(function(p){
+        return p.status==='completed' && ontimeVendors.has(String(p.vendor||'').toLowerCase());
+      }).length; // ✅ ครบ/ตรงเวลา
+      const comboAB = ampmParts.filter(function(p){
+        return (p.status==='short'||p.status==='missing') && ontimeVendors.has(String(p.vendor||'').toLowerCase());
+      }).length; // ⚠️ ไม่ครบ/ตรงเวลา
+      const comboBA = ampmParts.filter(function(p){
+        return p.status==='completed' && lateVendors.has(String(p.vendor||'').toLowerCase());
+      }).length; // 🕐 ครบ/ล่าช้า
+      const comboBB = ampmParts.filter(function(p){
+        return (p.status==='short'||p.status==='missing') && lateVendors.has(String(p.vendor||'').toLowerCase());
+      }).length; // ❌ ไม่ครบ/ล่าช้า
+      const comboTot = (comboAA+comboAB+comboBA+comboBB) || 1;
+      set('pd-combo-aa', comboAA); set('pd-combo-aa-pct', Math.round(comboAA/comboTot*100)+'% ของ AM/PM');
+      set('pd-combo-ab', comboAB); set('pd-combo-ab-pct', Math.round(comboAB/comboTot*100)+'% ของ AM/PM');
+      set('pd-combo-ba', comboBA); set('pd-combo-ba-pct', Math.round(comboBA/comboTot*100)+'% ของ AM/PM');
+      set('pd-combo-bb', comboBB); set('pd-combo-bb-pct', Math.round(comboBB/comboTot*100)+'% ของ AM/PM');
+
+      // ── Pickup: นับ 4 สถานะ ──
+      const puComp      = puParts.filter(function(p){ return p.status==='completed'; }).length;           // ✅ ครบ/ตรงวัน
+      const puShort     = puParts.filter(function(p){ return p.status==='short'; }).length;               // ⚠️ ไม่ครบ/ตรงวัน
+      const puLate      = puParts.filter(function(p){ return p.status==='pickup_late'; }).length;         // 🕐 ครบ/ไม่ตรงวัน
+      const puShortLate = puParts.filter(function(p){ return p.status==='pickup_short_late'; }).length;   // ❌ ไม่ครบ/ไม่ตรงวัน
+      const puTot = puParts.length || 1;
+      set('pd-combo-pu-comp',          puComp);      set('pd-combo-pu-comp-pct',      Math.round(puComp/puTot*100)+'% ของ Pickup');
+      set('pd-combo-pu-short',         puShort);     set('pd-combo-pu-short-pct',     Math.round(puShort/puTot*100)+'% ของ Pickup');
+      set('pd-combo-pu-late',          puLate);      set('pd-combo-pu-late-pct',      Math.round(puLate/puTot*100)+'% ของ Pickup');
+      set('pd-combo-pu-short-late',    puShortLate); set('pd-combo-pu-short-late-pct',Math.round(puShortLate/puTot*100)+'% ของ Pickup');
 
       const now = new Date().toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'});
       set('pd-last-update', 'อัพเดตล่าสุด ' + now);
