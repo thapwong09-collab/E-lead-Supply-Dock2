@@ -1,0 +1,26 @@
+name: Deploy to Firebase Hosting
+on:
+  push:
+    branches:
+      - main  # หรือเปลี่ยนเป็น master ตามชื่อ Branch หลักของคุณ
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ---- (ทางเลือก) ถ้าโปรเจกต์ต้อง Build เช่น React/Vue ให้เอาเครื่องหมาย # ด้านล่างออก ----
+      # - name: Install and Build
+      #   run: |
+      #     npm ci
+      #     npm run build
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          channelId: live
+          projectId: e-lead-receiving-system
