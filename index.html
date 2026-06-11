@@ -10196,8 +10196,8 @@
             showToast('🎉 อนุมัติครบแล้ว! Part เข้า Weekly Plan แล้ว');
             _hashCheckin = ''; _hashParts = '';
           }
-          // อัพเดทตารางทันที + re-fetch ข้อมูลจาก GAS
-          renderUnplannedTable(_unplannedData, 'mgr-unp-table-body', 'mgr-unp-empty');
+          // รอ GAS flush แล้วค่อย re-fetch ใหม่
+          await new Promise(function(r){ setTimeout(r, 1500); });
           await initUnplanned(_managerRole === 'logistics' ? 'logistics' : 'factory');
           loadManagerApprove();
         }
