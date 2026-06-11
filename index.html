@@ -1541,6 +1541,46 @@
         <!-- PIC Cards Grid -->
         <div id="myparts-pic-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
 
+        <!-- ตาราง Weekly Plan ภาพรวม (แสดงหลัง deadline) -->
+        <div id="myparts-overview-section" class="hidden bg-white rounded-2xl shadow-sm border overflow-hidden">
+          <div class="px-5 py-4 bg-emerald-50 border-b flex items-center justify-between">
+            <div>
+              <div class="font-black text-emerald-700 text-sm">📋 Weekly Plan ภาพรวม — รายการที่ CF แล้ว</div>
+              <div id="myparts-overview-sub" class="text-[10px] text-emerald-500 mt-0.5"></div>
+            </div>
+            <div class="flex gap-2">
+              <select id="myparts-ov-pic" onchange="filterOverviewTable()" class="border border-emerald-200 bg-white rounded-xl px-3 py-1.5 text-xs font-bold outline-none cursor-pointer text-slate-700">
+                <option value="">ทุก PIC</option>
+              </select>
+              <select id="myparts-ov-vendor" onchange="filterOverviewTable()" class="border border-emerald-200 bg-white rounded-xl px-3 py-1.5 text-xs font-bold outline-none cursor-pointer text-slate-700">
+                <option value="">ทุก Supplier</option>
+              </select>
+              <select id="myparts-ov-erp" onchange="filterOverviewTable()" class="border border-emerald-200 bg-white rounded-xl px-3 py-1.5 text-xs font-bold outline-none cursor-pointer text-slate-700">
+                <option value="">ERP ทั้งหมด</option>
+                <option value="Done">✅ Done</option>
+                <option value="pending">⬜ ยังไม่ได้ทำ</option>
+              </select>
+              <thead class="bg-slate-50 text-[9px] font-black text-slate-400 uppercase">
+                <tr>
+                  <th class="px-4 py-3 text-left">PIC</th>
+                  <th class="px-4 py-3 text-left">Supplier</th>
+                  <th class="px-4 py-3 text-left">PO No.</th>
+                  <th class="px-4 py-3 text-left">Part No.</th>
+                  <th class="px-4 py-3 text-center">QTY Plan</th>
+                  <th class="px-4 py-3 text-center">รับจริง</th>
+                  <th class="px-4 py-3 text-center">รอบส่ง</th>
+                  <th class="px-4 py-3 text-center">Arrival Date</th>
+                  <th class="px-4 py-3 text-center">สถานะรับของ</th>
+                  <th class="px-4 py-3 text-center">ERP</th>
+                  <th class="px-4 py-3">Note Staff</th>
+                  <th class="px-4 py-3">Note จัดซื้อ</th>
+                </tr>
+              </thead>
+              <tbody id="myparts-overview-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
         <!-- Weekly Plan Table — Confirmed แล้ว -->
         <div id="myparts-confirmed-section" class="hidden bg-white rounded-2xl shadow-sm border overflow-hidden">
           <div class="px-5 py-4 border-b bg-emerald-50 flex flex-wrap items-center justify-between gap-3">
@@ -11181,20 +11221,36 @@
 
         if (myPartsData.length === 0 && confirmedData.length === 0) {
           document.getElementById('myparts-empty').classList.remove('hidden');
+          document.getElementById('myparts-overview-section').classList.add('hidden');
           return;
         }
 
-        if (myPartsData.length > 0) {
-          renderMyPartsPicCards();
-          const badge = document.getElementById('myparts-summary-badge');
-          badge.innerText = myPartsData.length + ' รายการ · ' + new Set(myPartsData.map(function(r){return r.pic;})).size + ' PIC รอ Confirm';
-          badge.classList.remove('hidden');
+        if (!beforeDeadline) {
+          // ── หลัง deadline: แสดงตาราง Weekly Plan ภาพรวม ──
+          document.getElementById('myparts-pic-cards').innerHTML = '';
+          document.getElementById('myparts-overview-section').classList.remove('hidden');
+          const overviewData = allRows.filter(function(r) {
+            const ok = r.status === 'pending' || r.status === 'completed' || r.status === 'short' || r.status === 'missing';
+            if (!ok) return false;
+            if (activePics.size === 0) return true;
+            return activePics.has(String(r.pic||'').trim().toLowerCase());
+          });
+          renderOverviewTable(overviewData);
         } else {
-          document.getElementById('myparts-empty').classList.remove('hidden');
+          // ── ก่อน deadline: แสดง card PIC ──
+          document.getElementById('myparts-overview-section').classList.add('hidden');
+          if (myPartsData.length > 0) {
+            renderMyPartsPicCards();
+            const badge = document.getElementById('myparts-summary-badge');
+            badge.innerText = myPartsData.length + ' รายการ · ' + new Set(myPartsData.map(function(r){return r.pic;})).size + ' PIC รอ Confirm';
+            badge.classList.remove('hidden');
+          } else {
+            document.getElementById('myparts-empty').classList.remove('hidden');
+          }
         }
 
-        // แสดงตาราง confirmed
-        if (confirmedData.length > 0) {
+        // แสดงตาราง confirmed (ก่อน deadline)
+        if (beforeDeadline && confirmedData.length > 0) {
           renderConfirmedTable(confirmedData);
         }
 
@@ -11203,6 +11259,95 @@
         showToast('โหลดไม่สำเร็จ: ' + err.message);
       }
     }
+
+    let _overviewAllData = [];
+
+    function renderOverviewTable(data) {
+      _overviewAllData = data;
+      // เติม filter dropdowns
+      const picSel    = document.getElementById('myparts-ov-pic');
+      const vendorSel = document.getElementById('myparts-ov-vendor');
+      if (picSel) {
+        const curPic = picSel.value;
+        picSel.innerHTML = '<option value="">ทุก PIC</option>';
+        [...new Set(data.map(function(r){ return r.pic||''; }))].sort().forEach(function(p){
+          if (p) picSel.add(new Option(p, p));
+        });
+        picSel.value = curPic;
+      }
+      if (vendorSel) {
+        const curV = vendorSel.value;
+        vendorSel.innerHTML = '<option value="">ทุก Supplier</option>';
+        [...new Set(data.map(function(r){ return r.vendor||''; }))].sort().forEach(function(v){
+          if (v) vendorSel.add(new Option(v, v));
+        });
+        vendorSel.value = curV;
+      }
+      filterOverviewTable();
+    }
+
+    window.filterOverviewTable = function() {
+      const picF    = (document.getElementById('myparts-ov-pic')||{}).value    || '';
+      const vendorF = (document.getElementById('myparts-ov-vendor')||{}).value || '';
+      const erpF    = (document.getElementById('myparts-ov-erp')||{}).value    || '';
+      const filtered = _overviewAllData.filter(function(r) {
+        if (picF    && r.pic    !== picF)    return false;
+        if (vendorF && r.vendor !== vendorF) return false;
+        if (erpF === 'Done'    && r.erp_status !== 'Done')  return false;
+        if (erpF === 'pending' && r.erp_status === 'Done')  return false;
+        return true;
+      });
+
+      const tbody = document.getElementById('myparts-overview-tbody');
+      const sub   = document.getElementById('myparts-overview-sub');
+      if (sub) sub.textContent = filtered.length + ' รายการ · ' + new Set(filtered.map(function(r){return r.vendor;})).size + ' Supplier';
+
+      if (!tbody) return;
+      if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-300 text-xs font-bold">ไม่มีข้อมูล</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(function(r) {
+        const slotColor = r.time_slot==='AM' ? 'bg-blue-100 text-blue-700'
+                        : r.time_slot==='PM' ? 'bg-orange-100 text-orange-700'
+                        : r.time_slot ? 'bg-purple-100 text-purple-700' : '';
+        const stMap = {
+          pending:           '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-0.5 rounded-full whitespace-nowrap">⏳ รอรับ</span>',
+          completed:         '<span class="bg-emerald-100 text-emerald-600 font-black text-[9px] px-2 py-0.5 rounded-full whitespace-nowrap">✅ ครบ/ตรงเวลา</span>',
+          short:             '<span class="bg-amber-100 text-amber-600 font-black text-[9px] px-2 py-0.5 rounded-full whitespace-nowrap">⚠️ ไม่ครบ/ตรงเวลา</span>',
+          missing:           '<span class="bg-slate-100 text-slate-500 font-black text-[9px] px-2 py-0.5 rounded-full whitespace-nowrap">❌ ไม่ได้รับ</span>',
+          pickup_late:       '<span class="bg-violet-100 text-violet-700 font-black text-[9px] px-2 py-0.5 rounded-full whitespace-nowrap">🕐 ครบ/ไม่ตรงวัน</span>',
+          pickup_short_late: '<span class="bg-rose-100 text-rose-600 font-black text-[9px] px-2 py-0.5 rounded-full whitespace-nowrap">❌ ไม่ครบ/ไม่ตรงวัน</span>',
+        };
+        // ERP — read-only (Staff เท่านั้นที่แก้ได้)
+        const erpBadge = r.erp_status === 'Done'
+          ? '<span class="bg-emerald-100 text-emerald-700 font-black text-[9px] px-2 py-0.5 rounded-full">✅ Done</span>'
+          : '<span class="bg-slate-100 text-slate-400 font-black text-[9px] px-2 py-0.5 rounded-full">⬜ ยังไม่ได้ทำ</span>';
+        // Note Staff — read-only
+        const noteStaffHtml = r.staff_note
+          ? '<span class="text-[10px] text-slate-600" title="' + String(r.staff_note||'').replace(/"/g,'') + '">' + String(r.staff_note).substring(0,20) + (r.staff_note.length>20?'…':'') + '</span>'
+          : '<span class="text-slate-300 text-[9px]">—</span>';
+        // Note จัดซื้อ — PIC แก้ได้โดยคลิก
+        const picNoteHtml = '<button type="button" onclick="openPicNoteModal(\'' + String(r.id||'').replace(/[^a-zA-Z0-9_-]/g,'') + '\',\'' + encodeURIComponent(r.pic_note||'') + '\')" ' +
+          'class="text-left text-[10px] ' + (r.pic_note?'text-purple-600 font-bold':'text-slate-300') + ' hover:text-purple-700 cursor-pointer">' +
+          (r.pic_note ? String(r.pic_note).substring(0,20)+(r.pic_note.length>20?'…':'') : '+ เพิ่ม') + '</button>';
+        return '<tr class="border-t border-slate-50 hover:bg-slate-50">' +
+          '<td class="px-4 py-2.5 font-bold text-slate-700 whitespace-nowrap">' + (r.pic||'-') + '</td>' +
+          '<td class="px-4 py-2.5 text-slate-600 whitespace-nowrap">' + (r.vendor||'-') + '</td>' +
+          '<td class="px-4 py-2.5 text-slate-400 text-[10px] whitespace-nowrap">' + (r.po_no||'-') + '</td>' +
+          '<td class="px-4 py-2.5 font-bold text-violet-700 font-mono text-[10px] whitespace-nowrap">' + (r.part_no||'-') + '</td>' +
+          '<td class="px-4 py-2.5 text-center font-black text-slate-700">' + (r.qty_plan||0) + '</td>' +
+          '<td class="px-4 py-2.5 text-center font-bold ' + (r.qty_received?'text-emerald-600':'text-slate-300') + '">' + (r.qty_received||'—') + '</td>' +
+          '<td class="px-4 py-2.5 text-center">' + (r.time_slot ? '<span class="px-2 py-0.5 rounded-full font-black text-[9px] '+slotColor+'">'+r.time_slot+'</span>' : '—') + '</td>' +
+          '<td class="px-4 py-2.5 text-center font-bold text-emerald-600 whitespace-nowrap">' + String(r.date||'-').split(' ')[0] + '</td>' +
+          '<td class="px-4 py-2.5 text-center">' + (stMap[r.status] || '<span class="text-slate-300 text-[9px]">—</span>') + '</td>' +
+          '<td class="px-4 py-2.5 text-center">' + erpBadge + '</td>' +
+          '<td class="px-4 py-2.5">' + noteStaffHtml + '</td>' +
+          '<td class="px-4 py-2.5">' + picNoteHtml + '</td>' +
+        '</tr>';
+      }).join('');
+    };
 
     let _confirmedAllData = [];
 
