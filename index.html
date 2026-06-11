@@ -1740,16 +1740,23 @@
                 <div>4. ใส่ Arrival Date ใหม่ + เหตุผล แล้วส่งขออนุมัติ</div>
               </div>
 
-              <!-- ผู้กรอก + วันที่ดึงข้อมูล -->
-              <div class="p-5 grid grid-cols-1 md:grid-cols-3 gap-4 border-b border-slate-100">
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ผู้กรอก *</label>
-                  <select id="unp-r-submitted-by" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm cursor-pointer"><option value="">-- เลือกชื่อ --</option></select></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">วันที่ CF ที่ต้องการดึง *</label>
-                  <input type="date" id="unp-r-fetch-date" class="w-full border-2 border-blue-100 rounded-xl px-4 py-2.5 bg-blue-50 outline-none focus:border-blue-400 font-bold text-sm cursor-pointer"></div>
-                <div class="flex items-end">
-                  <button type="button" onclick="fetchCFPartsForReschedule()"
-                    class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2.5 rounded-xl font-bold text-sm cursor-pointer shadow-sm">🔍 ดึงรายการ</button>
+              <!-- ผู้กรอก + วันที่ดึงข้อมูล (หลายวันได้) -->
+              <div class="p-5 border-b border-slate-100">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ผู้กรอก *</label>
+                    <select id="unp-r-submitted-by" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm cursor-pointer"><option value="">-- เลือกชื่อ --</option></select></div>
+                  <div>
+                    <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เพิ่มวันที่ CF ที่ต้องการดึง</label>
+                    <div class="flex gap-2">
+                      <input type="date" id="unp-r-fetch-date-input" class="flex-1 border-2 border-blue-100 rounded-xl px-4 py-2.5 bg-blue-50 outline-none focus:border-blue-400 font-bold text-sm cursor-pointer">
+                      <button type="button" onclick="addRescheduleDate()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2.5 rounded-xl font-bold text-sm cursor-pointer">+ เพิ่ม</button>
+                    </div>
+                    <!-- วันที่ที่เพิ่มแล้ว -->
+                    <div id="unp-r-dates-list" class="flex flex-wrap gap-2 mt-2"></div>
+                  </div>
                 </div>
+                <button type="button" onclick="fetchCFPartsForReschedule()"
+                  class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm cursor-pointer shadow-sm">🔍 ดึงรายการทั้งหมด</button>
               </div>
 
               <!-- ตาราง Part ที่ CF แล้ว -->
@@ -1812,12 +1819,18 @@
               <!-- ข้อมูลหลัก -->
               <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-slate-100">
                 <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ผู้กรอก *</label>
-                  <select id="unp-n-submitted-by" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm cursor-pointer"><option value="">-- เลือกชื่อ --</option></select></div>
+                  <select id="unp-n-submitted-by" onchange="onUnpNPicChange()" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm cursor-pointer"><option value="">-- เลือกชื่อ --</option></select></div>
                 <div class="relative"><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Supplier *</label>
                   <input type="text" id="unp-n-supplier" placeholder="พิมพ์ชื่อ Supplier..." autocomplete="off"
                     oninput="filterUnpSuggestN()" onfocus="filterUnpSuggestN()" onblur="hideUnpSuggest(200)"
                     class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm">
-                  <div id="unp-n-supplier-suggest" class="hidden absolute z-20 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 w-full max-h-48 overflow-y-auto"></div></div>
+                  <div id="unp-n-supplier-suggest" class="hidden absolute z-20 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 w-full max-h-48 overflow-y-auto"></div>
+                  <!-- Supplier guide ตาม PIC -->
+                  <div id="unp-n-supplier-guide" class="hidden mt-2 bg-orange-50 border border-orange-100 rounded-xl p-2">
+                    <div class="text-[9px] font-black text-orange-500 uppercase mb-1">Supplier ในความรับผิดชอบ</div>
+                    <div id="unp-n-supplier-guide-list" class="flex flex-wrap gap-1"></div>
+                  </div>
+                </div>
                 <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Arrival Date *</label>
                   <input type="date" id="unp-n-arrival-date" class="w-full border-2 border-orange-100 rounded-xl px-4 py-2.5 bg-orange-50 outline-none focus:border-orange-400 font-bold text-sm cursor-pointer"></div>
                 <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เหตุผล *</label>
@@ -10168,10 +10181,57 @@
       } catch(e) { showToast('Error: '+e.message, 'error'); }
     };
 
-    // ── ดึง Part ที่ CF แล้วในวันที่เลือก ──
+    // ── Multi-date reschedule ──
+    let _rescheduleSelectedDates = [];
+
+    window.addRescheduleDate = function() {
+      const input = document.getElementById('unp-r-fetch-date-input');
+      const val   = input ? input.value : '';
+      if (!val) { showToast('กรุณาเลือกวันที่', 'error'); return; }
+      if (_rescheduleSelectedDates.includes(val)) { showToast('วันที่นี้เพิ่มแล้ว', 'error'); return; }
+      _rescheduleSelectedDates.push(val);
+      renderRescheduleDateTags();
+      if (input) input.value = '';
+    };
+
+    function renderRescheduleDateTags() {
+      const el = document.getElementById('unp-r-dates-list');
+      if (!el) return;
+      el.innerHTML = _rescheduleSelectedDates.map(function(d) {
+        return '<span class="flex items-center gap-1 bg-blue-100 text-blue-700 font-bold text-[10px] px-2 py-1 rounded-lg">' +
+          d + '<button type="button" onclick="removeRescheduleDate(\''+d+'\')" class="text-blue-400 hover:text-red-500 font-black cursor-pointer ml-0.5">×</button></span>';
+      }).join('');
+    }
+
+    window.removeRescheduleDate = function(d) {
+      _rescheduleSelectedDates = _rescheduleSelectedDates.filter(function(x){ return x !== d; });
+      renderRescheduleDateTags();
+    };
+
+    // ── Supplier guide เมื่อเลือก PIC ──
+    window.onUnpNPicChange = function() {
+      const picName = (document.getElementById('unp-n-submitted-by')||{}).value || '';
+      const guide   = document.getElementById('unp-n-supplier-guide');
+      const list    = document.getElementById('unp-n-supplier-guide-list');
+      if (!picName || !guide || !list) return;
+
+      // หา Supplier ที่ PIC นี้รับผิดชอบจาก allPicMaster
+      const picData = allPicMaster.find(function(p){ return p.name === picName; });
+      const suppliers = picData ? (picData.suppliers || []) : [];
+
+      if (!suppliers.length) { guide.classList.add('hidden'); return; }
+      guide.classList.remove('hidden');
+      list.innerHTML = suppliers.map(function(s) {
+        return '<button type="button" onclick="selectUnpSupN(\''+encodeURIComponent(s)+'\')" ' +
+          'class="text-[10px] bg-white border border-orange-200 text-orange-700 font-bold px-2 py-1 rounded-lg cursor-pointer hover:bg-orange-100">' + s + '</button>';
+      }).join('');
+    };
+
+    // ── ดึง Part ที่ CF แล้วในวันที่เลือก (multi-date) ──
     window.fetchCFPartsForReschedule = async function() {
-      const fetchDate = (document.getElementById('unp-r-fetch-date')||{}).value;
-      if (!fetchDate) { showToast('กรุณาเลือกวันที่ก่อน', 'error'); return; }
+      const submittedBy = (document.getElementById('unp-r-submitted-by')||{}).value || '';
+      if (!submittedBy) { showToast('กรุณาเลือกผู้กรอกก่อน', 'error'); return; }
+      if (!_rescheduleSelectedDates.length) { showToast('กรุณาเพิ่มวันที่อย่างน้อย 1 วัน', 'error'); return; }
 
       const loading = document.getElementById('unp-r-parts-loading');
       const empty   = document.getElementById('unp-r-parts-empty');
@@ -10183,11 +10243,19 @@
       if (table)   table.classList.add('hidden');
 
       try {
-        const res = await callAPI('getPartsByWeek', { startDate: fetchDate, endDate: fetchDate });
+        // ดึงทุกวันพร้อมกัน
+        const allDates = _rescheduleSelectedDates.slice().sort();
+        const startDate = allDates[0];
+        const endDate   = allDates[allDates.length-1];
+        const res = await callAPI('getPartsByWeek', { startDate: startDate, endDate: endDate });
         if (loading) loading.classList.add('hidden');
+
+        const dateSet = {};
+        allDates.forEach(function(d){ dateSet[d] = true; });
+
         const parts = (res && res.data) ? res.data.filter(function(p){
-          // เฉพาะ Part ที่ CF แล้ว (pending หรือ confirmed)
-          return p.status === 'pending' || p.status === 'confirmed';
+          const d = String(p.date||'').split(' ')[0];
+          return dateSet[d] && (p.status === 'pending' || p.status === 'confirmed');
         }) : [];
 
         if (!parts.length) {
@@ -10196,16 +10264,17 @@
         }
         if (table) table.classList.remove('hidden');
         tbody.innerHTML = parts.map(function(p, i) {
+          const partDate = String(p.date||'').split(' ')[0];
           return '<tr class="border-b border-slate-50 hover:bg-blue-50/30">' +
-            '<td class="px-2 py-2 text-center"><input type="checkbox" data-part-idx="'+i+'" onchange="updateRescheduleCount()" ' +
-              'data-id="'+String(p.id||'').replace(/"/g,'')+'|'+String(p.po_no||'').replace(/"/g,'')+'|'+String(p.part_no||'').replace(/"/g,'')+'|'+String(p.date||'').split(' ')[0]+'|'+String(p.vendor||'').replace(/"/g,'')+'|'+String(p.qty_plan||0)+'|'+String(p.time_slot||'')+'" ' +
+            '<td class="px-2 py-2 text-center"><input type="checkbox" onchange="updateRescheduleCount()" ' +
+              'data-id="'+[p.id||'',p.po_no||'',p.part_no||'',partDate,p.vendor||'',p.qty_plan||0,p.time_slot||''].join('|')+'" ' +
               'class="w-4 h-4 accent-blue-500 cursor-pointer reschedule-cb"></td>' +
             '<td class="px-3 py-2 text-xs font-bold text-slate-700 max-w-[120px] truncate">' + (p.vendor||'-') + '</td>' +
             '<td class="px-3 py-2 text-xs text-slate-600">' + (p.po_no||'-') + '</td>' +
             '<td class="px-3 py-2 text-xs font-bold text-violet-700">' + (p.part_no||'-') + '</td>' +
             '<td class="px-3 py-2 text-xs text-center font-black">' + (p.qty_plan||0) + '</td>' +
             '<td class="px-3 py-2 text-xs text-center">' + (p.time_slot||'-') + '</td>' +
-            '<td class="px-3 py-2 text-xs text-center text-emerald-600 font-bold">' + String(p.date||'-').split(' ')[0] + '</td>' +
+            '<td class="px-3 py-2 text-xs text-center text-emerald-600 font-bold">' + partDate + '</td>' +
           '</tr>';
         }).join('');
         updateRescheduleCount();
@@ -10460,6 +10529,30 @@
           (t==='reschedule'?'blue':'orange') + '-400 hover:bg-' +
           (t==='reschedule'?'blue':'orange') + '-50 transition-all cursor-pointer';
       });
+      // reset reschedule form
+      _rescheduleSelectedDates = [];
+      renderRescheduleDateTags();
+      const tbody = document.getElementById('unp-r-parts-tbody');
+      if (tbody) tbody.innerHTML = '';
+      ['unp-r-submitted-by','unp-r-fetch-date-input','unp-r-new-date','unp-r-reason','unp-r-remark'].forEach(function(id){
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      ['unp-r-parts-table','unp-r-parts-loading','unp-r-parts-empty'].forEach(function(id){
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+      });
+      // reset new form
+      ['unp-n-submitted-by','unp-n-supplier','unp-n-arrival-date','unp-n-reason','unp-n-remark'].forEach(function(id){
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      const guide = document.getElementById('unp-n-supplier-guide');
+      if (guide) guide.classList.add('hidden');
+      _unpPartRows = [];
+      const list = document.getElementById('unp-parts-list');
+      if (list) list.innerHTML = '';
+      // reset hidden compat fields
       ['submitted-by','supplier','po','part','qty','reason','remark','arrival-date','original-date'].forEach(function(f){
         const el = document.getElementById(prefix+'-'+f);
         if (el) el.value = '';
