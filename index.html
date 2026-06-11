@@ -11159,18 +11159,22 @@
             .filter(Boolean)
         );
 
-        // draft = รอ Confirm
+        // draft + pending (ก่อน deadline) = แก้ไขได้
+        const beforeDeadline = !checkPICAccessWindow().pastDeadline;
         myPartsData = allRows.filter(function(r) {
-          const isDraft = r.status === 'draft' || r.status === '';
-          if (!isDraft) return false;
-          if (activePics.size === 0) return true; // ถ้ายังไม่มี PIC_Master แสดงทั้งหมด
+          const isDraft   = r.status === 'draft' || r.status === '';
+          const isPending = r.status === 'pending';
+          // pending แก้ไขได้ถ้ายังไม่ถึง deadline
+          if (!isDraft && !(isPending && beforeDeadline)) return false;
+          if (activePics.size === 0) return true;
           return activePics.has(String(r.pic||'').trim().toLowerCase());
         });
 
-        // pending = Confirmed แล้ว (กรองเฉพาะ active PIC เช่นกัน)
+        // confirmed section = pending หลัง deadline + completed
         const confirmedData = allRows.filter(function(r) {
-          const isConfirmed = r.status === 'pending' || r.status === 'completed';
-          if (!isConfirmed) return false;
+          const isPendingLocked = r.status === 'pending' && !beforeDeadline;
+          const isDone = r.status === 'completed' || r.status === 'short' || r.status === 'missing';
+          if (!isPendingLocked && !isDone) return false;
           if (activePics.size === 0) return true;
           return activePics.has(String(r.pic||'').trim().toLowerCase());
         });
