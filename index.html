@@ -1521,6 +1521,8 @@
           <div class="flex flex-wrap gap-3 items-center">
             <button type="button" onclick="loadMyParts()" class="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-bold text-xs cursor-pointer">🔄 โหลดแผนสัปดาห์นี้</button>
             <div id="myparts-week-range" class="text-xs font-bold text-slate-500 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2"></div>
+            <button id="test-mode-btn" onclick="toggleTestMode()"
+              class="text-[9px] font-black px-3 py-1.5 rounded-xl cursor-pointer bg-slate-100 text-slate-500 border border-slate-200 hover:bg-amber-50 hover:text-amber-600">🧪 Test Mode</button>
           </div>
           <div id="myparts-summary-badge" class="hidden text-[10px] font-bold bg-violet-50 border border-violet-200 rounded-xl px-4 py-2 text-violet-600"></div>
         </div>
@@ -4090,8 +4092,8 @@
       const isMonday = day === 1;
       const nextMon  = new Date(fri.getTime() + 86400000 * 3);
 
-      // ถ้าปิด lock → อนุญาตทุกวัน ทุกเวลา
-      if (!_sysSettings.weekly_plan_lock) {
+      // Test Mode → อนุญาตทุกอย่าง
+      if (_testMode || !_sysSettings.weekly_plan_lock) {
         return { pastDeadline: false, isMonday, currentWeekAllowed: true, mon, fri, nextMon, minAllowedDate: mon };
       }
 
@@ -7470,6 +7472,21 @@
       document.getElementById('upload503-week-banner')?.classList.add('hidden');
     };
 
+    let _testMode = false; // โหมดทดสอบ — ข้ามข้อจำกัดสัปดาห์
+
+    window.toggleTestMode = function() {
+      _testMode = !_testMode;
+      const btn = document.getElementById('test-mode-btn');
+      if (btn) {
+        btn.textContent = _testMode ? '🧪 Test Mode: ON' : '🧪 Test Mode';
+        btn.className = _testMode
+          ? 'text-[9px] font-black px-3 py-1.5 rounded-xl cursor-pointer bg-amber-400 text-amber-900 border border-amber-500'
+          : 'text-[9px] font-black px-3 py-1.5 rounded-xl cursor-pointer bg-slate-100 text-slate-500 border border-slate-200 hover:bg-amber-50 hover:text-amber-600';
+      }
+      showToast(_testMode ? '🧪 Test Mode เปิดแล้ว — แสดงข้อมูลสัปดาห์นี้' : 'Test Mode ปิดแล้ว');
+      loadMyParts();
+    };
+
     function getTargetWeekRange() {
       // โหมดย้อนหลัง — ใช้ช่วงที่ผู้ใช้เลือก
       if (_retroMode) {
@@ -7483,27 +7500,29 @@
       };
 
       const now  = new Date();
-      const day  = now.getDay(); // 0=อา, 1=จ, ..., 6=ส
+      const day  = now.getDay();
       const h    = now.getHours();
       const min  = now.getMinutes();
 
-      // หา Monday ของสัปดาห์นี้
       const thisMonday = new Date(now);
       const diffToMon  = day === 0 ? -6 : 1 - day;
       thisMonday.setDate(now.getDate() + diffToMon);
       thisMonday.setHours(0,0,0,0);
 
-      // หา Sunday ของสัปดาห์นี้ (Mon+6)
       const thisSunday = new Date(thisMonday);
       thisSunday.setDate(thisMonday.getDate() + 6);
 
-      // หา Monday สัปดาห์หน้า
       const nextMonday = new Date(thisMonday);
       nextMonday.setDate(thisMonday.getDate() + 7);
       const nextSunday = new Date(nextMonday);
       nextSunday.setDate(nextMonday.getDate() + 6);
 
-      // Logic: วันจันทร์ก่อน 08:30 → สัปดาห์นี้, วันอื่นๆ → สัปดาห์หน้า
+      // Test Mode → แสดงสัปดาห์นี้เสมอ
+      if (_testMode) {
+        return { from: fmt(thisMonday), to: fmt(thisSunday) };
+      }
+
+      // Logic ปกติ: วันจันทร์ก่อน 08:30 → สัปดาห์นี้, วันอื่นๆ → สัปดาห์หน้า
       const isBeforeDeadline = (day === 1) && (h < 8 || (h === 8 && min < 30));
 
       if (isBeforeDeadline) {
@@ -11179,10 +11198,16 @@
     }
 
     async function loadMyParts() {
-      // ใช้ getTargetWeekRange() เหมือน Staff/Planning — มี logic สัปดาห์เป้าหมายและ retro mode
-      const range     = getTargetWeekRange();
-      const startDate = range.from;
-      const endDate   = range.to;
+      // ดึงทั้งสัปดาห์นี้และสัปดาห์หน้า เพื่อให้เห็นข้อมูลทั้งคู่
+      const { mon: thisMon, fri: thisFri } = getCurrentWeekRange();
+      const nextMon = new Date(thisFri.getTime() + 86400000 * 3);
+      const nextSun = new Date(nextMon.getTime() + 86400000 * 6);
+      const fmt = function(d) {
+        return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+      };
+      // ดึงตั้งแต่จันทร์สัปดาห์นี้ ถึงอาทิตย์สัปดาห์หน้า
+      const startDate = fmt(thisMon);
+      const endDate   = fmt(nextSun);
 
       document.getElementById('myparts-loading').classList.remove('hidden');
       document.getElementById('myparts-empty').classList.add('hidden');
