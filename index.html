@@ -4051,8 +4051,12 @@
         return { pastDeadline: false, isMonday, currentWeekAllowed: true, mon, fri, nextMon, minAllowedDate: mon };
       }
 
-      const pastDeadline       = (hour > 8) || (hour === 8 && min >= 30);
-      const currentWeekAllowed = isMonday && !pastDeadline;
+      // Deadline = วันจันทร์ 08:30
+      // แก้ได้ตลอดจนกว่าจะถึง deadline (วันจันทร์ + หลัง 08:30)
+      const pastDeadline = isMonday && ((hour > 8) || (hour === 8 && min >= 30));
+
+      // currentWeekAllowed = แก้ได้ถ้า deadline ยังไม่ผ่าน
+      const currentWeekAllowed = !pastDeadline;
       const minAllowedDate     = currentWeekAllowed ? mon : nextMon;
 
       return { pastDeadline, isMonday, currentWeekAllowed, mon, fri, nextMon, minAllowedDate };
@@ -4076,7 +4080,7 @@
       const fmt = d => d.toLocaleDateString('th-TH', { day:'numeric', month:'short', year:'numeric' });
       const fmtShort = d => d.toLocaleDateString('th-TH', { day:'numeric', month:'short' });
 
-      // ── Case 1: วันจันทร์ + ก่อน 08:30 → กรอกได้ทั้งสัปดาห์นี้ ──
+      // ── Case 1: ก่อน deadline → กรอก/แก้ไขได้ตลอด ──
       if (currentWeekAllowed) {
         if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove('opacity-40','cursor-not-allowed'); saveBtn.classList.add('cursor-pointer'); }
         if (bannerEl) {
@@ -4084,9 +4088,9 @@
           bannerEl.innerHTML = `
             <span class="text-2xl flex-shrink-0">✅</span>
             <div>
-              <div class="font-black text-emerald-700">กรอกข้อมูลสัปดาห์นี้ได้</div>
+              <div class="font-black text-emerald-700">กรอกและแก้ไขได้จนถึง จันทร์ 08:30 น.</div>
               <div class="text-emerald-600 text-xs mt-0.5">
-                ปิดรับ <b>08:30 น.</b> วันนี้ · สัปดาห์นี้ ${fmtShort(mon)} – ${fmtShort(fri)}
+                สัปดาห์ถัดไป ${fmtShort(nextMon)} – ${fmtShort(new Date(nextMon.getTime() + 86400000*6))}
               </div>
             </div>`;
           bannerEl.classList.remove('hidden');
@@ -4094,7 +4098,7 @@
         return;
       }
 
-      // ── Case 2: วันจันทร์ + หลัง 08:30 → กรอกสัปดาห์หน้าได้ ──
+      // ── Case 2: วันจันทร์ + หลัง 08:30 → ล็อคแล้ว กรอกสัปดาห์หน้าได้ ──
       if (isMonday && pastDeadline) {
         if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove('opacity-40','cursor-not-allowed'); saveBtn.classList.add('cursor-pointer'); }
         if (bannerEl) {
@@ -4102,10 +4106,10 @@
           bannerEl.innerHTML = `
             <span class="text-2xl flex-shrink-0">⏰</span>
             <div>
-              <div class="font-black text-amber-700">หมดเวลากรอกสัปดาห์นี้แล้ว</div>
+              <div class="font-black text-amber-700">หมดเวลาแก้ไขสัปดาห์นี้แล้ว</div>
               <div class="text-amber-600 text-xs mt-0.5">
                 เลย <b>08:30 น.</b> แล้ว · สัปดาห์นี้ล็อคแล้ว
-                <br>กรอกได้ตั้งแต่ <b>${fmt(nextMon)}</b> เป็นต้นไป
+                <br>กรอกสัปดาห์ถัดไปได้ตั้งแต่ <b>${fmt(nextMon)}</b> เป็นต้นไป
               </div>
             </div>`;
           bannerEl.classList.remove('hidden');
@@ -4231,11 +4235,11 @@
           </div>
           <div class="space-y-2">
             ${items.map(it => {
-              const editable = canEdit && (!it.status || it.status === 'pending');
+              const editable = canEdit && (it.status === 'draft' || it.status === 'pending' || !it.status);
               const lockIcon = !editable
-                ? (it.status && it.status !== 'pending'
+                ? (it.status === 'completed' || it.status === 'short' || it.status === 'missing'
                     ? '<span title="รับของแล้ว แก้ไขไม่ได้">🔒</span>'
-                    : '<span title="อยู่ในสัปดาห์ที่ล็อค">🔒</span>')
+                    : '<span title="เลยกำหนด 08:30 วันจันทร์แล้ว">🔒</span>')
                 : '';
               return `
               <div class="flex items-center gap-2 text-xs bg-slate-50 rounded-xl px-3 py-2 group">
