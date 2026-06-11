@@ -391,27 +391,60 @@
           <div class="text-[10px] text-slate-400 font-bold">สัปดาห์: <span id="weekly-range-text"></span></div>
         </div>
 
-        <!-- Filter Bar (auto-load) -->
-        <div class="bg-white rounded-2xl p-4 shadow-sm border flex flex-wrap gap-3 items-end justify-between">
-          <div class="flex flex-wrap gap-3 items-end">
-            <div>
-              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Arrival Date</label>
-              <input type="date" id="weekly-date" onchange="loadWeeklyPlan()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer">
-            </div>
-            <div>
-              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PIC</label>
-              <select id="weekly-pic-filter" onchange="loadWeeklyPlan()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[160px]">
-                <option value="">ทั้งหมด</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Supplier</label>
-              <select id="weekly-vendor-filter" onchange="loadWeeklyPlan()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[160px]">
-                <option value="">ทั้งหมด</option>
-              </select>
-            </div>
+        <!-- Filter Bar -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border space-y-3">
+          <!-- Mode Toggle -->
+          <div class="flex items-center gap-2">
+            <span class="text-[9px] font-black text-slate-400 uppercase">โหมด:</span>
+            <button type="button" id="weekly-mode-range" onclick="setWeeklyMode('range')"
+              class="text-[10px] font-black px-3 py-1.5 rounded-xl bg-violet-500 text-white cursor-pointer">📅 ช่วงวันที่</button>
+            <button type="button" id="weekly-mode-week" onclick="setWeeklyMode('week')"
+              class="text-[10px] font-black px-3 py-1.5 rounded-xl bg-slate-100 text-slate-500 cursor-pointer">🗓️ รายสัปดาห์</button>
           </div>
-          <div id="weekly-summary-badge" class="hidden text-[10px] font-bold bg-violet-50 border border-violet-200 rounded-xl px-4 py-2 text-violet-600"></div>
+
+          <div class="flex flex-wrap gap-3 items-end justify-between">
+            <div class="flex flex-wrap gap-3 items-end">
+              <!-- Mode: ช่วงวันที่ -->
+              <div id="weekly-filter-range" class="flex items-end gap-2">
+                <div>
+                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">จากวันที่</label>
+                  <input type="date" id="weekly-date-from" onchange="loadWeeklyPlan()"
+                    class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer">
+                </div>
+                <div class="text-slate-400 font-black pb-2">—</div>
+                <div>
+                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ถึงวันที่</label>
+                  <input type="date" id="weekly-date-to" onchange="loadWeeklyPlan()"
+                    class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer">
+                </div>
+              </div>
+
+              <!-- Mode: รายสัปดาห์ -->
+              <div id="weekly-filter-week" class="hidden">
+                <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เลือกสัปดาห์</label>
+                <select id="weekly-week-select" onchange="loadWeeklyPlan()"
+                  class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[220px]">
+                </select>
+              </div>
+
+              <!-- hidden compat -->
+              <input type="hidden" id="weekly-date">
+
+              <div>
+                <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PIC</label>
+                <select id="weekly-pic-filter" onchange="loadWeeklyPlan()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[160px]">
+                  <option value="">ทั้งหมด</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Supplier</label>
+                <select id="weekly-vendor-filter" onchange="loadWeeklyPlan()" class="border-2 border-slate-100 rounded-xl px-4 py-2 bg-slate-50 outline-none focus:border-violet-500 font-bold text-sm cursor-pointer min-w-[160px]">
+                  <option value="">ทั้งหมด</option>
+                </select>
+              </div>
+            </div>
+            <div id="weekly-summary-badge" class="hidden text-[10px] font-bold bg-violet-50 border border-violet-200 rounded-xl px-4 py-2 text-violet-600"></div>
+          </div>
         </div>
 
         <!-- Loading -->
@@ -1670,93 +1703,127 @@
             <span class="text-xl">⚡</span>
             <div>
               <div class="font-black text-rose-700 text-sm">แจ้งงานนอกแผน</div>
-              <div class="text-[10px] text-rose-400 mt-0.5">ส่งให้ผู้จัดการ Approve 2 ขั้น ก่อนดำเนินการได้</div>
+              <div class="text-[10px] text-rose-400 mt-0.5">ส่งให้ Logistics Manager → Factory Manager อนุมัติ ก่อนเข้า Weekly Plan</div>
             </div>
           </div>
 
           <!-- Step 1: เลือกประเภท -->
           <div class="p-5 border-b border-slate-100">
-            <div class="text-[9px] font-black text-slate-400 uppercase mb-3">ขั้นที่ 1 — เลือกประเภทงานนอกแผน</div>
+            <div class="text-[9px] font-black text-slate-400 uppercase mb-3">เลือกประเภทงานนอกแผน</div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <button type="button" onclick="selectUnpType('unp','reschedule')" id="unp-type-btn-reschedule"
                 class="text-left p-4 rounded-2xl border-2 border-slate-100 hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer">
                 <div class="text-2xl mb-2">📅</div>
                 <div class="font-black text-slate-700 text-sm">เลื่อนวันจากแผนเดิม</div>
-                <div class="text-[10px] text-slate-400 mt-1">มี PO และ Part อยู่แล้วใน Weekly Plan แต่ต้องเปลี่ยน Arrival Date</div>
+                <div class="text-[10px] text-slate-400 mt-1">เลือก Part ที่ CF แล้วจากแผนรายสัปดาห์ แล้วเปลี่ยน Arrival Date ใหม่</div>
               </button>
               <button type="button" onclick="selectUnpType('unp','new')" id="unp-type-btn-new"
                 class="text-left p-4 rounded-2xl border-2 border-slate-100 hover:border-orange-400 hover:bg-orange-50 transition-all cursor-pointer">
                 <div class="text-2xl mb-2">⚡</div>
                 <div class="font-black text-slate-700 text-sm">งานใหม่กระทันหัน</div>
-                <div class="text-[10px] text-slate-400 mt-1">ไม่มีในแผนเดิม ต้องการเพิ่ม Part ใหม่เข้ามา</div>
+                <div class="text-[10px] text-slate-400 mt-1">Part ใหม่ที่ไม่มีในแผนเดิม เพิ่มเข้า Weekly Plan โดยตรง</div>
               </button>
             </div>
             <input type="hidden" id="unp-type">
           </div>
 
-          <!-- Step 2: form body (โชว์หลังเลือก) -->
+          <!-- Step 2: form body -->
           <div id="unp-form-body" class="hidden">
 
-            <!-- Reschedule form -->
+            <!-- ===== TYPE 1: เลื่อนวัน ===== -->
             <div id="unp-form-reschedule" class="hidden">
-              <div class="mx-5 mt-4 bg-blue-50 border border-blue-200 rounded-2xl p-4">
-                <div class="font-black text-blue-700 text-xs mb-2">📋 คำแนะนำ — กรณีเลื่อนวัน</div>
-                <div class="text-[10px] text-blue-600 space-y-1">
-                  <div>• กรอก <strong>วันที่เดิม</strong> ที่ CF ไว้ + <strong>PO No.</strong> → ระบบจะหา Part ที่ถูกต้องอัตโนมัติ</div>
-                  <div>• เมื่อ Manager <strong>อนุมัติ</strong> → ระบบจะอัพเดทวันใน Weekly Plan เป็นวันใหม่ที่ระบุ</div>
-                  <div>• Part เดิมจะยังอยู่ใน Weekly Plan แต่ Arrival Date เปลี่ยนเป็นวันใหม่</div>
-                  <div>• ข้อมูลจะแสดงในตาราง "รายการนอกแผน" พร้อม badge 📅 เลื่อนวัน</div>
+              <div class="mx-5 mt-4 bg-blue-50 border border-blue-200 rounded-2xl p-3 text-[10px] text-blue-700 space-y-0.5">
+                <div class="font-black mb-1">📋 วิธีใช้</div>
+                <div>1. เลือกผู้กรอก + วันที่ต้องการดึงข้อมูล</div>
+                <div>2. กด "ดึงรายการ" → ระบบแสดง Part ที่ CF แล้วในวันนั้น</div>
+                <div>3. เลือก Part ที่ต้องการเลื่อน (เลือกได้หลายรายการ)</div>
+                <div>4. ใส่ Arrival Date ใหม่ + เหตุผล แล้วส่งขออนุมัติ</div>
+              </div>
+
+              <!-- ผู้กรอก + วันที่ดึงข้อมูล -->
+              <div class="p-5 grid grid-cols-1 md:grid-cols-3 gap-4 border-b border-slate-100">
+                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ผู้กรอก *</label>
+                  <select id="unp-r-submitted-by" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm cursor-pointer"><option value="">-- เลือกชื่อ --</option></select></div>
+                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">วันที่ CF ที่ต้องการดึง *</label>
+                  <input type="date" id="unp-r-fetch-date" class="w-full border-2 border-blue-100 rounded-xl px-4 py-2.5 bg-blue-50 outline-none focus:border-blue-400 font-bold text-sm cursor-pointer"></div>
+                <div class="flex items-end">
+                  <button type="button" onclick="fetchCFPartsForReschedule()"
+                    class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2.5 rounded-xl font-bold text-sm cursor-pointer shadow-sm">🔍 ดึงรายการ</button>
                 </div>
               </div>
-              <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ผู้กรอก *</label>
-                  <select id="unp-submitted-by" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm cursor-pointer"><option value="">-- เลือกชื่อ --</option></select></div>
-                <div class="relative"><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Supplier *</label>
-                  <input type="text" id="unp-supplier" placeholder="พิมพ์ชื่อ Supplier..." autocomplete="off"
-                    oninput="filterUnpSuggest()" onfocus="filterUnpSuggest()" onblur="hideUnpSuggest(200)"
-                    class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm">
-                  <div id="unp-supplier-suggest" class="hidden absolute z-20 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 w-full max-h-48 overflow-y-auto"></div></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">วันที่เดิมที่ CF ไว้ *</label>
-                  <input type="date" id="unp-original-date" class="w-full border-2 border-blue-100 rounded-xl px-4 py-2.5 bg-blue-50 outline-none focus:border-blue-400 font-bold text-sm cursor-pointer"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Arrival Date ใหม่ *</label>
-                  <input type="date" id="unp-arrival-date" class="w-full border-2 border-blue-100 rounded-xl px-4 py-2.5 bg-blue-50 outline-none focus:border-blue-400 font-bold text-sm cursor-pointer"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PO No. *</label>
-                  <input type="text" id="unp-po" placeholder="เลข PO ที่ต้องการเลื่อน" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Part No. (ถ้าเลื่อนเฉพาะ part)</label>
-                  <input type="text" id="unp-part" placeholder="ระบุถ้าต้องการเลื่อนเฉพาะ part" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เหตุผลที่เลื่อน *</label>
-                  <input type="text" id="unp-reason" placeholder="เช่น ซัพผลิตไม่ทัน, รอวัตถุดิบ..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">หมายเหตุ</label>
-                  <input type="text" id="unp-remark" placeholder="รายละเอียดอื่นๆ" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm"></div>
-                <input type="hidden" id="unp-qty" value="0">
+
+              <!-- ตาราง Part ที่ CF แล้ว -->
+              <div class="p-5 border-b border-slate-100">
+                <div class="text-[9px] font-black text-slate-400 uppercase mb-3">เลือก Part ที่ต้องการเลื่อน</div>
+                <div id="unp-r-parts-loading" class="hidden text-center py-4 text-slate-400 text-xs">⏳ กำลังดึงข้อมูล...</div>
+                <div id="unp-r-parts-empty" class="hidden text-center py-4 text-slate-400 text-xs">ไม่พบ Part ที่ CF แล้วในวันที่เลือก</div>
+                <div id="unp-r-parts-table" class="hidden overflow-x-auto">
+                  <div class="flex items-center gap-3 mb-2">
+                    <button type="button" onclick="toggleAllRescheduleRows(true)" class="text-[10px] text-blue-600 font-black cursor-pointer hover:underline">☑ เลือกทั้งหมด</button>
+                    <button type="button" onclick="toggleAllRescheduleRows(false)" class="text-[10px] text-slate-400 font-black cursor-pointer hover:underline">☐ ยกเลิกทั้งหมด</button>
+                    <span id="unp-r-selected-count" class="text-[10px] text-emerald-600 font-black ml-auto"></span>
+                  </div>
+                  <table class="w-full text-xs border-collapse">
+                    <thead class="bg-slate-50">
+                      <tr class="text-[9px] font-black text-slate-400 uppercase">
+                        <th class="px-2 py-2"></th>
+                        <th class="px-3 py-2 text-left">Supplier</th>
+                        <th class="px-3 py-2 text-left">PO No.</th>
+                        <th class="px-3 py-2 text-left">Part No.</th>
+                        <th class="px-3 py-2 text-center">QTY</th>
+                        <th class="px-3 py-2 text-center">AM/PM</th>
+                        <th class="px-3 py-2 text-center">Arrival Date เดิม</th>
+                      </tr>
+                    </thead>
+                    <tbody id="unp-r-parts-tbody"></tbody>
+                  </table>
+                </div>
               </div>
+
+              <!-- Arrival Date ใหม่ + เหตุผล -->
+              <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Arrival Date ใหม่ *</label>
+                  <input type="date" id="unp-r-new-date" class="w-full border-2 border-blue-100 rounded-xl px-4 py-2.5 bg-blue-50 outline-none focus:border-blue-400 font-bold text-sm cursor-pointer"></div>
+                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เหตุผล *</label>
+                  <input type="text" id="unp-r-reason" placeholder="เช่น ซัพผลิตไม่ทัน, รอวัตถุดิบ..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm"></div>
+                <div class="md:col-span-2"><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">หมายเหตุ</label>
+                  <input type="text" id="unp-r-remark" placeholder="รายละเอียดอื่นๆ" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm"></div>
+              </div>
+              <!-- hidden compat -->
+              <input type="hidden" id="unp-submitted-by" value="">
+              <input type="hidden" id="unp-supplier" value="">
+              <input type="hidden" id="unp-original-date" value="">
+              <input type="hidden" id="unp-arrival-date" value="">
+              <input type="hidden" id="unp-po" value="">
+              <input type="hidden" id="unp-part" value="">
+              <input type="hidden" id="unp-qty" value="0">
+              <input type="hidden" id="unp-reason" value="">
+              <input type="hidden" id="unp-remark" value="">
             </div>
 
-            <!-- New work form -->
+            <!-- ===== TYPE 2: งานใหม่ ===== -->
             <div id="unp-form-new" class="hidden">
-              <div class="mx-5 mt-4 bg-orange-50 border border-orange-200 rounded-2xl p-4">
-                <div class="font-black text-orange-700 text-xs mb-2">📋 คำแนะนำ — กรณีงานใหม่</div>
-                <div class="text-[10px] text-orange-600 space-y-1">
-                  <div>• ระบุ Supplier + Arrival Date + เหตุผล จากนั้นเพิ่ม Part ได้หลายรายการ</div>
-                  <div>• เมื่ออนุมัติแล้ว ระบบจะ <strong>สร้าง Part record</strong> ทุกรายการใน Weekly Plan อัตโนมัติ</div>
-                </div>
+              <div class="mx-5 mt-4 bg-orange-50 border border-orange-200 rounded-2xl p-3 text-[10px] text-orange-700 space-y-0.5">
+                <div class="font-black mb-1">📋 วิธีใช้</div>
+                <div>1. เลือกผู้กรอก + ชื่อ Supplier</div>
+                <div>2. เพิ่มรายการ Part ที่ต้องการ (PO, Part No., QTY)</div>
+                <div>3. ระบุ Arrival Date + เหตุผล แล้วส่งขออนุมัติ</div>
               </div>
               <!-- ข้อมูลหลัก -->
               <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-slate-100">
                 <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ผู้กรอก *</label>
-                  <select id="unp-submitted-by" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm cursor-pointer"><option value="">-- เลือกชื่อ --</option></select></div>
+                  <select id="unp-n-submitted-by" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm cursor-pointer"><option value="">-- เลือกชื่อ --</option></select></div>
                 <div class="relative"><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Supplier *</label>
-                  <input type="text" id="unp-supplier" placeholder="พิมพ์ชื่อ Supplier..." autocomplete="off"
-                    oninput="filterUnpSuggest()" onfocus="filterUnpSuggest()" onblur="hideUnpSuggest(200)"
+                  <input type="text" id="unp-n-supplier" placeholder="พิมพ์ชื่อ Supplier..." autocomplete="off"
+                    oninput="filterUnpSuggestN()" onfocus="filterUnpSuggestN()" onblur="hideUnpSuggest(200)"
                     class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm">
-                  <div id="unp-supplier-suggest" class="hidden absolute z-20 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 w-full max-h-48 overflow-y-auto"></div></div>
+                  <div id="unp-n-supplier-suggest" class="hidden absolute z-20 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 w-full max-h-48 overflow-y-auto"></div></div>
                 <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Arrival Date *</label>
-                  <input type="date" id="unp-arrival-date" class="w-full border-2 border-orange-100 rounded-xl px-4 py-2.5 bg-orange-50 outline-none focus:border-orange-400 font-bold text-sm cursor-pointer"></div>
+                  <input type="date" id="unp-n-arrival-date" class="w-full border-2 border-orange-100 rounded-xl px-4 py-2.5 bg-orange-50 outline-none focus:border-orange-400 font-bold text-sm cursor-pointer"></div>
                 <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เหตุผล *</label>
-                  <input type="text" id="unp-reason" placeholder="เช่น งานเร่งด่วน, เพิ่มออเดอร์..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm"></div>
+                  <input type="text" id="unp-n-reason" placeholder="เช่น งานเร่งด่วน, เพิ่มออเดอร์..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm"></div>
                 <div class="md:col-span-2"><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">หมายเหตุ</label>
-                  <input type="text" id="unp-remark" placeholder="รายละเอียดเพิ่มเติม..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm"></div>
-                <input type="hidden" id="unp-original-date" value="">
+                  <input type="text" id="unp-n-remark" placeholder="รายละเอียดเพิ่มเติม..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm"></div>
               </div>
               <!-- Part List -->
               <div class="p-5">
@@ -1764,16 +1831,11 @@
                   <div class="text-[9px] font-black text-slate-400 uppercase">รายการ Part *</div>
                   <button type="button" onclick="addUnpPartRow()" class="bg-orange-50 hover:bg-orange-100 border border-orange-200 text-orange-600 font-black text-[10px] px-3 py-1.5 rounded-xl cursor-pointer">+ เพิ่ม Part</button>
                 </div>
-                <div id="unp-parts-list" class="space-y-2">
-                  <!-- rows จะถูกเพิ่มโดย JS -->
-                </div>
+                <div id="unp-parts-list" class="space-y-2"></div>
               </div>
-              <input type="hidden" id="unp-qty" value="0">
-              <input type="hidden" id="unp-po" value="">
-              <input type="hidden" id="unp-part" value="">
             </div>
 
-            <div class="px-5 pb-5 flex items-center gap-3">
+            <div class="px-5 pb-5 flex items-center gap-3 border-t border-slate-100 pt-4">
               <button type="button" onclick="submitUnplanned()" class="bg-rose-500 hover:bg-rose-600 text-white px-8 py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">⚡ ส่งขออนุมัติ</button>
               <button type="button" onclick="resetUnpForm('unp')" class="text-slate-400 hover:text-slate-600 text-sm font-bold cursor-pointer">↩ เริ่มใหม่</button>
             </div>
@@ -3025,6 +3087,58 @@
       // hash แบบเร็ว — JSON string แต่ตัดช่องว่างออก
       try { return JSON.stringify(obj); } catch(e) { return ''; }
     }
+    let _weeklyMode = 'range'; // 'range' | 'week'
+
+    window.setWeeklyMode = function(mode) {
+      _weeklyMode = mode;
+      document.getElementById('weekly-filter-range').classList.toggle('hidden', mode !== 'range');
+      document.getElementById('weekly-filter-week').classList.toggle('hidden', mode !== 'week');
+      document.getElementById('weekly-mode-range').className = 'text-[10px] font-black px-3 py-1.5 rounded-xl cursor-pointer ' +
+        (mode === 'range' ? 'bg-violet-500 text-white' : 'bg-slate-100 text-slate-500');
+      document.getElementById('weekly-mode-week').className = 'text-[10px] font-black px-3 py-1.5 rounded-xl cursor-pointer ' +
+        (mode === 'week' ? 'bg-violet-500 text-white' : 'bg-slate-100 text-slate-500');
+      loadWeeklyPlan();
+    };
+
+    function initWeeklyWeekSelect() {
+      const sel = document.getElementById('weekly-week-select');
+      if (!sel || sel.options.length > 1) return;
+      sel.innerHTML = '';
+      // สร้าง dropdown 8 สัปดาห์ (4 ก่อน + 4 หลัง)
+      const today = new Date();
+      for (let w = -4; w <= 4; w++) {
+        const mon = new Date(today);
+        const day = today.getDay();
+        const diff = (day === 0 ? -6 : 1 - day) + (w * 7);
+        mon.setDate(today.getDate() + diff);
+        mon.setHours(0,0,0,0);
+        const sun = new Date(mon);
+        sun.setDate(mon.getDate() + 6);
+        const fmt = function(d) {
+          return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        };
+        const label = fmt(mon).substring(5) + ' — ' + fmt(sun).substring(5) +
+          (w === 0 ? ' (สัปดาห์นี้)' : w === 1 ? ' (สัปดาห์หน้า)' : w === -1 ? ' (สัปดาห์ที่แล้ว)' : '');
+        const opt = document.createElement('option');
+        opt.value = fmt(mon) + '|' + fmt(sun);
+        opt.textContent = label;
+        if (w === 0) opt.selected = true;
+        sel.appendChild(opt);
+      }
+    }
+
+    function getWeeklyDateRange() {
+      if (_weeklyMode === 'week') {
+        const val = (document.getElementById('weekly-week-select')||{}).value || '';
+        const parts = val.split('|');
+        return { from: parts[0] || getThaiDate(), to: parts[1] || parts[0] || getThaiDate() };
+      } else {
+        const from = (document.getElementById('weekly-date-from')||{}).value || getThaiDate();
+        const to   = (document.getElementById('weekly-date-to')||{}).value   || from;
+        return { from: from, to: to };
+      }
+    }
+
     function fetchAll() {
       if (typeof _isSaving503 !== 'undefined' && _isSaving503) return;
       callAPI('readAllData').then(res => {
@@ -7753,15 +7867,25 @@
     // WEEKLY PLAN STAFF
     // =====================================================
     function initWeeklyPlan() {
+      // init week dropdown
+      initWeeklyWeekSelect();
+
+      // set default date range = สัปดาห์ปัจจุบัน (จันทร์-อาทิตย์)
       const now = new Date();
       const day = now.getDay();
       const monday = new Date(now);
       monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
       monday.setHours(0,0,0,0);
-      const dateEl = document.getElementById('weekly-date');
-      if (dateEl && !dateEl.value) {
-        dateEl.value = monday.getFullYear() + '-' + String(monday.getMonth()+1).padStart(2,'0') + '-' + String(monday.getDate()).padStart(2,'0');
-      }
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      const fmt = function(d) {
+        return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+      };
+      const fromEl = document.getElementById('weekly-date-from');
+      const toEl   = document.getElementById('weekly-date-to');
+      if (fromEl && !fromEl.value) fromEl.value = fmt(monday);
+      if (toEl   && !toEl.value)   toEl.value   = fmt(sunday);
+
       // แสดง deadline text
       const passed = isDeadlinePassed();
       const bannerEl = document.getElementById('weekly-deadline-banner');
@@ -7816,7 +7940,7 @@
 
 
     async function loadWeeklyPlan() {
-      const startDate    = (document.getElementById('weekly-date')||{}).value || getThaiDate();
+      const { from: startDate, to: endDate } = getWeeklyDateRange();
       const picFilter    = (document.getElementById('weekly-pic-filter')||{}).value || '';
       const vendorFilter = (document.getElementById('weekly-vendor-filter')||{}).value || '';
 
@@ -7825,12 +7949,11 @@
       document.getElementById('weekly-table-wrap')?.classList.add('hidden');
       document.getElementById('weekly-summary-badge')?.classList.add('hidden');
 
-      // สร้าง date range 6 วัน จันทร์-เสาร์
+      // สร้าง date range จาก from ถึง to
       const dates = [];
       const start = new Date(startDate);
-      for (let i = 0; i < 6; i++) {
-        const d = new Date(start);
-        d.setDate(start.getDate() + i);
+      const end   = new Date(endDate || startDate);
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate()+1)) {
         dates.push(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'));
       }
 
@@ -8977,12 +9100,15 @@
     }
 
     function updatePicUnplannedDropdown() {
-      const sel = document.getElementById('unp-submitted-by');
-      if (!sel || sel.tagName !== 'SELECT') return;
-      const cur = sel.value;
-      sel.innerHTML = '<option value="">-- เลือกชื่อ PIC --</option>' +
+      const opts = '<option value="">-- เลือกชื่อ PIC --</option>' +
         _picUsersList.map(function(n){ return '<option value="' + n + '">' + n + '</option>'; }).join('');
-      if (cur) sel.value = cur;
+      ['unp-submitted-by','unp-r-submitted-by','unp-n-submitted-by'].forEach(function(id) {
+        const sel = document.getElementById(id);
+        if (!sel || sel.tagName !== 'SELECT') return;
+        const cur = sel.value;
+        sel.innerHTML = opts;
+        if (cur) sel.value = cur;
+      });
     }
 
     function updatePlanningMemberDropdowns() {
@@ -10042,7 +10168,162 @@
       } catch(e) { showToast('Error: '+e.message, 'error'); }
     };
 
-    let _unpPartRows = [];
+    // ── ดึง Part ที่ CF แล้วในวันที่เลือก ──
+    window.fetchCFPartsForReschedule = async function() {
+      const fetchDate = (document.getElementById('unp-r-fetch-date')||{}).value;
+      if (!fetchDate) { showToast('กรุณาเลือกวันที่ก่อน', 'error'); return; }
+
+      const loading = document.getElementById('unp-r-parts-loading');
+      const empty   = document.getElementById('unp-r-parts-empty');
+      const table   = document.getElementById('unp-r-parts-table');
+      const tbody   = document.getElementById('unp-r-parts-tbody');
+
+      if (loading) loading.classList.remove('hidden');
+      if (empty)   empty.classList.add('hidden');
+      if (table)   table.classList.add('hidden');
+
+      try {
+        const res = await callAPI('getPartsByWeek', { startDate: fetchDate, endDate: fetchDate });
+        if (loading) loading.classList.add('hidden');
+        const parts = (res && res.data) ? res.data.filter(function(p){
+          // เฉพาะ Part ที่ CF แล้ว (pending หรือ confirmed)
+          return p.status === 'pending' || p.status === 'confirmed';
+        }) : [];
+
+        if (!parts.length) {
+          if (empty) empty.classList.remove('hidden');
+          return;
+        }
+        if (table) table.classList.remove('hidden');
+        tbody.innerHTML = parts.map(function(p, i) {
+          return '<tr class="border-b border-slate-50 hover:bg-blue-50/30">' +
+            '<td class="px-2 py-2 text-center"><input type="checkbox" data-part-idx="'+i+'" onchange="updateRescheduleCount()" ' +
+              'data-id="'+String(p.id||'').replace(/"/g,'')+'|'+String(p.po_no||'').replace(/"/g,'')+'|'+String(p.part_no||'').replace(/"/g,'')+'|'+String(p.date||'').split(' ')[0]+'|'+String(p.vendor||'').replace(/"/g,'')+'|'+String(p.qty_plan||0)+'|'+String(p.time_slot||'')+'" ' +
+              'class="w-4 h-4 accent-blue-500 cursor-pointer reschedule-cb"></td>' +
+            '<td class="px-3 py-2 text-xs font-bold text-slate-700 max-w-[120px] truncate">' + (p.vendor||'-') + '</td>' +
+            '<td class="px-3 py-2 text-xs text-slate-600">' + (p.po_no||'-') + '</td>' +
+            '<td class="px-3 py-2 text-xs font-bold text-violet-700">' + (p.part_no||'-') + '</td>' +
+            '<td class="px-3 py-2 text-xs text-center font-black">' + (p.qty_plan||0) + '</td>' +
+            '<td class="px-3 py-2 text-xs text-center">' + (p.time_slot||'-') + '</td>' +
+            '<td class="px-3 py-2 text-xs text-center text-emerald-600 font-bold">' + String(p.date||'-').split(' ')[0] + '</td>' +
+          '</tr>';
+        }).join('');
+        updateRescheduleCount();
+      } catch(e) {
+        if (loading) loading.classList.add('hidden');
+        showToast('Error: ' + e.message, 'error');
+      }
+    };
+
+    window.updateRescheduleCount = function() {
+      const checked = document.querySelectorAll('.reschedule-cb:checked').length;
+      const el = document.getElementById('unp-r-selected-count');
+      if (el) el.textContent = checked ? 'เลือก ' + checked + ' รายการ' : '';
+    };
+
+    window.toggleAllRescheduleRows = function(checked) {
+      document.querySelectorAll('.reschedule-cb').forEach(function(cb){ cb.checked = checked; });
+      updateRescheduleCount();
+    };
+
+    // ── Autocomplete Supplier สำหรับ form ใหม่ ──
+    window.filterUnpSuggestN = function() {
+      const input = document.getElementById('unp-n-supplier');
+      const box   = document.getElementById('unp-n-supplier-suggest');
+      if (!input || !box) return;
+      const q = input.value.toLowerCase().trim();
+      if (!q) { box.classList.add('hidden'); return; }
+      const list = (_supplierMasterList||[]).map(function(s){ return s.name||s; });
+      const filtered = list.filter(function(x){ return String(x).toLowerCase().includes(q); }).slice(0,15);
+      if (!filtered.length) { box.classList.add('hidden'); return; }
+      box.classList.remove('hidden');
+      box.innerHTML = filtered.map(function(x){
+        return '<div class="px-4 py-2.5 hover:bg-orange-50 cursor-pointer text-xs font-bold text-slate-700" onclick="selectUnpSupN(\''+encodeURIComponent(x)+'\')">'+x+'</div>';
+      }).join('');
+    };
+    window.selectUnpSupN = function(encoded) {
+      const val = decodeURIComponent(encoded);
+      const input = document.getElementById('unp-n-supplier');
+      const box   = document.getElementById('unp-n-supplier-suggest');
+      if (input) input.value = val;
+      if (box)   box.classList.add('hidden');
+    };
+
+    async function doSubmitUnplanned(prefix, roleLabel) {
+      const unpType = (document.getElementById(prefix+'-type')||{}).value || '';
+      if (!unpType) { showToast('กรุณาเลือกประเภทนอกแผน', 'error'); return; }
+
+      if (unpType === 'reschedule') {
+        // ── Type 1: เลื่อนวัน ──
+        const submittedBy = (document.getElementById('unp-r-submitted-by')||{}).value?.trim() || '';
+        const newDate     = (document.getElementById('unp-r-new-date')||{}).value || '';
+        const reason      = (document.getElementById('unp-r-reason')||{}).value || '';
+        const remark      = (document.getElementById('unp-r-remark')||{}).value || '';
+        const checked     = Array.from(document.querySelectorAll('.reschedule-cb:checked'));
+
+        if (!submittedBy) { showToast('กรุณาเลือกผู้กรอก', 'error'); return; }
+        if (!checked.length) { showToast('กรุณาเลือก Part อย่างน้อย 1 รายการ', 'error'); return; }
+        if (!newDate) { showToast('กรุณาระบุ Arrival Date ใหม่', 'error'); return; }
+        if (!reason) { showToast('กรุณาระบุเหตุผล', 'error'); return; }
+
+        let successCount = 0;
+        for (const cb of checked) {
+          const parts = cb.dataset.id.split('|');
+          const payload = {
+            supplier: parts[4]||'', po_no: parts[1]||'', part_no: parts[2]||'',
+            qty: parseFloat(parts[5])||0, reason: reason, remark: remark,
+            submitted_by: submittedBy, created_by: submittedBy, created_role: roleLabel,
+            unplanned_type: 'reschedule',
+            arrival_date: newDate, original_date: parts[3]||'',
+          };
+          try {
+            const res = await callAPI('saveUnplanned', payload);
+            if (res && res.success) successCount++;
+            else { showToast('ไม่สำเร็จ: '+(res?.message||''), 'error'); return; }
+          } catch(e) { showToast('Error: '+e.message, 'error'); return; }
+        }
+        showToast('✅ ส่งขออนุมัติ '+successCount+' รายการแล้ว รอ Logistics Manager');
+
+      } else {
+        // ── Type 2: งานใหม่ ──
+        const submittedBy = (document.getElementById('unp-n-submitted-by')||{}).value?.trim() || '';
+        const sup         = (document.getElementById('unp-n-supplier')||{}).value?.trim() || '';
+        const arrivalDate = (document.getElementById('unp-n-arrival-date')||{}).value || '';
+        const reason      = (document.getElementById('unp-n-reason')||{}).value || '';
+        const remark      = (document.getElementById('unp-n-remark')||{}).value || '';
+
+        if (!submittedBy) { showToast('กรุณาเลือกผู้กรอก', 'error'); return; }
+        if (!sup)         { showToast('กรุณาระบุ Supplier', 'error'); return; }
+        if (!arrivalDate) { showToast('กรุณาระบุ Arrival Date', 'error'); return; }
+        if (!reason)      { showToast('กรุณาระบุเหตุผล', 'error'); return; }
+
+        const partRows = document.querySelectorAll('#unp-parts-list > div[id^="unp-part-row-"]');
+        if (!partRows.length) { showToast('กรุณาเพิ่ม Part อย่างน้อย 1 รายการ', 'error'); return; }
+
+        let successCount = 0;
+        for (let i = 0; i < partRows.length; i++) {
+          const idx  = partRows[i].id.replace('unp-part-row-','');
+          const po   = (document.getElementById('unp-part-po-'+idx)||{}).value?.trim()||'';
+          const part = (document.getElementById('unp-part-no-'+idx)||{}).value?.trim()||'';
+          const qty  = parseFloat((document.getElementById('unp-part-qty-'+idx)||{}).value||'0')||0;
+          if (!qty) { showToast('Part รายการที่ '+(i+1)+': กรุณาระบุ QTY', 'error'); return; }
+          try {
+            const res = await callAPI('saveUnplanned', {
+              supplier: sup, po_no: po, part_no: part, qty: qty,
+              reason: reason, remark: remark,
+              submitted_by: submittedBy, created_by: submittedBy, created_role: roleLabel,
+              unplanned_type: 'new', arrival_date: arrivalDate, original_date: '',
+            });
+            if (res && res.success) successCount++;
+            else { showToast('Part รายการที่ '+(i+1)+' ไม่สำเร็จ: '+(res?.message||''), 'error'); return; }
+          } catch(e) { showToast('Error: '+e.message, 'error'); return; }
+        }
+        showToast('✅ ส่งขออนุมัติ '+successCount+' รายการแล้ว รอ Logistics Manager');
+      }
+
+      resetUnpForm(prefix);
+      await initUnplanned(roleLabel);
+    }
 
     window.addUnpPartRow = function() {
       const idx = _unpPartRows.length;
