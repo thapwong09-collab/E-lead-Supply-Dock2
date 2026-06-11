@@ -10213,19 +10213,27 @@
       const picName = (document.getElementById('unp-n-submitted-by')||{}).value || '';
       const guide   = document.getElementById('unp-n-supplier-guide');
       const list    = document.getElementById('unp-n-supplier-guide-list');
-      if (!picName || !guide || !list) return;
+      if (!guide || !list) return;
+      if (!picName) { guide.classList.add('hidden'); return; }
 
-      // หา Supplier ที่ PIC นี้รับผิดชอบจาก allPicMaster
-      const picData = allPicMaster.find(function(p){ return p.name === picName; });
-      const suppliers = picData ? (picData.suppliers || []) : [];
+      // allPicMaster = [{ pic_name, supplier }, ...]
+      const suppliers = allPicMaster
+        .filter(function(m){ return (m.pic_name||'').trim() === picName.trim(); })
+        .map(function(m){ return (m.supplier||'').trim(); })
+        .filter(Boolean);
 
       if (!suppliers.length) { guide.classList.add('hidden'); return; }
       guide.classList.remove('hidden');
       list.innerHTML = suppliers.map(function(s) {
-        return '<button type="button" onclick="selectUnpSupN(\''+encodeURIComponent(s)+'\')" ' +
+        return '<button type="button" onclick="selectUnpSupN(\'' + encodeURIComponent(s) + '\')" ' +
           'class="text-[10px] bg-white border border-orange-200 text-orange-700 font-bold px-2 py-1 rounded-lg cursor-pointer hover:bg-orange-100">' + s + '</button>';
       }).join('');
+
+      // clear input เพื่อให้เลือกใหม่
+      const inp = document.getElementById('unp-n-supplier');
+      if (inp) inp.value = '';
     };
+
 
     // ── ดึง Part ที่ CF แล้วในวันที่เลือก (multi-date) ──
     window.fetchCFPartsForReschedule = async function() {
@@ -10295,21 +10303,34 @@
       updateRescheduleCount();
     };
 
-    // ── Autocomplete Supplier สำหรับ form ใหม่ ──
+    // ── Autocomplete Supplier — กรองเฉพาะ Supplier ของ PIC ที่เลือก ──
     window.filterUnpSuggestN = function() {
-      const input = document.getElementById('unp-n-supplier');
-      const box   = document.getElementById('unp-n-supplier-suggest');
+      const input   = document.getElementById('unp-n-supplier');
+      const box     = document.getElementById('unp-n-supplier-suggest');
+      const picName = (document.getElementById('unp-n-submitted-by')||{}).value || '';
       if (!input || !box) return;
       const q = input.value.toLowerCase().trim();
       if (!q) { box.classList.add('hidden'); return; }
-      const list = (_supplierMasterList||[]).map(function(s){ return s.name||s; });
-      const filtered = list.filter(function(x){ return String(x).toLowerCase().includes(q); }).slice(0,15);
+
+      // ถ้าเลือก PIC แล้ว แสดงเฉพาะ Supplier ของ PIC นั้น
+      let sourceList;
+      if (picName) {
+        sourceList = allPicMaster
+          .filter(function(m){ return (m.pic_name||'').trim() === picName.trim(); })
+          .map(function(m){ return (m.supplier||'').trim(); })
+          .filter(Boolean);
+      } else {
+        sourceList = (_supplierMasterList||[]).map(function(s){ return s.name||s; });
+      }
+
+      const filtered = sourceList.filter(function(x){ return String(x).toLowerCase().includes(q); }).slice(0,15);
       if (!filtered.length) { box.classList.add('hidden'); return; }
       box.classList.remove('hidden');
       box.innerHTML = filtered.map(function(x){
-        return '<div class="px-4 py-2.5 hover:bg-orange-50 cursor-pointer text-xs font-bold text-slate-700" onclick="selectUnpSupN(\''+encodeURIComponent(x)+'\')">'+x+'</div>';
+        return '<div class="px-4 py-2.5 hover:bg-orange-50 cursor-pointer text-xs font-bold text-slate-700" onclick="selectUnpSupN(\'' + encodeURIComponent(x) + '\')">' + x + '</div>';
       }).join('');
     };
+
     window.selectUnpSupN = function(encoded) {
       const val = decodeURIComponent(encoded);
       const input = document.getElementById('unp-n-supplier');
@@ -10318,81 +10339,6 @@
       if (box)   box.classList.add('hidden');
     };
 
-    async function doSubmitUnplanned(prefix, roleLabel) {
-      const unpType = (document.getElementById(prefix+'-type')||{}).value || '';
-      if (!unpType) { showToast('กรุณาเลือกประเภทนอกแผน', 'error'); return; }
-
-      if (unpType === 'reschedule') {
-        // ── Type 1: เลื่อนวัน ──
-        const submittedBy = (document.getElementById('unp-r-submitted-by')||{}).value?.trim() || '';
-        const newDate     = (document.getElementById('unp-r-new-date')||{}).value || '';
-        const reason      = (document.getElementById('unp-r-reason')||{}).value || '';
-        const remark      = (document.getElementById('unp-r-remark')||{}).value || '';
-        const checked     = Array.from(document.querySelectorAll('.reschedule-cb:checked'));
-
-        if (!submittedBy) { showToast('กรุณาเลือกผู้กรอก', 'error'); return; }
-        if (!checked.length) { showToast('กรุณาเลือก Part อย่างน้อย 1 รายการ', 'error'); return; }
-        if (!newDate) { showToast('กรุณาระบุ Arrival Date ใหม่', 'error'); return; }
-        if (!reason) { showToast('กรุณาระบุเหตุผล', 'error'); return; }
-
-        let successCount = 0;
-        for (const cb of checked) {
-          const parts = cb.dataset.id.split('|');
-          const payload = {
-            supplier: parts[4]||'', po_no: parts[1]||'', part_no: parts[2]||'',
-            qty: parseFloat(parts[5])||0, reason: reason, remark: remark,
-            submitted_by: submittedBy, created_by: submittedBy, created_role: roleLabel,
-            unplanned_type: 'reschedule',
-            arrival_date: newDate, original_date: parts[3]||'',
-          };
-          try {
-            const res = await callAPI('saveUnplanned', payload);
-            if (res && res.success) successCount++;
-            else { showToast('ไม่สำเร็จ: '+(res?.message||''), 'error'); return; }
-          } catch(e) { showToast('Error: '+e.message, 'error'); return; }
-        }
-        showToast('✅ ส่งขออนุมัติ '+successCount+' รายการแล้ว รอ Logistics Manager');
-
-      } else {
-        // ── Type 2: งานใหม่ ──
-        const submittedBy = (document.getElementById('unp-n-submitted-by')||{}).value?.trim() || '';
-        const sup         = (document.getElementById('unp-n-supplier')||{}).value?.trim() || '';
-        const arrivalDate = (document.getElementById('unp-n-arrival-date')||{}).value || '';
-        const reason      = (document.getElementById('unp-n-reason')||{}).value || '';
-        const remark      = (document.getElementById('unp-n-remark')||{}).value || '';
-
-        if (!submittedBy) { showToast('กรุณาเลือกผู้กรอก', 'error'); return; }
-        if (!sup)         { showToast('กรุณาระบุ Supplier', 'error'); return; }
-        if (!arrivalDate) { showToast('กรุณาระบุ Arrival Date', 'error'); return; }
-        if (!reason)      { showToast('กรุณาระบุเหตุผล', 'error'); return; }
-
-        const partRows = document.querySelectorAll('#unp-parts-list > div[id^="unp-part-row-"]');
-        if (!partRows.length) { showToast('กรุณาเพิ่ม Part อย่างน้อย 1 รายการ', 'error'); return; }
-
-        let successCount = 0;
-        for (let i = 0; i < partRows.length; i++) {
-          const idx  = partRows[i].id.replace('unp-part-row-','');
-          const po   = (document.getElementById('unp-part-po-'+idx)||{}).value?.trim()||'';
-          const part = (document.getElementById('unp-part-no-'+idx)||{}).value?.trim()||'';
-          const qty  = parseFloat((document.getElementById('unp-part-qty-'+idx)||{}).value||'0')||0;
-          if (!qty) { showToast('Part รายการที่ '+(i+1)+': กรุณาระบุ QTY', 'error'); return; }
-          try {
-            const res = await callAPI('saveUnplanned', {
-              supplier: sup, po_no: po, part_no: part, qty: qty,
-              reason: reason, remark: remark,
-              submitted_by: submittedBy, created_by: submittedBy, created_role: roleLabel,
-              unplanned_type: 'new', arrival_date: arrivalDate, original_date: '',
-            });
-            if (res && res.success) successCount++;
-            else { showToast('Part รายการที่ '+(i+1)+' ไม่สำเร็จ: '+(res?.message||''), 'error'); return; }
-          } catch(e) { showToast('Error: '+e.message, 'error'); return; }
-        }
-        showToast('✅ ส่งขออนุมัติ '+successCount+' รายการแล้ว รอ Logistics Manager');
-      }
-
-      resetUnpForm(prefix);
-      await initUnplanned(roleLabel);
-    }
 
     window.addUnpPartRow = function() {
       const idx = _unpPartRows.length;
@@ -10429,70 +10375,6 @@
       if (row) row.remove();
     };
 
-    async function doSubmitUnplanned(prefix, roleLabel) {
-      const submittedBy  = (document.getElementById(prefix+'-submitted-by')||{}).value?.trim() || '';
-      const sup          = (document.getElementById(prefix+'-supplier')||{}).value?.trim() || '';
-      const reason       = (document.getElementById(prefix+'-reason')||{}).value || '';
-      const unpType      = (document.getElementById(prefix+'-type')||{}).value || '';
-      const arrivalDate  = (document.getElementById(prefix+'-arrival-date')||{}).value || '';
-      const originalDate = (document.getElementById(prefix+'-original-date')||{}).value || '';
-
-      if (!submittedBy)  { showToast('กรุณากรอกชื่อผู้กรอก', 'error'); return; }
-      if (!sup)          { showToast('กรุณาระบุ Supplier', 'error'); return; }
-      if (!unpType)      { showToast('กรุณาเลือกประเภทนอกแผน', 'error'); return; }
-      if (!arrivalDate)  { showToast('กรุณาระบุ Arrival Date', 'error'); return; }
-      if (unpType === 'reschedule' && !originalDate) { showToast('กรุณาระบุวันที่เดิมที่ CF ไว้', 'error'); return; }
-      if (!reason)       { showToast('กรุณาระบุเหตุผล', 'error'); return; }
-
-      const basePayload = {
-        supplier:       sup,
-        reason:         reason,
-        remark:         (document.getElementById(prefix+'-remark')||{}).value?.trim()||'',
-        submitted_by:   submittedBy,
-        created_by:     submittedBy,
-        created_role:   roleLabel,
-        unplanned_type: unpType,
-        arrival_date:   arrivalDate,
-        original_date:  originalDate,
-      };
-
-      // งานใหม่ — ส่งทีละ Part
-      if (unpType === 'new') {
-        const partRows = document.querySelectorAll('#unp-parts-list > div[id^="unp-part-row-"]');
-        if (!partRows.length) { showToast('กรุณาเพิ่ม Part อย่างน้อย 1 รายการ', 'error'); return; }
-
-        let successCount = 0;
-        for (var i = 0; i < partRows.length; i++) {
-          const rowEl = partRows[i];
-          const idx   = rowEl.id.replace('unp-part-row-','');
-          const po    = (document.getElementById('unp-part-po-'+idx)||{}).value?.trim()||'';
-          const part  = (document.getElementById('unp-part-no-'+idx)||{}).value?.trim()||'';
-          const qty   = parseFloat((document.getElementById('unp-part-qty-'+idx)||{}).value||'0')||0;
-          if (!qty) { showToast('Part รายการที่ '+(i+1)+': กรุณาระบุ QTY', 'error'); return; }
-          try {
-            const res = await callAPI('saveUnplanned', Object.assign({}, basePayload, { po_no: po, part_no: part, qty: qty }));
-            if (res && res.success) successCount++;
-            else { showToast('Part รายการที่ '+(i+1)+' ไม่สำเร็จ: '+(res?.message||''), 'error'); return; }
-          } catch(e) { showToast('Error: '+e.message, 'error'); return; }
-        }
-        showToast('✅ ส่งขออนุมัติ '+successCount+' รายการแล้ว รอ Logistics Manager');
-      } else {
-        // เลื่อนวัน — ส่งครั้งเดียว
-        const payload = Object.assign({}, basePayload, {
-          po_no:   (document.getElementById(prefix+'-po')||{}).value?.trim()||'',
-          part_no: (document.getElementById(prefix+'-part')||{}).value?.trim()||'',
-          qty:     0,
-        });
-        try {
-          const res = await callAPI('saveUnplanned', payload);
-          if (res && res.success) showToast('✅ ส่งขออนุมัติแล้ว รอ Logistics Manager');
-          else { showToast('ไม่สำเร็จ: '+(res?.message||''), 'error'); return; }
-        } catch(e) { showToast('Error: '+e.message, 'error'); return; }
-      }
-
-      resetUnpForm(prefix);
-      await initUnplanned(roleLabel);
-    }
 
     window.selectUnpType = function(prefix, type) {
       document.getElementById(prefix+'-type').value = type;
@@ -10560,42 +10442,81 @@
     };
 
     async function doSubmitUnplanned(prefix, roleLabel) {
-      const submittedBy  = (document.getElementById(prefix+'-submitted-by')||{}).value?.trim() || '';
-      const sup          = (document.getElementById(prefix+'-supplier')||{}).value?.trim() || '';
-      const reason       = (document.getElementById(prefix+'-reason')||{}).value || '';
-      const unpType      = (document.getElementById(prefix+'-type')||{}).value || '';
-      const arrivalDate  = (document.getElementById(prefix+'-arrival-date')||{}).value || '';
-      const originalDate = (document.getElementById(prefix+'-original-date')||{}).value || '';
+      const unpType = (document.getElementById(prefix+'-type')||{}).value || '';
+      if (!unpType) { showToast('กรุณาเลือกประเภทนอกแผน', 'error'); return; }
 
-      if (!submittedBy)  { showToast('กรุณากรอกชื่อผู้กรอก', 'error'); return; }
-      if (!sup)          { showToast('กรุณาระบุ Supplier', 'error'); return; }
-      if (!unpType)      { showToast('กรุณาเลือกประเภทนอกแผน', 'error'); return; }
-      if (!arrivalDate)  { showToast('กรุณาระบุ Arrival Date', 'error'); return; }
-      if (unpType === 'reschedule' && !originalDate) { showToast('กรุณาระบุวันที่เดิมที่ CF ไว้', 'error'); return; }
-      if (!reason)       { showToast('กรุณาระบุเหตุผล', 'error'); return; }
+      if (unpType === 'reschedule') {
+        // ── Type 1: เลื่อนวัน ──
+        const submittedBy = (document.getElementById('unp-r-submitted-by')||{}).value?.trim() || '';
+        const newDate     = (document.getElementById('unp-r-new-date')||{}).value || '';
+        const reason      = (document.getElementById('unp-r-reason')||{}).value || '';
+        const remark      = (document.getElementById('unp-r-remark')||{}).value || '';
+        const checked     = Array.from(document.querySelectorAll('.reschedule-cb:checked'));
 
-      const payload = {
-        supplier:       sup,
-        po_no:          (document.getElementById(prefix+'-po')||{}).value?.trim()||'',
-        part_no:        (document.getElementById(prefix+'-part')||{}).value?.trim()||'',
-        qty:            parseFloat((document.getElementById(prefix+'-qty')||{}).value||'0')||0,
-        reason:         reason,
-        remark:         (document.getElementById(prefix+'-remark')||{}).value?.trim()||'',
-        submitted_by:   submittedBy,
-        created_by:     submittedBy,
-        created_role:   roleLabel,
-        unplanned_type: unpType,
-        arrival_date:   arrivalDate,
-        original_date:  originalDate,
-      };
-      try {
-        const res = await callAPI('saveUnplanned', payload);
-        if (res && res.success) {
-          showToast('✅ ส่งขออนุมัติแล้ว รอ Logistics Manager');
-          resetUnpForm(prefix);
-          await initUnplanned(roleLabel);
-        } else { showToast('ไม่สำเร็จ: '+(res?.message||''), 'error'); }
-      } catch(e) { showToast('Error: '+e.message, 'error'); }
+        if (!submittedBy) { showToast('กรุณาเลือกผู้กรอก', 'error'); return; }
+        if (!checked.length) { showToast('กรุณาเลือก Part อย่างน้อย 1 รายการ', 'error'); return; }
+        if (!newDate) { showToast('กรุณาระบุ Arrival Date ใหม่', 'error'); return; }
+        if (!reason)  { showToast('กรุณาระบุเหตุผล', 'error'); return; }
+
+        const items = checked.map(function(cb) {
+          const p = cb.dataset.id.split('|');
+          return { supplier: p[4]||'', po_no: p[1]||'', part_no: p[2]||'',
+                   qty: parseFloat(p[5])||0, arrival_date: newDate, original_date: p[3]||'' };
+        });
+        const common = {
+          reason: reason, remark: remark,
+          submitted_by: submittedBy, created_by: submittedBy, created_role: roleLabel,
+          unplanned_type: 'reschedule',
+        };
+        try {
+          const res = await callAPI('saveUnplannedBatch', { items: items, common: common });
+          if (res && res.success) {
+            showToast('✅ ส่งขออนุมัติ '+res.saved+' รายการแล้ว — Line แจ้ง Logistics Manager แล้ว');
+            resetUnpForm(prefix);
+            await initUnplanned(roleLabel);
+          } else { showToast('ไม่สำเร็จ: '+(res?.message||''), 'error'); }
+        } catch(e) { showToast('Error: '+e.message, 'error'); }
+
+      } else {
+        // ── Type 2: งานใหม่ ──
+        const submittedBy = (document.getElementById('unp-n-submitted-by')||{}).value?.trim() || '';
+        const sup         = (document.getElementById('unp-n-supplier')||{}).value?.trim() || '';
+        const arrivalDate = (document.getElementById('unp-n-arrival-date')||{}).value || '';
+        const reason      = (document.getElementById('unp-n-reason')||{}).value || '';
+        const remark      = (document.getElementById('unp-n-remark')||{}).value || '';
+
+        if (!submittedBy) { showToast('กรุณาเลือกผู้กรอก', 'error'); return; }
+        if (!sup)         { showToast('กรุณาระบุ Supplier', 'error'); return; }
+        if (!arrivalDate) { showToast('กรุณาระบุ Arrival Date', 'error'); return; }
+        if (!reason)      { showToast('กรุณาระบุเหตุผล', 'error'); return; }
+
+        const partRows = document.querySelectorAll('#unp-parts-list > div[id^="unp-part-row-"]');
+        if (!partRows.length) { showToast('กรุณาเพิ่ม Part อย่างน้อย 1 รายการ', 'error'); return; }
+
+        const items = [];
+        for (let i = 0; i < partRows.length; i++) {
+          const idx  = partRows[i].id.replace('unp-part-row-','');
+          const po   = (document.getElementById('unp-part-po-'+idx)||{}).value?.trim()||'';
+          const part = (document.getElementById('unp-part-no-'+idx)||{}).value?.trim()||'';
+          const qty  = parseFloat((document.getElementById('unp-part-qty-'+idx)||{}).value||'0')||0;
+          if (!qty) { showToast('Part รายการที่ '+(i+1)+': กรุณาระบุ QTY', 'error'); return; }
+          items.push({ supplier: sup, po_no: po, part_no: part, qty: qty,
+                       arrival_date: arrivalDate, original_date: '' });
+        }
+        const common = {
+          reason: reason, remark: remark,
+          submitted_by: submittedBy, created_by: submittedBy, created_role: roleLabel,
+          unplanned_type: 'new',
+        };
+        try {
+          const res = await callAPI('saveUnplannedBatch', { items: items, common: common });
+          if (res && res.success) {
+            showToast('✅ ส่งขออนุมัติ '+res.saved+' รายการแล้ว — Line แจ้ง Logistics Manager แล้ว');
+            resetUnpForm(prefix);
+            await initUnplanned(roleLabel);
+          } else { showToast('ไม่สำเร็จ: '+(res?.message||''), 'error'); }
+        } catch(e) { showToast('Error: '+e.message, 'error'); }
+      }
     }
     window.submitUnplanned  = function(){ doSubmitUnplanned('unp',  'PIC/จัดซื้อ'); };
     window.submitUnplanned2 = function(){ doSubmitUnplanned('unp2', 'Planning'); };
