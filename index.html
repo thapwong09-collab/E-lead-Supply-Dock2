@@ -11351,14 +11351,57 @@
                          : someConfirmed ? 'bg-blue-400/80'
                          : 'bg-amber-400/80';
 
+        // รอบส่งที่ CF ไว้ (เฉพาะ pending)
+        const confirmedSlots = items
+          .filter(function(r){ return r.status === 'pending' && r.time_slot; })
+          .reduce(function(acc, r) {
+            acc[r.time_slot] = (acc[r.time_slot]||0) + 1;
+            return acc;
+          }, {});
+        const slotTags = Object.keys(confirmedSlots).map(function(slot) {
+          return '<span class="text-[9px] font-black px-2 py-0.5 rounded-full ' +
+            (slot==='AM' ? 'bg-blue-100 text-blue-600' :
+             slot==='PM' ? 'bg-orange-100 text-orange-600' :
+             'bg-purple-100 text-purple-600') + '">' +
+            slot + ' ×' + confirmedSlots[slot] + '</span>';
+        }).join(' ');
+
+        // mini weekly table สำหรับ Part ที่ CF แล้ว
+        const cfItems = items.filter(function(r){ return r.status === 'pending'; });
+        const cfTableHtml = cfItems.length > 0
+          ? '<div class="px-4 py-3 bg-white border-t border-slate-100">' +
+              '<div class="text-[9px] font-black text-slate-400 uppercase mb-2">📋 รายการที่ CF แล้ว</div>' +
+              '<table class="w-full text-[10px]">' +
+              '<thead><tr class="text-[8px] font-black text-slate-300 uppercase">' +
+                '<td class="pb-1">Supplier</td><td class="pb-1">PO No.</td><td class="pb-1">Part No.</td>' +
+                '<td class="pb-1 text-center">QTY</td><td class="pb-1 text-center">รอบส่ง</td><td class="pb-1 text-center">Arrival</td>' +
+              '</tr></thead><tbody>' +
+              cfItems.map(function(r) {
+                const slotColor = r.time_slot==='AM' ? 'text-blue-600' : r.time_slot==='PM' ? 'text-orange-600' : 'text-purple-600';
+                return '<tr class="border-t border-slate-50">' +
+                  '<td class="py-1 font-bold text-slate-600 max-w-[80px] truncate">' + (r.vendor||'-') + '</td>' +
+                  '<td class="py-1 text-slate-500">' + (r.po_no||'-') + '</td>' +
+                  '<td class="py-1 font-bold text-violet-700">' + (r.part_no||'-') + '</td>' +
+                  '<td class="py-1 text-center font-black text-slate-700">' + (r.qty_plan||0) + '</td>' +
+                  '<td class="py-1 text-center font-black ' + slotColor + '">' + (r.time_slot||'-') + '</td>' +
+                  '<td class="py-1 text-center text-emerald-600 font-bold">' + String(r.date||'-').split(' ')[0] + '</td>' +
+                '</tr>';
+              }).join('') +
+              '</tbody></table></div>'
+          : '';
+
         card.innerHTML = '<div class="u503-pic-header"><div class="flex-1 min-w-0"><div class="font-black text-sm">👤 ' + pic + '</div><div class="text-violet-200 text-[10px] mt-0.5">' + items.length + ' รายการ · ' + vendors.length + ' Supplier</div></div><div class="text-right flex-shrink-0"><div id="ampm-badge-' + picKey + '" class="text-white font-black text-sm '+badgeColor+' rounded-lg px-3 py-1 mb-1">'+badgeText+'</div><div class="text-violet-200 text-[9px]">คลิกเพื่อจัดการ</div></div></div>' +
-          '<div class="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between">' +
-            '<div class="text-[10px] text-slate-500 font-bold">' + vendors.slice(0,3).join(', ') + (vendors.length>3?' +'+( vendors.length-3)+' อื่นๆ':'') + '</div>' +
-            '<div class="flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 rounded-lg px-2 py-1">' +
-              '<span class="text-[9px] text-emerald-500">📅</span>' +
-              '<span class="text-[9px] font-black text-emerald-600">' + dateLabel + '</span>' +
+          '<div class="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between gap-2">' +
+            '<div class="text-[10px] text-slate-500 font-bold truncate">' + vendors.slice(0,3).join(', ') + (vendors.length>3?' +'+(vendors.length-3)+' อื่นๆ':'') + '</div>' +
+            '<div class="flex items-center gap-1.5 flex-shrink-0">' +
+              (slotTags ? '<div class="flex gap-1">' + slotTags + '</div>' : '') +
+              '<div class="flex items-center gap-1 bg-emerald-50 border border-emerald-100 rounded-lg px-2 py-1">' +
+                '<span class="text-[9px] text-emerald-500">📅</span>' +
+                '<span class="text-[9px] font-black text-emerald-600">' + dateLabel + '</span>' +
+              '</div>' +
             '</div>' +
-          '</div>';
+          '</div>' +
+          cfTableHtml;
         container.appendChild(card);
       });
     }
