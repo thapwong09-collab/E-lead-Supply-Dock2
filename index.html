@@ -2992,6 +2992,24 @@
     let _hashParts         = '';   // Staff weekly parts hash
     let _hashPartsPIC      = '';   // PIC parts hash
     let _lastUnplannedFetch = 0;   // timestamp ล่าสุดที่ fetch unplanned
+    const UNPLANNED_REFRESH_MS = 5000; // refresh ทุก 5 วิ
+
+    function _fetchAndRefreshUnplanned(tbodyId, emptyId) {
+      if (Date.now() - _lastUnplannedFetch < UNPLANNED_REFRESH_MS) return;
+      _lastUnplannedFetch = Date.now();
+      callAPI('getUnplanned').then(function(res) {
+        if (res && res.data) {
+          const newHash = _quickHash(res.data);
+          if (newHash !== _hashUnplanned) {
+            _hashUnplanned = newHash;
+            _unplannedData = res.data;
+            if (tbodyId) renderUnplannedTable(_unplannedData, tbodyId, emptyId);
+            // ถ้า manager เปิดอยู่ให้ reload approve list ด้วย
+            if (isManagerLoggedIn && typeof loadManagerApprove === 'function') loadManagerApprove();
+          }
+        }
+      });
+    }
     let _hashPartsPlanning = '';   // Planning parts hash
     let _hashPicMaster     = '';
     let _hashSupplier      = '';
@@ -3124,27 +3142,10 @@
           const newHashM = _quickHash(allPicMaster);
           if (newHashM !== _hashPicMaster) { _hashPicMaster = newHashM; updatePicMaster(); }
         }
-        // ── Unplanned (PIC) — auto-refresh เมื่อมีการ approve ผ่าน Line ──
+        // ── Unplanned (PIC) ──
         const unpPage = document.getElementById('pic-page-unplanned');
         if (unpPage && !unpPage.classList.contains('hidden')) {
-          const newHashU = _quickHash(_unplannedData);
-          if (newHashU !== _hashUnplanned) {
-            _hashUnplanned = newHashU;
-          }
-          // fetch unplanned ใหม่ทุก 10 วิ เพื่อจับการเปลี่ยนแปลงจาก Line
-          if (!_lastUnplannedFetch || Date.now() - _lastUnplannedFetch > 10000) {
-            _lastUnplannedFetch = Date.now();
-            callAPI('getUnplanned').then(function(res) {
-              if (res && res.data) {
-                const newHash = _quickHash(res.data);
-                if (newHash !== _hashUnplanned) {
-                  _hashUnplanned = newHash;
-                  _unplannedData = res.data;
-                  renderUnplannedTable(_unplannedData, 'pic-unp-table-body', 'pic-unp-empty');
-                }
-              }
-            });
-          }
+          _fetchAndRefreshUnplanned('pic-unp-table-body', 'pic-unp-empty');
         }
       }
 
@@ -3158,39 +3159,13 @@
         // ── Unplanned (Planning) ──
         const unpPageP = document.getElementById('planning-page-unplanned');
         if (unpPageP && !unpPageP.classList.contains('hidden')) {
-          if (!_lastUnplannedFetch || Date.now() - _lastUnplannedFetch > 10000) {
-            _lastUnplannedFetch = Date.now();
-            callAPI('getUnplanned').then(function(res) {
-              if (res && res.data) {
-                const newHash = _quickHash(res.data);
-                if (newHash !== _hashUnplanned) {
-                  _hashUnplanned = newHash;
-                  _unplannedData = res.data;
-                  renderUnplannedTable(_unplannedData, 'planning-unp-table-body', 'planning-unp-empty');
-                }
-              }
-            });
-          }
+          _fetchAndRefreshUnplanned('planning-unp-table-body', 'planning-unp-empty');
         }
       }
 
-      // ─── Manager — auto-refresh unplanned และ weekly ──────
+      // ─── Manager — auto-refresh unplanned ──────────────────
       if (isManagerLoggedIn) {
-        if (!_lastUnplannedFetch || Date.now() - _lastUnplannedFetch > 10000) {
-          _lastUnplannedFetch = Date.now();
-          callAPI('getUnplanned').then(function(res) {
-            if (res && res.data) {
-              const newHash = _quickHash(res.data);
-              if (newHash !== _hashUnplanned) {
-                _hashUnplanned = newHash;
-                _unplannedData = res.data;
-                // อัพเดท allPartData ด้วยถ้า factory approve แล้ว (Part ใหม่อาจเข้ามา)
-                fetchAll();
-                loadManagerApprove();
-              }
-            }
-          });
-        }
+        _fetchAndRefreshUnplanned(null, null);
       }
 
       // ─── Supplier ─────────────────────────────────────────
