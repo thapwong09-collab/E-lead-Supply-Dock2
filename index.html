@@ -5038,10 +5038,10 @@
     // ==========================================
     // คำนวณ plan_status จาก PartDetail (แทน WeeklyPlan)
     function getPlanStatusFromParts(companyName, date, checkinTime) {
-      // รวม draft ด้วย เพราะ draft = มีในแผนแล้วแค่ยังไม่ CF
+      // เฉพาะ Part ที่ CF แล้ว (pending) เท่านั้น
       const parts = allPartData.filter(p => {
         const pDate = String(p.date||'').split(' ')[0].trim();
-        return pDate === date && p.status !== 'cancelled';
+        return pDate === date && p.status === 'pending';
       });
       if (parts.length === 0) return 'ไม่มีในแผน';
 
@@ -5076,7 +5076,6 @@
       }
 
       if (slot.includes('PICK')) return 'Pickup';
-      Logger && console.log('[plan_status]', companyName, 'slot='+slot, 'tf='+tf, 'checkinTime='+checkinTime);
       if (slot === 'AM') return tf > 11.5 ? 'AM - ล่าช้า' : 'AM - ตรงเวลา';
       if (slot === 'PM') {
         if (tf < 13.25)  return 'PM - มาก่อนเวลา';
@@ -5099,10 +5098,7 @@
 
     // คำนวณ plan_status realtime จาก allPartData
     function getEffectivePlanStatus(r) {
-      const stored = r.plan_status || '';
-      const oldDefaults = ['นอกแผน', ''];
-      if (stored && !oldDefaults.includes(stored)) return stored;
-      // recalculate โดยใช้ checkin_time จริง
+      // recalculate จาก PartDetail เสมอ ไม่ใช้ค่าเก่าจาก Sheet
       return getPlanStatusFromParts(r.company_name, normalizeDate(r.date), r.checkin_time);
     }
 
