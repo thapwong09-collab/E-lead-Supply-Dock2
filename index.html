@@ -3749,13 +3749,13 @@
       if (!raw) return '';
       const key = String(raw);
       if (_normDateCache[key] !== undefined) return _normDateCache[key];
-      const v = key.replace(/^'/,'').trim();
+      const v = key.replace(/^'/,'').trim().split('T')[0].split(' ')[0]; // ตัด timestamp ออกก่อน
       if (!v) return (_normDateCache[key] = '');
       const ymd = v.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
       if (ymd) return (_normDateCache[key] = `${ymd[1]}-${ymd[2].padStart(2,'0')}-${ymd[3].padStart(2,'0')}`);
       const dmy = v.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
       if (dmy) return (_normDateCache[key] = `${dmy[3]}-${dmy[2].padStart(2,'0')}-${dmy[1].padStart(2,'0')}`);
-      const d = new Date(v);
+      const d = new Date(v + 'T00:00:00'); // force local time
       if (!isNaN(d)) return (_normDateCache[key] = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
       return (_normDateCache[key] = '');
     }
@@ -5038,7 +5038,11 @@
     // ==========================================
     // คำนวณ plan_status จาก PartDetail (แทน WeeklyPlan)
     function getPlanStatusFromParts(companyName, date, checkinTime) {
-      const parts = allPartData.filter(p => String(p.date||'').trim() === date && p.status !== 'draft' && p.status !== 'cancelled');
+      // รวม draft ด้วย เพราะ draft = มีในแผนแล้วแค่ยังไม่ CF
+      const parts = allPartData.filter(p => {
+        const pDate = String(p.date||'').split(' ')[0].trim();
+        return pDate === date && p.status !== 'cancelled';
+      });
       if (parts.length === 0) return 'ไม่มีในแผน';
 
       const normCN = normalizeVendor(companyName.toLowerCase().trim());
@@ -9856,26 +9860,33 @@
       else { doWarm(); }
     }
 
-    // warm up ทันทีที่ user interact ครั้งแรก
-    ['click','touchstart','keydown','touchend'].forEach(function(evt) {
-      document.addEventListener(evt, function warmUp() {
-        _warmUpAudio();
-      }, { once: true });
+    // warm up ทุกครั้งที่ user interact — ไม่ใช่แค่ครั้งแรก
+    ['click','touchstart','keydown'].forEach(function(evt) {
+      document.addEventListener(evt, function() {
+        const ctx = _getAudioCtx();
+        if (ctx && ctx.state === 'suspended') {
+          ctx.resume().then(function(){ _audioReady = true; });
+        } else if (ctx) {
+          _audioReady = true;
+        }
+      });
     });
 
-    // keep context alive — resume ทุก 30 วินาทีถ้า suspended
+    // keep context alive — resume ทุก 10 วินาทีถ้า suspended
     setInterval(function() {
       const ctx = _getAudioCtx();
       if (ctx && ctx.state === 'suspended') ctx.resume().then(function(){ _audioReady = true; });
-    }, 30000);
+    }, 10000);
 
     function _scheduleSound(fn) {
       const ctx = _getAudioCtx();
       if (!ctx) return;
       if (ctx.state === 'suspended') {
-        ctx.resume().then(function() { _audioReady = true; fn(ctx); });
+        ctx.resume().then(function() {
+          _audioReady = true;
+          fn(ctx);
+        }).catch(function(){});
       } else {
-        // เล่นทันที — ไม่มี async delay
         fn(ctx);
       }
     }
@@ -11839,19 +11850,60 @@
             }
           });
 
-          // อัพเดท badge บน card ทันที โดยคำนวณจาก myPartsData จริง
+          // อัพเดท badge + ตาราง CF ด้านล่าง card ทันที
           const picName = document.getElementById('myparts-modal-pic-name')?.textContent?.trim() || '';
           const picKey  = picName.replace(/[^a-zA-Z0-9]/g,'_');
           if (picKey) {
-            const badge = document.getElementById('ampm-badge-' + picKey);
-            if (badge) {
-              const picItems      = myPartsData.filter(function(r){ return (r.pic||'(ไม่ระบุ PIC)') === picName; });
-              const cfCount       = picItems.filter(function(r){ return r.status === 'pending'; }).length;
-              const total         = picItems.length;
-              const allCF         = cfCount === total;
-              const someCF        = cfCount > 0 && !allCF;
-              badge.className     = 'text-white font-black text-sm rounded-lg px-3 py-1 mb-1 ' + (allCF ? 'bg-emerald-500/90' : someCF ? 'bg-blue-400/80' : 'bg-amber-400/80');
-              badge.textContent   = allCF ? '✅ Confirmed' : someCF ? '🔄 CF บางส่วน ('+cfCount+'/'+total+')' : '⏳ รอ Confirm';
+            // อัพเดท myPartsData ด้วย status ใหม่
+            myPartsData.forEach(function(r) {
+              const updated = toConfirm.find(function(c){ return String(c.part_id) === String(r.id); });
+              if (updated) {
+                r.status    = 'pending';
+                r.time_slot = updated.time_slot || r.time_slot;
+                r.pic_note  = updated.pic_note  || r.pic_note || '';
+              }
+            });
+
+            // re-render card นี้ใหม่ทั้งใบ
+            const cardEl = document.getElementById('piccard_' + picKey);
+            if (cardEl) {
+              const picItems   = myPartsData.filter(function(r){ return (r.pic||'(ไม่ระบุ PIC)') === picName; });
+              const cfCount    = picItems.filter(function(r){ return r.status === 'pending'; }).length;
+              const total      = picItems.length;
+              const allCF      = cfCount === total;
+              const someCF     = cfCount > 0 && !allCF;
+              const badgeText  = allCF ? '✅ Confirmed' : someCF ? '🔄 CF บางส่วน ('+cfCount+'/'+total+')' : '⏳ รอ Confirm';
+              const badgeColor = allCF ? 'bg-emerald-500/90' : someCF ? 'bg-blue-400/80' : 'bg-amber-400/80';
+              const vendors    = [...new Set(picItems.map(function(r){return r.vendor||'-';}))];
+              const dates      = [...new Set(picItems.map(function(r){ return String(r.date||'').split(' ')[0]; }).filter(Boolean))].sort();
+              const dateLabel  = dates.length === 1 ? dates[0] : (dates.length > 1 ? dates[0]+' – '+dates[dates.length-1] : '—');
+
+              // slot tags
+              const confirmedBySupplier = {};
+              picItems.filter(function(r){ return r.status==='pending' && r.time_slot && r.vendor; })
+                .forEach(function(r){
+                  confirmedBySupplier[r.vendor+'|'+r.time_slot] = { vendor:r.vendor, slot:r.time_slot };
+                });
+              const slotSupCount = {};
+              Object.values(confirmedBySupplier).forEach(function(x){ slotSupCount[x.slot]=(slotSupCount[x.slot]||0)+1; });
+              const slotTags = Object.keys(slotSupCount).sort().map(function(slot){
+                return '<span class="text-[9px] font-black px-2 py-0.5 rounded-full '+(slot==='AM'?'bg-blue-100 text-blue-600':slot==='PM'?'bg-orange-100 text-orange-600':'bg-purple-100 text-purple-600')+'">'+slot+' ×'+slotSupCount[slot]+'</span>';
+              }).join(' ');
+
+              // cf table
+              const cfItems = picItems.filter(function(r){ return r.status==='pending'; });
+              const cfTableHtml = cfItems.length > 0
+                ? '<div class="px-4 py-3 bg-white border-t border-slate-100"><div class="text-[9px] font-black text-slate-400 uppercase mb-2">📋 รายการที่ CF แล้ว</div><div class="overflow-x-auto"><table class="w-full text-[10px] whitespace-nowrap"><thead><tr class="text-[8px] font-black text-slate-300 uppercase bg-slate-50"><td class="px-3 py-1.5">Supplier</td><td class="px-3 py-1.5">PO No.</td><td class="px-3 py-1.5">Part No.</td><td class="px-3 py-1.5 text-center">QTY</td><td class="px-3 py-1.5 text-center">รอบส่ง</td><td class="px-3 py-1.5 text-center">Arrival Date</td></tr></thead><tbody>'
+                + cfItems.map(function(r){
+                    const sc = r.time_slot==='AM'?'bg-blue-100 text-blue-700':r.time_slot==='PM'?'bg-orange-100 text-orange-700':'bg-purple-100 text-purple-700';
+                    return '<tr class="border-t border-slate-50"><td class="px-3 py-1.5 font-bold text-slate-600">'+( r.vendor||'-')+'</td><td class="px-3 py-1.5 text-slate-500">'+(r.po_no||'-')+'</td><td class="px-3 py-1.5 font-bold text-violet-700">'+(r.part_no||'-')+'</td><td class="px-3 py-1.5 text-center font-black text-slate-700">'+(r.qty_plan||0)+'</td><td class="px-3 py-1.5 text-center"><span class="px-2 py-0.5 rounded-full font-black text-[9px] '+sc+'">'+(r.time_slot||'-')+'</span></td><td class="px-3 py-1.5 text-center font-bold text-emerald-600">'+String(r.date||'-').split(' ')[0]+'</td></tr>';
+                  }).join('')
+                + '</tbody></table></div></div>' : '';
+
+              cardEl.innerHTML =
+                '<div class="u503-pic-header"><div class="flex-1 min-w-0"><div class="font-black text-sm">👤 '+picName+'</div><div class="text-violet-200 text-[10px] mt-0.5">'+picItems.length+' รายการ · '+vendors.length+' Supplier</div></div><div class="text-right flex-shrink-0"><div id="ampm-badge-'+picKey+'" class="text-white font-black text-sm rounded-lg px-3 py-1 mb-1 '+badgeColor+'">'+badgeText+'</div><div class="text-violet-200 text-[9px]">คลิกเพื่อจัดการ</div></div></div>'
+                + '<div class="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between gap-2"><div class="text-[10px] text-slate-500 font-bold truncate">'+vendors.slice(0,3).join(', ')+(vendors.length>3?' +'+(vendors.length-3)+' อื่นๆ':'')+'</div><div class="flex items-center gap-1.5 flex-shrink-0">'+(slotTags?'<div class="flex gap-1">'+slotTags+'</div>':'')+'<div class="flex items-center gap-1 bg-emerald-50 border border-emerald-100 rounded-lg px-2 py-1"><span class="text-[9px] text-emerald-500">📅</span><span class="text-[9px] font-black text-emerald-600">'+dateLabel+'</span></div></div></div>'
+                + cfTableHtml;
             }
           }
 
