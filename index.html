@@ -5106,7 +5106,9 @@
     function _getPlanStatusFromIndex(queueNumber, date) {
       const k = String(queueNumber) + '_' + normalizeDate(String(date));
       const ci = _checkinByQueueDate[k];
-      return ci ? String(ci.plan_status||'') : '';
+      if (!ci) return '';
+      // recalculate จาก Part ที่ CF แล้วและ checkin_time จริง ไม่ใช้ค่าเก่าจาก Sheet
+      return getPlanStatusFromParts(ci.company_name, normalizeDate(ci.date), ci.checkin_time);
     }
 
 
