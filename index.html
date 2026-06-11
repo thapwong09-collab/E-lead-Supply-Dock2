@@ -1781,6 +1781,7 @@
                         <th class="px-3 py-2 text-center">AM/PM</th>
                         <th class="px-3 py-2 text-center">Arrival Date เดิม</th>
                         <th class="px-3 py-2 text-center">Arrival Date ใหม่ *</th>
+                        <th class="px-3 py-2 text-left">เหตุผล *</th>
                       </tr>
                     </thead>
                     <tbody id="unp-r-parts-tbody"></tbody>
@@ -1788,15 +1789,13 @@
                 </div>
               </div>
 
-              <!-- Arrival Date ใหม่อยู่ใน row ของแต่ละ Part แล้ว -->
-              <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="md:col-span-2 bg-blue-50 border border-blue-100 rounded-xl p-3 text-[10px] text-blue-600">
-                  💡 ระบุ Arrival Date ใหม่สำหรับแต่ละ Part ในตารางด้านบนได้เลย (แต่ละ Part เลือกวันต่างกันได้)
+              <!-- เหตุผลอยู่ในแต่ละ row แล้ว -->
+              <div class="p-5">
+                <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 text-[10px] text-blue-600 mb-4">
+                  💡 ระบุ Arrival Date ใหม่และเหตุผลสำหรับแต่ละ Part ในตารางด้านบน (แต่ละ Part เลือกวันและเหตุผลต่างกันได้)
                 </div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เหตุผล *</label>
-                  <input type="text" id="unp-r-reason" placeholder="เช่น ซัพผลิตไม่ทัน, รอวัตถุดิบ..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">หมายเหตุ</label>
-                  <input type="text" id="unp-r-remark" placeholder="รายละเอียดอื่นๆ" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm"></div>
+                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">หมายเหตุเพิ่มเติม (ถ้ามี)</label>
+                  <input type="text" id="unp-r-remark" placeholder="หมายเหตุรวมสำหรับทุกรายการ..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-blue-400 font-bold text-sm"></div>
               </div>
               <!-- hidden compat -->
               <input type="hidden" id="unp-submitted-by" value="">
@@ -10289,6 +10288,10 @@
               '<input type="date" class="reschedule-new-date border border-blue-200 rounded-lg px-2 py-1 text-[10px] font-bold bg-blue-50 outline-none focus:border-blue-400 cursor-pointer" ' +
               'min="'+partDate+'" placeholder="เลือกวันใหม่">' +
             '</td>' +
+            '<td class="px-3 py-2">' +
+              '<input type="text" class="reschedule-reason w-full min-w-[120px] border border-slate-200 rounded-lg px-2 py-1 text-[10px] font-bold bg-white outline-none focus:border-blue-400" ' +
+              'placeholder="เหตุผล...">' +
+            '</td>' +
           '</tr>';
         }).join('');
         updateRescheduleCount();
@@ -10453,32 +10456,38 @@
 
       if (unpType === 'reschedule') {
         const submittedBy = (document.getElementById('unp-r-submitted-by')||{}).value?.trim() || '';
-        const reason      = (document.getElementById('unp-r-reason')||{}).value || '';
         const remark      = (document.getElementById('unp-r-remark')||{}).value || '';
         const checked     = Array.from(document.querySelectorAll('.reschedule-cb:checked'));
 
         if (!submittedBy) { showToast('กรุณาเลือกผู้กรอก', 'error'); return; }
         if (!checked.length) { showToast('กรุณาเลือก Part อย่างน้อย 1 รายการ', 'error'); return; }
-        if (!reason)  { showToast('กรุณาระบุเหตุผล', 'error'); return; }
 
-        // ตรวจสอบว่าทุก row ที่เลือกมี Arrival Date ใหม่
+        // อ่าน date + reason จากแต่ละ row
         const items = [];
         for (let i = 0; i < checked.length; i++) {
           const cb      = checked[i];
           const row     = cb.closest('tr');
           const newDate = row ? (row.querySelector('.reschedule-new-date')||{}).value || '' : '';
+          const reason  = row ? (row.querySelector('.reschedule-reason')||{}).value?.trim() || '' : '';
+
           if (!newDate) {
-            showToast('กรุณาระบุ Arrival Date ใหม่ให้ครบทุกรายการที่เลือก', 'error');
-            // highlight row ที่ขาด
-            if (row) row.classList.add('bg-red-50');
+            showToast('Part รายการที่ '+(i+1)+': กรุณาระบุ Arrival Date ใหม่', 'error');
+            if (row) row.style.backgroundColor = '#FEF2F2';
             return;
           }
+          if (!reason) {
+            showToast('Part รายการที่ '+(i+1)+': กรุณาระบุเหตุผล', 'error');
+            if (row) row.style.backgroundColor = '#FEF2F2';
+            return;
+          }
+          if (row) row.style.backgroundColor = '';
           const p = cb.dataset.id.split('|');
           items.push({ supplier: p[4]||'', po_no: p[1]||'', part_no: p[2]||'',
-                       qty: parseFloat(p[5])||0, arrival_date: newDate, original_date: p[3]||'' });
+                       qty: parseFloat(p[5])||0, arrival_date: newDate, original_date: p[3]||'',
+                       reason: reason });
         }
         const common = {
-          reason: reason, remark: remark,
+          remark: remark,
           submitted_by: submittedBy, created_by: submittedBy, created_role: roleLabel,
           unplanned_type: 'reschedule',
         };
