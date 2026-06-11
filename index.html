@@ -5076,6 +5076,7 @@
       }
 
       if (slot.includes('PICK')) return 'Pickup';
+      Logger && console.log('[plan_status]', companyName, 'slot='+slot, 'tf='+tf, 'checkinTime='+checkinTime);
       if (slot === 'AM') return tf > 11.5 ? 'AM - ล่าช้า' : 'AM - ตรงเวลา';
       if (slot === 'PM') {
         if (tf < 13.25)  return 'PM - มาก่อนเวลา';
