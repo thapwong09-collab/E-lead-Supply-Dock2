@@ -1737,12 +1737,12 @@
               <div class="mx-5 mt-4 bg-orange-50 border border-orange-200 rounded-2xl p-4">
                 <div class="font-black text-orange-700 text-xs mb-2">📋 คำแนะนำ — กรณีงานใหม่</div>
                 <div class="text-[10px] text-orange-600 space-y-1">
-                  <div>• ระบุข้อมูล Supplier + Part + QTY ที่ต้องการเพิ่ม</div>
-                  <div>• เมื่ออนุมัติแล้ว ระบบจะ <strong>สร้าง Part record ใหม่</strong> ใน Weekly Plan อัตโนมัติ</div>
-                  <div>• ข้อมูลจะแสดงในตาราง "รายการนอกแผน" พร้อม badge ⚡ งานใหม่</div>
+                  <div>• ระบุ Supplier + Arrival Date + เหตุผล จากนั้นเพิ่ม Part ได้หลายรายการ</div>
+                  <div>• เมื่ออนุมัติแล้ว ระบบจะ <strong>สร้าง Part record</strong> ทุกรายการใน Weekly Plan อัตโนมัติ</div>
                 </div>
               </div>
-              <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- ข้อมูลหลัก -->
+              <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-slate-100">
                 <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">ผู้กรอก *</label>
                   <select id="unp-submitted-by" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm cursor-pointer"><option value="">-- เลือกชื่อ --</option></select></div>
                 <div class="relative"><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Supplier *</label>
@@ -1752,18 +1752,25 @@
                   <div id="unp-supplier-suggest" class="hidden absolute z-20 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 w-full max-h-48 overflow-y-auto"></div></div>
                 <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Arrival Date *</label>
                   <input type="date" id="unp-arrival-date" class="w-full border-2 border-orange-100 rounded-xl px-4 py-2.5 bg-orange-50 outline-none focus:border-orange-400 font-bold text-sm cursor-pointer"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">PO No.</label>
-                  <input type="text" id="unp-po" placeholder="เลข PO (ถ้ามี)" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Part No.</label>
-                  <input type="text" id="unp-part" placeholder="Part No. (ถ้ามี)" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">จำนวน (QTY) *</label>
-                  <input type="number" id="unp-qty" placeholder="0" min="0" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm"></div>
                 <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">เหตุผล *</label>
                   <input type="text" id="unp-reason" placeholder="เช่น งานเร่งด่วน, เพิ่มออเดอร์..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">หมายเหตุ</label>
+                <div class="md:col-span-2"><label class="text-[9px] font-black text-slate-400 uppercase block mb-1">หมายเหตุ</label>
                   <input type="text" id="unp-remark" placeholder="รายละเอียดเพิ่มเติม..." class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 bg-slate-50 outline-none focus:border-orange-400 font-bold text-sm"></div>
                 <input type="hidden" id="unp-original-date" value="">
               </div>
+              <!-- Part List -->
+              <div class="p-5">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="text-[9px] font-black text-slate-400 uppercase">รายการ Part *</div>
+                  <button type="button" onclick="addUnpPartRow()" class="bg-orange-50 hover:bg-orange-100 border border-orange-200 text-orange-600 font-black text-[10px] px-3 py-1.5 rounded-xl cursor-pointer">+ เพิ่ม Part</button>
+                </div>
+                <div id="unp-parts-list" class="space-y-2">
+                  <!-- rows จะถูกเพิ่มโดย JS -->
+                </div>
+              </div>
+              <input type="hidden" id="unp-qty" value="0">
+              <input type="hidden" id="unp-po" value="">
+              <input type="hidden" id="unp-part" value="">
             </div>
 
             <div class="px-5 pb-5 flex items-center gap-3">
@@ -10035,26 +10042,129 @@
       } catch(e) { showToast('Error: '+e.message, 'error'); }
     };
 
+    let _unpPartRows = [];
+
+    window.addUnpPartRow = function() {
+      const idx = _unpPartRows.length;
+      _unpPartRows.push({ po: '', part: '', qty: '' });
+      const list = document.getElementById('unp-parts-list');
+      if (!list) return;
+      const row = document.createElement('div');
+      row.id = 'unp-part-row-' + idx;
+      row.className = 'grid grid-cols-12 gap-2 items-center bg-orange-50 rounded-xl p-3 border border-orange-100';
+      row.innerHTML =
+        '<div class="col-span-4">' +
+          '<label class="text-[8px] font-black text-slate-400 uppercase block mb-1">PO No.</label>' +
+          '<input type="text" id="unp-part-po-'+idx+'" placeholder="PO No." ' +
+            'class="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold outline-none focus:border-orange-400 bg-white">' +
+        '</div>' +
+        '<div class="col-span-4">' +
+          '<label class="text-[8px] font-black text-slate-400 uppercase block mb-1">Part No.</label>' +
+          '<input type="text" id="unp-part-no-'+idx+'" placeholder="Part No." ' +
+            'class="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold outline-none focus:border-orange-400 bg-white">' +
+        '</div>' +
+        '<div class="col-span-3">' +
+          '<label class="text-[8px] font-black text-slate-400 uppercase block mb-1">QTY *</label>' +
+          '<input type="number" id="unp-part-qty-'+idx+'" placeholder="0" min="0" ' +
+            'class="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold outline-none focus:border-orange-400 bg-white">' +
+        '</div>' +
+        '<div class="col-span-1 flex items-end pb-0.5">' +
+          (idx > 0 ? '<button type="button" onclick="removeUnpPartRow('+idx+')" class="text-rose-400 hover:text-rose-600 font-black text-lg cursor-pointer">×</button>' : '<span></span>') +
+        '</div>';
+      list.appendChild(row);
+    };
+
+    window.removeUnpPartRow = function(idx) {
+      const row = document.getElementById('unp-part-row-' + idx);
+      if (row) row.remove();
+    };
+
+    async function doSubmitUnplanned(prefix, roleLabel) {
+      const submittedBy  = (document.getElementById(prefix+'-submitted-by')||{}).value?.trim() || '';
+      const sup          = (document.getElementById(prefix+'-supplier')||{}).value?.trim() || '';
+      const reason       = (document.getElementById(prefix+'-reason')||{}).value || '';
+      const unpType      = (document.getElementById(prefix+'-type')||{}).value || '';
+      const arrivalDate  = (document.getElementById(prefix+'-arrival-date')||{}).value || '';
+      const originalDate = (document.getElementById(prefix+'-original-date')||{}).value || '';
+
+      if (!submittedBy)  { showToast('กรุณากรอกชื่อผู้กรอก', 'error'); return; }
+      if (!sup)          { showToast('กรุณาระบุ Supplier', 'error'); return; }
+      if (!unpType)      { showToast('กรุณาเลือกประเภทนอกแผน', 'error'); return; }
+      if (!arrivalDate)  { showToast('กรุณาระบุ Arrival Date', 'error'); return; }
+      if (unpType === 'reschedule' && !originalDate) { showToast('กรุณาระบุวันที่เดิมที่ CF ไว้', 'error'); return; }
+      if (!reason)       { showToast('กรุณาระบุเหตุผล', 'error'); return; }
+
+      const basePayload = {
+        supplier:       sup,
+        reason:         reason,
+        remark:         (document.getElementById(prefix+'-remark')||{}).value?.trim()||'',
+        submitted_by:   submittedBy,
+        created_by:     submittedBy,
+        created_role:   roleLabel,
+        unplanned_type: unpType,
+        arrival_date:   arrivalDate,
+        original_date:  originalDate,
+      };
+
+      // งานใหม่ — ส่งทีละ Part
+      if (unpType === 'new') {
+        const partRows = document.querySelectorAll('#unp-parts-list > div[id^="unp-part-row-"]');
+        if (!partRows.length) { showToast('กรุณาเพิ่ม Part อย่างน้อย 1 รายการ', 'error'); return; }
+
+        let successCount = 0;
+        for (var i = 0; i < partRows.length; i++) {
+          const rowEl = partRows[i];
+          const idx   = rowEl.id.replace('unp-part-row-','');
+          const po    = (document.getElementById('unp-part-po-'+idx)||{}).value?.trim()||'';
+          const part  = (document.getElementById('unp-part-no-'+idx)||{}).value?.trim()||'';
+          const qty   = parseFloat((document.getElementById('unp-part-qty-'+idx)||{}).value||'0')||0;
+          if (!qty) { showToast('Part รายการที่ '+(i+1)+': กรุณาระบุ QTY', 'error'); return; }
+          try {
+            const res = await callAPI('saveUnplanned', Object.assign({}, basePayload, { po_no: po, part_no: part, qty: qty }));
+            if (res && res.success) successCount++;
+            else { showToast('Part รายการที่ '+(i+1)+' ไม่สำเร็จ: '+(res?.message||''), 'error'); return; }
+          } catch(e) { showToast('Error: '+e.message, 'error'); return; }
+        }
+        showToast('✅ ส่งขออนุมัติ '+successCount+' รายการแล้ว รอ Logistics Manager');
+      } else {
+        // เลื่อนวัน — ส่งครั้งเดียว
+        const payload = Object.assign({}, basePayload, {
+          po_no:   (document.getElementById(prefix+'-po')||{}).value?.trim()||'',
+          part_no: (document.getElementById(prefix+'-part')||{}).value?.trim()||'',
+          qty:     0,
+        });
+        try {
+          const res = await callAPI('saveUnplanned', payload);
+          if (res && res.success) showToast('✅ ส่งขออนุมัติแล้ว รอ Logistics Manager');
+          else { showToast('ไม่สำเร็จ: '+(res?.message||''), 'error'); return; }
+        } catch(e) { showToast('Error: '+e.message, 'error'); return; }
+      }
+
+      resetUnpForm(prefix);
+      await initUnplanned(roleLabel);
+    }
+
     window.selectUnpType = function(prefix, type) {
       document.getElementById(prefix+'-type').value = type;
       const body = document.getElementById(prefix+'-form-body');
       if (body) body.classList.remove('hidden');
       ['reschedule','new'].forEach(function(t) {
-        const btn = document.getElementById(prefix+'-type-btn-'+t);
+        const btn  = document.getElementById(prefix+'-type-btn-'+t);
         const form = document.getElementById(prefix+'-form-'+t);
         if (form) form.classList.toggle('hidden', t !== type);
         if (btn) {
-          if (t === type) {
-            btn.className = 'text-left p-4 rounded-2xl border-2 cursor-pointer ' +
-              (t==='reschedule' ? 'border-blue-500 bg-blue-50' : 'border-orange-500 bg-orange-50');
-          } else {
-            btn.className = 'text-left p-4 rounded-2xl border-2 border-slate-100 hover:border-' +
-              (t==='reschedule'?'blue':'orange') + '-400 hover:bg-' +
-              (t==='reschedule'?'blue':'orange') + '-50 transition-all cursor-pointer opacity-50';
-          }
+          btn.className = t === type
+            ? 'text-left p-4 rounded-2xl border-2 cursor-pointer ' + (t==='reschedule' ? 'border-blue-500 bg-blue-50' : 'border-orange-500 bg-orange-50')
+            : 'text-left p-4 rounded-2xl border-2 border-slate-100 hover:border-'+(t==='reschedule'?'blue':'orange')+'-400 hover:bg-'+(t==='reschedule'?'blue':'orange')+'-50 transition-all cursor-pointer opacity-50';
         }
       });
-      updatePicUnplannedDropdown && updatePicUnplannedDropdown();
+      if (type === 'new') {
+        _unpPartRows = [];
+        const list = document.getElementById('unp-parts-list');
+        if (list) list.innerHTML = '';
+        addUnpPartRow();
+      }
+      if (typeof updatePicUnplannedDropdown === 'function') updatePicUnplannedDropdown();
     };
 
     window.resetUnpForm = function(prefix) {
@@ -10230,10 +10340,12 @@
             const rec = _unplannedData.find(function(u){ return String(u.factory_token) === String(fTok); });
             if (rec) rec.status = 'approved';
             showToast('🎉 อนุมัติครบแล้ว! Part เข้า Weekly Plan แล้ว');
-            _hashCheckin = ''; _hashParts = '';
+            _hashCheckin = ''; _hashParts = ''; _hashPartsPlanning = ''; _hashPartsPIC = '';
           }
           // รอ GAS flush แล้วค่อย re-fetch ใหม่
+          // รอ GAS flush แล้วค่อย re-fetch ใหม่
           await new Promise(function(r){ setTimeout(r, 1500); });
+          fetchAll();
           await initUnplanned(_managerRole === 'logistics' ? 'logistics' : 'factory');
           loadManagerApprove();
         }
