@@ -11339,7 +11339,19 @@
         card.onclick = function() { openMyPartsModal(pic); };
         const dates   = [...new Set(items.map(function(r){ return String(r.date||'').split(' ')[0]; }).filter(Boolean))].sort();
         const dateLabel = dates.length === 1 ? dates[0] : (dates.length > 1 ? dates[0] + ' – ' + dates[dates.length-1] : '—');
-        card.innerHTML = '<div class="u503-pic-header"><div class="flex-1 min-w-0"><div class="font-black text-sm">👤 ' + pic + '</div><div class="text-violet-200 text-[10px] mt-0.5">' + items.length + ' รายการ · ' + vendors.length + ' Supplier</div></div><div class="text-right flex-shrink-0"><div id="ampm-badge-' + picKey + '" class="text-white font-black text-sm bg-amber-400/80 rounded-lg px-3 py-1 mb-1">⏳ รอ Confirm</div><div class="text-violet-200 text-[9px]">คลิกเพื่อจัดการ</div></div></div>' +
+        // คำนวณสถานะ badge จาก items จริง
+        const totalItems    = items.length;
+        const confirmedItems = items.filter(function(r){ return r.status === 'pending'; }).length;
+        const allConfirmed  = confirmedItems === totalItems;
+        const someConfirmed = confirmedItems > 0 && !allConfirmed;
+        const badgeText  = allConfirmed  ? '✅ Confirmed'
+                         : someConfirmed ? '🔄 CF บางส่วน ('+confirmedItems+'/'+totalItems+')'
+                         : '⏳ รอ Confirm';
+        const badgeColor = allConfirmed  ? 'bg-emerald-500/90'
+                         : someConfirmed ? 'bg-blue-400/80'
+                         : 'bg-amber-400/80';
+
+        card.innerHTML = '<div class="u503-pic-header"><div class="flex-1 min-w-0"><div class="font-black text-sm">👤 ' + pic + '</div><div class="text-violet-200 text-[10px] mt-0.5">' + items.length + ' รายการ · ' + vendors.length + ' Supplier</div></div><div class="text-right flex-shrink-0"><div id="ampm-badge-' + picKey + '" class="text-white font-black text-sm '+badgeColor+' rounded-lg px-3 py-1 mb-1">'+badgeText+'</div><div class="text-violet-200 text-[9px]">คลิกเพื่อจัดการ</div></div></div>' +
           '<div class="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between">' +
             '<div class="text-[10px] text-slate-500 font-bold">' + vendors.slice(0,3).join(', ') + (vendors.length>3?' +'+( vendors.length-3)+' อื่นๆ':'') + '</div>' +
             '<div class="flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 rounded-lg px-2 py-1">' +
@@ -11592,14 +11604,19 @@
             }
           });
 
-          // อัพเดท badge บน card ทันที
+          // อัพเดท badge บน card ทันที โดยคำนวณจาก myPartsData จริง
           const picName = document.getElementById('myparts-modal-pic-name')?.textContent?.trim() || '';
           const picKey  = picName.replace(/[^a-zA-Z0-9]/g,'_');
           if (picKey) {
             const badge = document.getElementById('ampm-badge-' + picKey);
             if (badge) {
-              badge.className = 'text-white font-black text-sm bg-emerald-500/90 rounded-lg px-3 py-1 mb-1';
-              badge.textContent = '✅ Confirmed';
+              const picItems      = myPartsData.filter(function(r){ return (r.pic||'(ไม่ระบุ PIC)') === picName; });
+              const cfCount       = picItems.filter(function(r){ return r.status === 'pending'; }).length;
+              const total         = picItems.length;
+              const allCF         = cfCount === total;
+              const someCF        = cfCount > 0 && !allCF;
+              badge.className     = 'text-white font-black text-sm rounded-lg px-3 py-1 mb-1 ' + (allCF ? 'bg-emerald-500/90' : someCF ? 'bg-blue-400/80' : 'bg-amber-400/80');
+              badge.textContent   = allCF ? '✅ Confirmed' : someCF ? '🔄 CF บางส่วน ('+cfCount+'/'+total+')' : '⏳ รอ Confirm';
             }
           }
 
