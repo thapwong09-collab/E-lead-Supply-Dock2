@@ -5861,37 +5861,36 @@
       const mVal = (mEl && mEl.value) ? mEl.value : 'ALL';
       const sVal = (sEl && sEl.value) ? sEl.value : 'ALL';
 
-      const isTypeMatch = function(vendorName) {
-        if (_pdFilter === 'all') return true;
-        if (!_supplierMasterList || !_supplierMasterList.length) return true; // ยังไม่โหลด → ผ่านทั้งหมด
-        const t = getSupplierType(vendorName);
-        if (!t) return true; // หาไม่เจอใน master list → ผ่าน
-        return t === _pdFilter;
-      };
-
+      // กรองจาก SupplierCheckin Sheet ตรงๆ ด้วย date และ plan_status
       const filteredCheckin = allData.filter(function(r) {
         if (!r.date || !r.queue_number) return false;
-        if (!isTypeMatch(r.company_name)) return false;
+        if (r.status === 'cancelled') return false;
+        // filter เดือน
         if (mVal !== 'ALL') {
-          const p    = mVal.split('-');
-          const dStr = String(r.date||'').split(' ')[0].split('T')[0]; // ตัด timestamp ออก
-          const d    = dStr.split('-');
-          if (d[0] !== p[0] || d[1] !== p[1]) return false;
+          const dStr = String(r.date||'').split(' ')[0].split('T')[0];
+          if (!dStr.startsWith(mVal)) return false;
         }
+        // filter supplier
         if (sVal !== 'ALL' && !String(r.company_name||'').toLowerCase().includes(sVal.toLowerCase())) return false;
+        // filter local/overseas
+        if (_pdFilter !== 'all') {
+          const t = getSupplierType(r.company_name);
+          if (t && t !== _pdFilter) return false;
+        }
         return true;
       });
       const visits = new Set(filteredCheckin.map(function(r){ return normalizeDate(r.date)+'_'+r.queue_number; })).size;
 
       const filteredParts = allPartData.filter(function(p) {
-        if (!isTypeMatch(p.vendor)) return false;
         if (mVal !== 'ALL') {
-          const pp   = mVal.split('-');
           const dpStr = String(p.date||'').split(' ')[0].split('T')[0];
-          const dp   = dpStr.split('-');
-          if (dp[0] !== pp[0] || dp[1] !== pp[1]) return false;
+          if (!dpStr.startsWith(mVal)) return false;
         }
         if (sVal !== 'ALL' && !String(p.vendor||'').toLowerCase().includes(sVal.toLowerCase())) return false;
+        if (_pdFilter !== 'all') {
+          const t = getSupplierType(p.vendor);
+          if (t && t !== _pdFilter) return false;
+        }
         return ['pending','completed','short','missing'].includes(p.status||'');
       });
 
