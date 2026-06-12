@@ -4426,6 +4426,13 @@
       pcmQueueNum = qNum;
       pcmFactory  = factory;
 
+      // โหลดทีม Receiving ถ้ายังไม่มีข้อมูล
+      if (_receivingTeam.length === 0) {
+        loadReceivingTeam(); // async ไม่ต้อง await เพื่อไม่ให้ modal ช้า
+      } else {
+        updateReceiverDropdowns();
+      }
+
       const titleEl    = document.getElementById('pcm-title');
       const subtitleEl = document.getElementById('pcm-subtitle');
       if (titleEl) titleEl.innerText = `ยืนยันพาร์ท — #${qNum} ${company}`;
@@ -4519,8 +4526,11 @@
     }
 
     async function submitPartsConfirm() {
-      // ถ้า team ยังไม่โหลด ให้โหลดก่อน
-      if (_receivingTeam.length === 0) await loadReceivingTeam();
+      // ถ้า team ยังไม่โหลด ให้โหลดก่อนแล้วรอ
+      if (_receivingTeam.length === 0) {
+        await loadReceivingTeam();
+        updateReceiverDropdowns();
+      }
 
       const receiver = ((document.getElementById('pcm-receiver')||{}).value||'').trim();
       if (!receiver) {
@@ -4531,11 +4541,11 @@
         }
         return;
       }
-      // ตรวจว่าเป็นชื่อจากทีมจริงๆ
       if (_receivingTeam.length > 0 && !_receivingTeam.find(function(m){ return m.name === receiver; })) {
         showToast('กรุณาเลือกพนักงานจากรายชื่อทีม Receiving เท่านั้น', 'error');
         return;
       }
+
       // Collect qty data
       const qtyInputs = document.querySelectorAll('#pcm-parts-tbody .qty-input');
       const receivedData = [];
@@ -4546,6 +4556,11 @@
           qty_plan:     parseInt(inp.dataset.plan) || 0
         });
       });
+
+      // แจ้งเตือนถ้าไม่มีพาร์ทในแผน
+      if (receivedData.length === 0) {
+        if (!confirm('⚠️ ไม่มีพาร์ทในแผนสำหรับ Supplier นี้\n\nยืนยันว่ารับของแล้วหรือไม่?')) return;
+      }
 
       const btn = document.getElementById('pcm-submit-btn');
       if (btn) { btn.disabled = true; btn.innerText = '⏳ กำลังบันทึก...'; }
