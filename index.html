@@ -5950,10 +5950,8 @@
 
       // อัพเดท pie chart
       updateKPIChart(ontimeParts, lateParts, unplann, pickup);
-      set('pd-unplanned',   unplann);
-      set('pd-unplanned-pct', visits > 0 ? Math.round(unplann/visits*100)+'%' : '—');
-      // แสดง "ไม่มีในแผน" แยกต่างหาก (Supplier มาแต่ไม่มีใน PartDetail)
-      set('pd-noplan',      noplan);
+      set('pd-unplanned',     noplan);
+      set('pd-unplanned-pct', visits > 0 ? Math.round(noplan/visits*100)+'%' : '0%');
       set('pd-pickup',      pickup);
       set('pd-pickup-pct',  partsData.length > 0 ? Math.round(pickup/partsData.length*100)+'%' : '—');
       const tot  = partsData.length || 1;
