@@ -5766,15 +5766,19 @@
         // Month filter
         const mSel = page.querySelector('#parts-month');
         if (mSel && mSel.options.length === 0) {
-          mSel.add(new Option('ทุกเดือน','ALL'));
           const now = new Date();
-          for (let i = 0; i < 24; i++) {
+          const currentVal = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+          mSel.add(new Option('ทุกเดือน','ALL'));
+          for (let i = 0; i < 12; i++) {
             const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+            const val = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
             mSel.add(new Option(
               d.toLocaleDateString('th-TH',{month:'long',year:'numeric'}),
-              d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')
+              val
             ));
           }
+          // set default = เดือนนี้
+          mSel.value = currentVal;
         }
 
         // Supplier filter
@@ -5916,6 +5920,9 @@
       set('pd-ontime-pct',  receivedParts.length > 0 ? Math.round(ontimeParts/receivedParts.length*100)+'%' : '—');
       set('pd-late',        lateParts);
       set('pd-late-pct',    receivedParts.length > 0 ? Math.round(lateParts/receivedParts.length*100)+'%' : '—');
+
+      // อัพเดท pie chart
+      updateKPIChart(ontimeParts, lateParts, unplann, pickup);
       set('pd-unplanned',   unplann);
       set('pd-unplanned-pct', visits > 0 ? Math.round(unplann/visits*100)+'%' : '—');
       // แสดง "ไม่มีในแผน" แยกต่างหาก (Supplier มาแต่ไม่มีใน PartDetail)
