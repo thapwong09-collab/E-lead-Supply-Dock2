@@ -472,22 +472,22 @@
             <div id="weekly-total-badge" class="text-[10px] font-bold bg-violet-50 text-violet-600 border border-violet-200 rounded-xl px-3 py-1"></div>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
+            <table class="w-full text-left text-xs whitespace-nowrap">
               <thead class="bg-slate-50">
                 <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest select-none">
-                  <th class="px-3 py-3 cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('staff','pic')">PIC <span id="ws-icon-pic"></span></th>
-                  <th class="px-3 py-3 cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('staff','vendor')">Supplier <span id="ws-icon-vendor"></span></th>
-                  <th class="px-3 py-3 cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('staff','po_no')">PO No. <span id="ws-icon-po_no"></span></th>
-                  <th class="px-3 py-3 cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('staff','part_no')">Part No. <span id="ws-icon-part_no"></span></th>
-                  <th class="px-3 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('staff','qty_plan')">Qty Plan <span id="ws-icon-qty_plan"></span></th>
-                  <th class="px-3 py-3 text-center">รับจริง</th>
-                  <th class="px-3 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('staff','date')">Arrival Date <span id="ws-icon-date"></span></th>
-                  <th class="px-3 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('staff','time_slot')">AM/PM <span id="ws-icon-time_slot"></span></th>
-                  <th class="px-3 py-3 text-center">สถานะรับของ</th>
-                  <th class="px-3 py-3 text-center">รับโดย</th>
-                  <th class="px-3 py-3 text-center">เวลารับ</th>
-                  <th class="px-3 py-3 text-center">ERP</th>
-                  <th class="px-3 py-3">Note Staff</th>
+                  <th class="px-3 py-3 cursor-pointer hover:bg-slate-100 whitespace-nowrap" onclick="sortWeeklyTable('staff','pic')">PIC <span id="ws-icon-pic"></span></th>
+                  <th class="px-3 py-3 cursor-pointer hover:bg-slate-100 whitespace-nowrap" onclick="sortWeeklyTable('staff','vendor')">Supplier <span id="ws-icon-vendor"></span></th>
+                  <th class="px-3 py-3 cursor-pointer hover:bg-slate-100 whitespace-nowrap" onclick="sortWeeklyTable('staff','po_no')">PO No. <span id="ws-icon-po_no"></span></th>
+                  <th class="px-3 py-3 cursor-pointer hover:bg-slate-100 whitespace-nowrap" onclick="sortWeeklyTable('staff','part_no')">Part No. <span id="ws-icon-part_no"></span></th>
+                  <th class="px-3 py-3 text-center cursor-pointer hover:bg-slate-100 whitespace-nowrap" onclick="sortWeeklyTable('staff','qty_plan')">Qty Plan <span id="ws-icon-qty_plan"></span></th>
+                  <th class="px-3 py-3 text-center whitespace-nowrap">รับจริง</th>
+                  <th class="px-3 py-3 text-center cursor-pointer hover:bg-slate-100 whitespace-nowrap" onclick="sortWeeklyTable('staff','date')">Arrival Date <span id="ws-icon-date"></span></th>
+                  <th class="px-3 py-3 text-center cursor-pointer hover:bg-slate-100 whitespace-nowrap" onclick="sortWeeklyTable('staff','time_slot')">AM/PM <span id="ws-icon-time_slot"></span></th>
+                  <th class="px-3 py-3 text-center whitespace-nowrap">สถานะรับของ</th>
+                  <th class="px-3 py-3 text-center whitespace-nowrap">รับโดย</th>
+                  <th class="px-3 py-3 text-center whitespace-nowrap">เวลารับ</th>
+                  <th class="px-3 py-3 text-center whitespace-nowrap">ERP</th>
+                  <th class="px-3 py-3 whitespace-nowrap">Note Staff</th>
                   <th class="px-3 py-3">หมายเหตุจัดซื้อ</th>
                 </tr>
               </thead>
@@ -7559,7 +7559,9 @@
       const min     = now.getUTCMinutes();
 
       const thisMonday = new Date(bkkMs);
-      const diffToMon  = day === 0 ? -6 : 1 - day;
+      // day: 0=อา, 1=จ, 2=อ, 3=พ, 4=พฤ, 5=ศ, 6=ส
+      // Monday = วันจันทร์ของสัปดาห์นี้
+      const diffToMon = day === 0 ? -6 : day === 1 ? 0 : 1 - day;
       thisMonday.setUTCDate(now.getUTCDate() + diffToMon);
       thisMonday.setUTCHours(0,0,0,0);
 
@@ -8269,23 +8271,23 @@
           ? '<span class="text-[10px] font-bold text-blue-600">' + String(r.confirmed_time).replace(/^\d{4}-\d{2}-\d{2}\s*/,'').substring(0,5) + '</span>'
           : '<span class="text-slate-300 text-[9px]">—</span>';
         return '<tr class="hover:bg-violet-50/30 transition-colors" data-vendor-key="'+vendorKey+'">' +
-          '<td class="px-3 py-2 font-bold text-slate-700 text-xs">' + (r.pic||'-') + '</td>' +
-          '<td class="px-3 py-2 text-slate-600 text-xs max-w-[140px]">' +
+          '<td class="px-3 py-2 font-bold text-slate-700 text-xs whitespace-nowrap">' + (r.pic||'-') + '</td>' +
+          '<td class="px-3 py-2 text-slate-600 text-xs whitespace-nowrap">' +
             '<div class="flex items-center gap-1">' +
-              '<span class="truncate">' + (r.vendor||'-') + '</span>' +
+              '<span>' + (r.vendor||'-') + '</span>' +
               '<button type="button" onclick="bulkTickERP(\''+vendorKey+'\')" title="ติ๊ก ERP ทั้งหมดของ '+String(r.vendor||'').replace(/'/g,'')+' วันนี้" ' +
                 'class="flex-shrink-0 text-[8px] bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-600 font-black px-1.5 py-0.5 rounded cursor-pointer whitespace-nowrap">☑ ทั้งหมด</button>' +
             '</div>' +
           '</td>' +
-          '<td class="px-3 py-2 text-slate-600 text-xs">' + (r.po_no||'-') + '</td>' +
-          '<td class="px-3 py-2 font-mono text-violet-700 font-bold text-xs">' + (r.part_no||'-') + '</td>' +
-          '<td class="px-3 py-2 text-center font-black text-slate-700 text-xs">' + (r.qty_plan||0) + '</td>' +
-          '<td class="px-3 py-2 text-center text-xs">' + qtyRecvHtml + '</td>' +
-          '<td class="px-3 py-2 text-center text-emerald-600 font-bold text-xs">' + String(r.date||'-').split(' ')[0] + '</td>' +
-          '<td class="px-3 py-2 text-center font-bold text-slate-600 text-xs">' + (r.time_slot||'-') + '</td>' +
-          '<td class="px-3 py-2 text-center">' + statusHtml + '</td>' +
-          '<td class="px-3 py-2 text-center text-[10px] font-bold text-slate-600">' + (r.confirmed_by || '<span class="text-slate-300">—</span>') + '</td>' +
-          '<td class="px-3 py-2 text-center">' + confirmedTimeHtml + '</td>' +
+          '<td class="px-3 py-2 text-slate-600 text-xs whitespace-nowrap">' + (r.po_no||'-') + '</td>' +
+          '<td class="px-3 py-2 font-mono text-violet-700 font-bold text-xs whitespace-nowrap">' + (r.part_no||'-') + '</td>' +
+          '<td class="px-3 py-2 text-center font-black text-slate-700 text-xs whitespace-nowrap">' + (r.qty_plan||0) + '</td>' +
+          '<td class="px-3 py-2 text-center text-xs whitespace-nowrap">' + qtyRecvHtml + '</td>' +
+          '<td class="px-3 py-2 text-center text-emerald-600 font-bold text-xs whitespace-nowrap">' + String(r.date||'-').split(' ')[0] + '</td>' +
+          '<td class="px-3 py-2 text-center font-bold text-slate-600 text-xs whitespace-nowrap">' + (r.time_slot||'-') + '</td>' +
+          '<td class="px-3 py-2 text-center whitespace-nowrap">' + statusHtml + '</td>' +
+          '<td class="px-3 py-2 text-center text-[10px] font-bold text-slate-600 whitespace-nowrap">' + (r.confirmed_by || '<span class="text-slate-300">—</span>') + '</td>' +
+          '<td class="px-3 py-2 text-center whitespace-nowrap">' + confirmedTimeHtml + '</td>' +
           '<td class="px-3 py-2 text-center">' + erpHtml + '</td>' +
           '<td class="px-3 py-2 min-w-[100px]">' + noteHtml + '</td>' +
           '<td class="px-3 py-2 text-[10px] text-purple-600 max-w-[100px] truncate" title="' + String(r.pic_note||'').replace(/"/g,'') + '">' + (r.pic_note || '<span class="text-slate-300">—</span>') + '</td>' +
