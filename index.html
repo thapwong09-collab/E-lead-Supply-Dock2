@@ -5244,22 +5244,21 @@
         })).values()];
         const arrivedCompanies = myData.filter(function(r){ return r.status !== 'cancelled'; })
           .map(function(r){ return String(r.company_name).trim().toLowerCase(); });
-        let arrivedCount = 0;
+        // นับ "มาเช็คอินแล้ว" = ทุกคนที่เช็คอินแล้ว (ไม่รวม cancelled)
+        const completedCount = myData.filter(function(r){ return r.status === 'completed' || r.status === 'exited'; }).length;
+        const inProgressCount = myData.filter(function(r){ return r.status === 'waiting' || r.status === 'loading'; }).length;
+        const arrivedCount = completedCount + inProgressCount;
         const pendingList = [];
         plannedVendors.forEach(function(v) {
           const normV = normalizeVendor(v.name).toLowerCase();
           const came  = arrivedCompanies.some(function(a){
             const normA = normalizeVendor(a).toLowerCase();
-            // exact match
             if (normA === normV) return true;
-            // substring match เฉพาะถ้ายาวพอ (≥5 ตัว) ป้องกัน false positive
             if (normV.length >= 5 && normA.includes(normV)) return true;
             if (normA.length >= 5 && normV.includes(normA)) return true;
-            // fuzzy เฉพาะ score สูงมาก
             return vendorScore(normA, normV) >= 80;
           });
-          if (came) arrivedCount++;
-          else pendingList.push(v.name + (v.time ? ' (' + v.time + ')' : ''));
+          if (!came) pendingList.push(v.name + (v.time ? ' (' + v.time + ')' : ''));
         });
         const pTotal   = document.getElementById('plan-total');
         const pArrived = document.getElementById('plan-arrived');
