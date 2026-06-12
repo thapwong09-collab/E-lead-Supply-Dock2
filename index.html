@@ -7536,27 +7536,30 @@
         if (from && to) return { from: from, to: to };
       }
 
-      const fmt = function(d) {
-        return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-      };
+      // ใช้เวลา Bangkok (UTC+7)
+      const nowUtc  = Date.now();
+      const bkkMs   = nowUtc + 7 * 60 * 60 * 1000;
+      const now     = new Date(bkkMs);
+      const day     = now.getUTCDay();
+      const h       = now.getUTCHours();
+      const min     = now.getUTCMinutes();
 
-      const now  = new Date();
-      const day  = now.getDay();
-      const h    = now.getHours();
-      const min  = now.getMinutes();
-
-      const thisMonday = new Date(now);
+      const thisMonday = new Date(bkkMs);
       const diffToMon  = day === 0 ? -6 : 1 - day;
-      thisMonday.setDate(now.getDate() + diffToMon);
-      thisMonday.setHours(0,0,0,0);
+      thisMonday.setUTCDate(now.getUTCDate() + diffToMon);
+      thisMonday.setUTCHours(0,0,0,0);
 
-      const thisSunday = new Date(thisMonday);
-      thisSunday.setDate(thisMonday.getDate() + 6);
+      const thisSunday = new Date(thisMonday.getTime());
+      thisSunday.setUTCDate(thisMonday.getUTCDate() + 6);
 
-      const nextMonday = new Date(thisMonday);
-      nextMonday.setDate(thisMonday.getDate() + 7);
-      const nextSunday = new Date(nextMonday);
-      nextSunday.setDate(nextMonday.getDate() + 6);
+      const nextMonday = new Date(thisMonday.getTime());
+      nextMonday.setUTCDate(thisMonday.getUTCDate() + 7);
+      const nextSunday = new Date(nextMonday.getTime());
+      nextSunday.setUTCDate(nextMonday.getUTCDate() + 6);
+
+      const fmt = function(d) {
+        return d.getUTCFullYear() + '-' + String(d.getUTCMonth()+1).padStart(2,'0') + '-' + String(d.getUTCDate()).padStart(2,'0');
+      };
 
       // Test Mode → แสดงสัปดาห์นี้เสมอ
       if (_testMode) {
