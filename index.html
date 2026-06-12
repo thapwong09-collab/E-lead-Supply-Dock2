@@ -3074,6 +3074,7 @@
             isStaffLoggedIn = true; _hashCheckin = ''; _hashParts = '';
             document.getElementById('staff-view').classList.remove('hidden');
             showStaffTab('queue'); fetchAll();
+            loadReceivingTeam(); // โหลดทีม Receiving ทันทีไม่ต้องรอกด Tab
             break;
           case 'pic':
             isPICLoggedIn = true;
@@ -4518,8 +4519,8 @@
     }
 
     async function submitPartsConfirm() {
-      // โหลด team จาก localStorage ทุกครั้งก่อน check
-      updateReceiverDropdowns();
+      // ถ้า team ยังไม่โหลด ให้โหลดก่อน
+      if (_receivingTeam.length === 0) await loadReceivingTeam();
 
       const receiver = ((document.getElementById('pcm-receiver')||{}).value||'').trim();
       if (!receiver) {
@@ -9846,6 +9847,7 @@
     function updateReceiverDropdowns() {
       const sel = document.getElementById('pcm-receiver');
       if (!sel) return;
+      const cur = sel.value; // เก็บค่าที่เลือกไว้ก่อน
       if (_receivingTeam.length === 0) {
         sel.innerHTML = '<option value="">⚠️ ยังไม่มีทีม — ไปเพิ่มที่ Tab ทีม Receiving</option>';
       } else {
@@ -9853,6 +9855,7 @@
           _receivingTeam.map(function(m){
             return '<option value="' + m.name + '">' + m.name + (m.position ? ' ('+m.position+')' : '') + '</option>';
           }).join('');
+        if (cur) sel.value = cur; // restore ค่าที่เลือกไว้
       }
     }
 
