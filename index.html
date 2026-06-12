@@ -5335,7 +5335,9 @@
               const cpTime   = formatThaiTime(r.completed_time);
               const _qdKey  = String(r.queue_number) + '_' + normalizeDate(r.date);
               const _qParts = _partByQueueDate[_qdKey] || [];
-              const receiver = (_qParts.find(function(p){ return p.confirmed_by; }) || {}).confirmed_by || '';
+              const receiver = (_qParts.find(function(p){ return p.confirmed_by; }) || {}).confirmed_by
+                            || (_qParts.find(function(p){ return p.approved_by; }) || {}).approved_by
+                            || (r.confirmed_by || '');
 
               return '<div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 opacity-80 fade-in text-left">' +
                 '<div class="flex justify-between items-center mb-1.5">' +
@@ -5926,7 +5928,10 @@
       const receivedParts = partsData.filter(function(p){ return p.status==='completed'||p.status==='short'; });
       const ontimeParts   = receivedParts.filter(function(p){ return calcIsLateFromPart(p) === false; }).length;
       const lateParts     = receivedParts.filter(function(p){ return calcIsLateFromPart(p) === true; }).length;
-      const noplan   = checkinData.filter(function(r){ const ps=_getPlanStatusFromIndex(r.queue_number,r.date); return ps==='ไม่มีในแผน'; }).length;
+      const noplan = checkinData.filter(function(r) {
+        const ps = getPlanStatusFromParts(r.company_name, normalizeDate(r.date), r.checkin_time);
+        return ps === 'ไม่มีในแผน';
+      }).length;
 
       // งานนอกแผน = นับจาก UnplannedParts ที่ approved จริงๆ (ผ่าน Manager 2 ขั้น)
       const unplann  = (_unplannedData || []).filter(function(r){ return r.status==='approved'; }).length;
