@@ -4581,7 +4581,7 @@
           return;
         }
 
-        if (pcmQueueNum) updateStatus(pcmQueueNum, 'loading', pcmFactory);
+        if (pcmQueueNum) updateStatus(pcmQueueNum, 'completed', pcmFactory);
 
         closePartsModal();
         await fetchAll();
