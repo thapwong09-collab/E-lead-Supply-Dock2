@@ -5932,9 +5932,9 @@
       const receivedParts = partsData.filter(function(p){ return p.status==='completed'||p.status==='short'; });
       const ontimeParts   = receivedParts.filter(function(p){ return calcIsLateFromPart(p) === false; }).length;
       const lateParts     = receivedParts.filter(function(p){ return calcIsLateFromPart(p) === true; }).length;
+      // อ่าน plan_status จาก Sheet โดยตรง ไม่ recalculate
       const noplan = checkinData.filter(function(r) {
-        const ps = getPlanStatusFromParts(r.company_name, normalizeDate(r.date), r.checkin_time);
-        return ps === 'ไม่มีในแผน';
+        return String(r.plan_status||'') === 'ไม่มีในแผน';
       }).length;
 
       // งานนอกแผน = นับจาก UnplannedParts ที่ approved จริงๆ (ผ่าน Manager 2 ขั้น)
