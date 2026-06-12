@@ -7407,9 +7407,11 @@
             return;
           }
 
+          const totalRaw = upload503Data.length;
+          // กรองแถวที่ไม่มี arrival_date
+          const noDateRows = upload503Data.filter(function(r){ return !r.arrival_date; }).length;
           // กรองตามช่วงวัน
           const range503 = getTargetWeekRange();
-          const totalRaw = upload503Data.length;
           // กรองเสมอทั้ง mode ปกติและ retro (retro ใช้ range ที่เลือก)
           if (range503.from && range503.to) {
             upload503Data = upload503Data.filter(function(r) {
@@ -7452,7 +7454,19 @@
           }
 
           const filteredOut = totalRaw - upload503Data.length - blocked2631.length;
-          console.log('[503] range:', range503.from, '—', range503.to, '| ทั้งหมด:', totalRaw, '| เหลือ:', upload503Data.length, '| ตัดออก:', filteredOut, '| ตัด 26-31:', blocked2631.length);
+          // นับแถวที่ arrival_date อยู่ใน 15-22 แต่ถูก filter ออก (นอก range)
+          const inDateRange = upload503Data.filter(function(r){
+            return r.arrival_date && r.arrival_date >= range503.from && r.arrival_date <= range503.to;
+          }).length;
+          console.log('[503] range:', range503.from, '—', range503.to,
+            '| ทั้งหมด:', totalRaw,
+            '| ไม่มีวันที่:', noDateRows,
+            '| เหลือ:', upload503Data.length,
+            '| ตัดออก(นอก range):', filteredOut,
+            '| ตัด 26-31:', blocked2631.length);
+          // แสดง arrival_date ที่มีในไฟล์ทั้งหมด
+          const allDates = [...new Set(upload503Data.map(function(r){ return r.arrival_date; }).filter(Boolean))].sort();
+          console.log('[503] วันที่ทั้งหมดใน range:', allDates);
 
           show503Preview();
 
