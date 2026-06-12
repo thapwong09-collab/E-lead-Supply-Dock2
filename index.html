@@ -2192,11 +2192,11 @@
         <div id="planning-weekly-table-wrap" class="hidden bg-white rounded-2xl shadow-sm border overflow-hidden">
           <div class="px-5 py-4 border-b bg-slate-50"><div class="font-black text-slate-700 text-sm">📅 Weekly Plan — Confirmed แล้ว (Read Only)</div></div>
           <div class="overflow-x-auto">
-            <table class="w-full text-xs">
+            <table class="w-full text-xs whitespace-nowrap">
               <thead class="bg-slate-50 border-b border-slate-100">
                 <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest select-none">
-                  <th class="px-4 py-3 cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('planning','pic')">PIC <span id="wp-icon-pic"></span></th>
-                  <th class="px-4 py-3 cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('planning','vendor')">Supplier <span id="wp-icon-vendor"></span></th>
+                  <th class="px-4 py-3 cursor-pointer hover:bg-slate-100 max-w-[120px]" onclick="sortWeeklyTable('planning','pic')">PIC <span id="wp-icon-pic"></span></th>
+                  <th class="px-4 py-3 cursor-pointer hover:bg-slate-100 max-w-[120px]" onclick="sortWeeklyTable('planning','vendor')">Supplier <span id="wp-icon-vendor"></span></th>
                   <th class="px-4 py-3 cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('planning','po_no')">PO No. <span id="wp-icon-po_no"></span></th>
                   <th class="px-4 py-3 cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('planning','part_no')">Part No. <span id="wp-icon-part_no"></span></th>
                   <th class="px-4 py-3 text-center cursor-pointer hover:bg-slate-100" onclick="sortWeeklyTable('planning','qty_plan')">QTY แผน <span id="wp-icon-qty_plan"></span></th>
@@ -8271,10 +8271,10 @@
           ? '<span class="text-[10px] font-bold text-blue-600">' + String(r.confirmed_time).replace(/^\d{4}-\d{2}-\d{2}\s*/,'').substring(0,5) + '</span>'
           : '<span class="text-slate-300 text-[9px]">—</span>';
         return '<tr class="hover:bg-violet-50/30 transition-colors" data-vendor-key="'+vendorKey+'">' +
-          '<td class="px-3 py-2 font-bold text-slate-700 text-xs whitespace-nowrap">' + (r.pic||'-') + '</td>' +
+          '<td class="px-3 py-2 font-bold text-slate-700 text-xs whitespace-nowrap max-w-[120px] truncate" title="'+(r.pic||'')+'">'+String(r.pic||'-').substring(0,16)+(String(r.pic||'').length>16?'…':'')+'</td>' +
           '<td class="px-3 py-2 text-slate-600 text-xs whitespace-nowrap">' +
             '<div class="flex items-center gap-1">' +
-              '<span>' + (r.vendor||'-') + '</span>' +
+              '<span class="max-w-[100px] truncate inline-block" title="'+(r.vendor||'')+'">' + String(r.vendor||'-').substring(0,14)+(String(r.vendor||'').length>14?'…':'') + '</span>' +
               '<button type="button" onclick="bulkTickERP(\''+vendorKey+'\')" title="ติ๊ก ERP ทั้งหมดของ '+String(r.vendor||'').replace(/'/g,'')+' วันนี้" ' +
                 'class="flex-shrink-0 text-[8px] bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-600 font-black px-1.5 py-0.5 rounded cursor-pointer whitespace-nowrap">☑ ทั้งหมด</button>' +
             '</div>' +
@@ -8319,18 +8319,18 @@
           : '<span class="text-slate-300 text-[9px]">—</span>';
         const noteHtml = r.staff_note ? '<span class="text-[10px] text-slate-600 max-w-[120px] block truncate" title="'+String(r.staff_note||'').replace(/"/g,'')+'">'+r.staff_note+'</span>' : '<span class="text-slate-300 text-[9px]">—</span>';
         return '<tr class="hover:bg-orange-50/20 ' + (hasUrgent?'bg-rose-50':'') + '">' +
-          '<td class="px-4 py-2 font-bold text-slate-700">' + (r.pic||'—') + '</td>' +
-          '<td class="px-4 py-2 text-slate-600 max-w-[130px] truncate">' + (r.vendor||'—') + '</td>' +
-          '<td class="px-4 py-2 text-slate-600">' + (r.po_no||'—') + '</td>' +
-          '<td class="px-4 py-2 font-mono text-violet-700 font-bold">' + (r.part_no||'—') + (hasUrgent?' <span class="text-rose-500">⚡</span>':'') + '</td>' +
-          '<td class="px-4 py-2 text-center font-black text-slate-700">' + (r.qty_plan||0) + '</td>' +
-          '<td class="px-4 py-2 text-center">' + plQtyHtml + '</td>' +
-          '<td class="px-4 py-2 text-center text-emerald-600 font-bold">' + (r.date||'—') + '</td>' +
-          '<td class="px-4 py-2 text-center font-bold text-slate-600">' + (r.time_slot||'—') + '</td>' +
-          '<td class="px-4 py-2 text-center">' + stBadge + '</td>' +
-          '<td class="px-4 py-2 text-center">' + erpBadge + '</td>' +
+          '<td class="px-4 py-2 font-bold text-slate-700 whitespace-nowrap max-w-[120px] truncate" title="'+(r.pic||'')+'">'+String(r.pic||'—').substring(0,18)+(String(r.pic||'').length>18?'…':'')+'</td>' +
+          '<td class="px-4 py-2 text-slate-600 whitespace-nowrap max-w-[120px] truncate" title="'+(r.vendor||'')+'">'+String(r.vendor||'—').substring(0,18)+(String(r.vendor||'').length>18?'…':'')+'</td>' +
+          '<td class="px-4 py-2 text-slate-600 whitespace-nowrap">' + (r.po_no||'—') + '</td>' +
+          '<td class="px-4 py-2 font-mono text-violet-700 font-bold whitespace-nowrap">' + (r.part_no||'—') + (hasUrgent?' <span class="text-rose-500">⚡</span>':'') + '</td>' +
+          '<td class="px-4 py-2 text-center font-black text-slate-700 whitespace-nowrap">' + (r.qty_plan||0) + '</td>' +
+          '<td class="px-4 py-2 text-center whitespace-nowrap">' + plQtyHtml + '</td>' +
+          '<td class="px-4 py-2 text-center text-emerald-600 font-bold whitespace-nowrap">' + String(r.date||'—').split(' ')[0] + '</td>' +
+          '<td class="px-4 py-2 text-center font-bold text-slate-600 whitespace-nowrap">' + (r.time_slot||'—') + '</td>' +
+          '<td class="px-4 py-2 text-center whitespace-nowrap">' + stBadge + '</td>' +
+          '<td class="px-4 py-2 text-center whitespace-nowrap">' + erpBadge + '</td>' +
           '<td class="px-4 py-2">' + noteHtml + '</td>' +
-          '<td class="px-4 py-2 text-[10px] text-purple-600 max-w-[100px] truncate" title="' + String(r.pic_note||'').replace(/"/g,'') + '">' + (r.pic_note || '<span class="text-slate-300">—</span>') + '</td>' +
+          '<td class="px-4 py-2 text-[10px] text-purple-600 whitespace-nowrap max-w-[100px] truncate" title="' + String(r.pic_note||'').replace(/"/g,'') + '">' + (r.pic_note || '<span class="text-slate-300">—</span>') + '</td>' +
         '</tr>';
       }).join('') || '<tr><td colspan="10" class="text-center py-6 text-slate-300 text-xs">ไม่มีข้อมูล</td></tr>';
     }
