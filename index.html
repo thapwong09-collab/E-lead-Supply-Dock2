@@ -5863,7 +5863,10 @@
 
       const isTypeMatch = function(vendorName) {
         if (_pdFilter === 'all') return true;
-        return getSupplierType(vendorName) === _pdFilter;
+        if (!_supplierMasterList || !_supplierMasterList.length) return true; // ยังไม่โหลด → ผ่านทั้งหมด
+        const t = getSupplierType(vendorName);
+        if (!t) return true; // หาไม่เจอใน master list → ผ่าน
+        return t === _pdFilter;
       };
 
       const filteredCheckin = allData.filter(function(r) {
