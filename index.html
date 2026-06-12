@@ -5560,7 +5560,7 @@
         kpiPieChart = new Chart(ctx, { type:'doughnut', data:{ labels:['ไม่มีข้อมูล'], datasets:[{ data:[1], backgroundColor:['#f1f5f9'] }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } } } });
         return;
       }
-      kpiPieChart = new Chart(ctx, { type:'doughnut', data:{ labels:['ตรงเวลา/ก่อนเวลา','ไม่ตรงเวลา','งานนอกแผน','Pickup'], datasets:[{ data:[ontime,late,unplanned,pickup], backgroundColor:['#10b981','#f43f5e','#f59e0b','#3b82f6'], borderWidth:0, hoverOffset:4 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ font:{ family:'Prompt' } } } }, cutout:'70%' } });
+      kpiPieChart = new Chart(ctx, { type:'doughnut', data:{ labels:['ตรงเวลา','ไม่ตรงเวลา','งานนอกแผน','Pickup'], datasets:[{ data:[ontime,late,unplanned,pickup], backgroundColor:['#10b981','#f43f5e','#f59e0b','#3b82f6'], borderWidth:0, hoverOffset:4 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ font:{ family:'Prompt' } } } }, cutout:'70%' } });
     }
 
     function loadDailySummary() {
