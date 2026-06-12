@@ -5870,7 +5870,9 @@
         if (!r.date || !r.queue_number) return false;
         if (!isTypeMatch(r.company_name)) return false;
         if (mVal !== 'ALL') {
-          const p = mVal.split('-'); const d = String(r.date||'').split('-');
+          const p    = mVal.split('-');
+          const dStr = String(r.date||'').split(' ')[0].split('T')[0]; // ตัด timestamp ออก
+          const d    = dStr.split('-');
           if (d[0] !== p[0] || d[1] !== p[1]) return false;
         }
         if (sVal !== 'ALL' && !String(r.company_name||'').toLowerCase().includes(sVal.toLowerCase())) return false;
@@ -5881,7 +5883,9 @@
       const filteredParts = allPartData.filter(function(p) {
         if (!isTypeMatch(p.vendor)) return false;
         if (mVal !== 'ALL') {
-          const pp = mVal.split('-'); const dp = String(p.date||'').split('-');
+          const pp   = mVal.split('-');
+          const dpStr = String(p.date||'').split(' ')[0].split('T')[0];
+          const dp   = dpStr.split('-');
           if (dp[0] !== pp[0] || dp[1] !== pp[1]) return false;
         }
         if (sVal !== 'ALL' && !String(p.vendor||'').toLowerCase().includes(sVal.toLowerCase())) return false;
