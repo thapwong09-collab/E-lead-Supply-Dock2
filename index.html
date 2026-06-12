@@ -3295,6 +3295,9 @@
           updateStaffUI();
           const weeklyPage = document.getElementById('page-weekly');
           if (weeklyPage && !weeklyPage.classList.contains('hidden')) loadWeeklyPlan();
+          // อัพเดท Parts Dashboard อัตโนมัติเมื่อข้อมูลเปลี่ยน
+          const dashPage = document.getElementById('page-parts-receiving') || document.getElementById('page-dashboard');
+          if (dashPage && !dashPage.classList.contains('hidden')) updatePartsDashboard();
         }
       }
 
@@ -5843,8 +5846,6 @@
 
       const filteredCheckin = allData.filter(function(r) {
         if (!r.date || !r.queue_number) return false;
-        // นับเฉพาะที่ผ่านกระบวนการครบ (completed/exited) ไม่นับ waiting, loading, cancelled
-        if (r.status !== 'completed' && r.status !== 'exited') return false;
         if (!isTypeMatch(r.company_name)) return false;
         if (mVal !== 'ALL') {
           const p = mVal.split('-'); const d = String(r.date||'').split('-');
@@ -5881,25 +5882,40 @@
       updatePdPerfTable(filteredCheckin, filteredParts);
     }
 
+    function calcIsLateFromPart(p) {
+      if (!p.confirmed_time || !p.time_slot) return null;
+      const ct = String(p.confirmed_time);
+      const timePart = ct.includes('T') ? ct.split('T')[1] : (ct.split(' ')[1]||'');
+      const hm = timePart.substring(0,5).split(':');
+      if (hm.length < 2) return null;
+      const tf = parseFloat(hm[0]) + parseFloat(hm[1])/60;
+      const slot = String(p.time_slot).toUpperCase();
+      if (slot === 'AM') return tf > 11.5;
+      if (slot === 'PM') return tf > 17.33;
+      return false;
+    }
+
     function updateKPIUI(checkinData, partsData, visits) {
       // set ทุก element ที่มี id นั้น (มีหลาย dashboard page ใน DOM)
       const set = function(id, v) {
         document.querySelectorAll('#' + id).forEach(function(e){ e.innerText = v; });
       };
       set('pd-visits', visits);
-      const done     = checkinData.filter(function(r){ return r.status==='completed'||r.status==='exited'; }).length;
-      const ontime   = checkinData.filter(function(r){ return String(r.plan_status||'').includes('ตรงเวลา'); }).length;
-      const late     = checkinData.filter(function(r){ return String(r.plan_status||'').includes('ล่าช้า'); }).length;
-      const noplan   = checkinData.filter(function(r){ const ps=String(r.plan_status||''); return ps==='ไม่มีในแผน'; }).length;
+      const done   = checkinData.filter(function(r){ return r.status==='completed'||r.status==='exited'; }).length;
+
+      const receivedParts = partsData.filter(function(p){ return p.status==='completed'||p.status==='short'; });
+      const ontimeParts   = receivedParts.filter(function(p){ return calcIsLateFromPart(p) === false; }).length;
+      const lateParts     = receivedParts.filter(function(p){ return calcIsLateFromPart(p) === true; }).length;
+      const noplan   = checkinData.filter(function(r){ const ps=_getPlanStatusFromIndex(r.queue_number,r.date); return ps==='ไม่มีในแผน'; }).length;
 
       // งานนอกแผน = นับจาก UnplannedParts ที่ approved จริงๆ (ผ่าน Manager 2 ขั้น)
       const unplann  = (_unplannedData || []).filter(function(r){ return r.status==='approved'; }).length;
 
       const pickup   = partsData.filter(function(p){ return String(p.time_slot||'').toLowerCase()==='pick up'; }).length;
-      set('pd-ontime',      ontime);
-      set('pd-ontime-pct',  done > 0 ? Math.round(ontime/done*100)+'%' : '—');
-      set('pd-late',        late);
-      set('pd-late-pct',    done > 0 ? Math.round(late/done*100)+'%' : '—');
+      set('pd-ontime',      ontimeParts);
+      set('pd-ontime-pct',  receivedParts.length > 0 ? Math.round(ontimeParts/receivedParts.length*100)+'%' : '—');
+      set('pd-late',        lateParts);
+      set('pd-late-pct',    receivedParts.length > 0 ? Math.round(lateParts/receivedParts.length*100)+'%' : '—');
       set('pd-unplanned',   unplann);
       set('pd-unplanned-pct', visits > 0 ? Math.round(unplann/visits*100)+'%' : '—');
       // แสดง "ไม่มีในแผน" แยกต่างหาก (Supplier มาแต่ไม่มีใน PartDetail)
@@ -5928,26 +5944,18 @@
       const ampmParts = partsData.filter(function(p){ return !isPickupSlot(p.time_slot); });
       const puParts   = partsData.filter(function(p){ return  isPickupSlot(p.time_slot); });
 
-      // AM/PM — ใช้ plan_status ของ checkin จับคู่กับ vendor
-      const ontimeVendors = new Set(
-        checkinData.filter(function(r){ return String(r.plan_status||'').includes('ตรงเวลา'); })
-          .map(function(r){ return String(r.company_name||'').toLowerCase(); })
-      );
-      const lateVendors = new Set(
-        checkinData.filter(function(r){ return String(r.plan_status||'').includes('ล่าช้า'); })
-          .map(function(r){ return String(r.company_name||'').toLowerCase(); })
-      );
+      // AM/PM — คำนวณ isLate จาก confirmed_time + time_slot ของ Part โดยตรง
       const comboAA = ampmParts.filter(function(p){
-        return p.status==='completed' && ontimeVendors.has(String(p.vendor||'').toLowerCase());
+        return p.status==='completed' && calcIsLateFromPart(p) === false;
       }).length; // ✅ ครบ/ตรงเวลา
       const comboAB = ampmParts.filter(function(p){
-        return (p.status==='short'||p.status==='missing') && ontimeVendors.has(String(p.vendor||'').toLowerCase());
+        return (p.status==='short'||p.status==='missing') && calcIsLateFromPart(p) === false;
       }).length; // ⚠️ ไม่ครบ/ตรงเวลา
       const comboBA = ampmParts.filter(function(p){
-        return p.status==='completed' && lateVendors.has(String(p.vendor||'').toLowerCase());
+        return p.status==='completed' && calcIsLateFromPart(p) === true;
       }).length; // 🕐 ครบ/ล่าช้า
       const comboBB = ampmParts.filter(function(p){
-        return (p.status==='short'||p.status==='missing') && lateVendors.has(String(p.vendor||'').toLowerCase());
+        return (p.status==='short'||p.status==='missing') && calcIsLateFromPart(p) === true;
       }).length; // ❌ ไม่ครบ/ล่าช้า
       const comboTot = (comboAA+comboAB+comboBA+comboBB) || 1;
       set('pd-combo-aa', comboAA); set('pd-combo-aa-pct', Math.round(comboAA/comboTot*100)+'% ของ AM/PM');
