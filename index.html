@@ -4516,7 +4516,6 @@
 
     async function submitPartsConfirm() {
       // โหลด team จาก localStorage ทุกครั้งก่อน check
-      try { _receivingTeam = JSON.parse(localStorage.getItem(RECV_TEAM_KEY)||'[]'); } catch(e) { _receivingTeam = []; }
       updateReceiverDropdowns();
 
       const receiver = ((document.getElementById('pcm-receiver')||{}).value||'').trim();
@@ -8150,10 +8149,23 @@
         const qP = parseFloat(r.qty_plan)||0;
         const qR = parseFloat(r.qty_received)||0;
 
-        // หา plan_status จาก checkin record ที่ตรงกับ queue_number และ date
-        const planStatus = _getPlanStatusFromIndex(r.queue_number, r.date);
-        const isLate   = planStatus.includes('ล่าช้า');
-        const isOnTime = planStatus.includes('ตรงเวลา') || planStatus.includes('มาก่อนเวลา');
+        // คำนวณ isLate จาก confirmed_time + time_slot โดยตรง ไม่อิง plan_status จาก Sheet
+        let isLate = false;
+        if (r.confirmed_time && r.time_slot) {
+          const ct = String(r.confirmed_time);
+          const timePart = ct.includes('T') ? ct.split('T')[1] : ct.split(' ')[1] || '';
+          const hm = timePart.substring(0,5).split(':');
+          if (hm.length === 2) {
+            const tf = parseFloat(hm[0]) + parseFloat(hm[1])/60;
+            const slot = String(r.time_slot).toUpperCase();
+            if (slot === 'AM')       isLate = tf > 11.5;
+            else if (slot === 'PM')  isLate = tf > 17.33;
+          }
+        } else {
+          // fallback — ใช้ plan_status ถ้าไม่มี confirmed_time
+          const planStatus = _getPlanStatusFromIndex(r.queue_number, r.date);
+          isLate = planStatus.includes('ล่าช้า');
+        }
 
         const isPickup = String(r.time_slot||'').toUpperCase().includes('PICK');
 
@@ -9736,19 +9748,25 @@
     // =====================================================
     // RECEIVING TEAM MANAGEMENT
     // =====================================================
-    const RECV_TEAM_KEY = 'receiving_team_v1';
+    const RECV_TEAM_KEY = 'receiving_team_v1'; // keep for migration
     let _receivingTeam  = [];
 
-    function loadReceivingTeam() {
-      try { _receivingTeam = JSON.parse(localStorage.getItem(RECV_TEAM_KEY) || '[]'); } catch(e) { _receivingTeam = []; }
+    async function loadReceivingTeam() {
+      try {
+        const res = await callAPI('getReceivingTeam');
+        if (res && res.data) _receivingTeam = res.data;
+        else {
+          // migrate จาก localStorage
+          try { _receivingTeam = JSON.parse(localStorage.getItem(RECV_TEAM_KEY)||'[]'); } catch(e) { _receivingTeam = []; }
+        }
+      } catch(e) {
+        try { _receivingTeam = JSON.parse(localStorage.getItem(RECV_TEAM_KEY)||'[]'); } catch(ex) { _receivingTeam = []; }
+      }
       renderReceivingTeam();
       updateReceiverDropdowns();
     }
 
-    function saveReceivingTeam() {
-      try { localStorage.setItem(RECV_TEAM_KEY, JSON.stringify(_receivingTeam)); } catch(e) {}
-      updateReceiverDropdowns();
-    }
+    function saveReceivingTeam() { updateReceiverDropdowns(); } // no-op localStorage
 
     function renderReceivingTeam() {
       const list  = document.getElementById('recv-team-list');
@@ -9771,50 +9789,46 @@
             '</div>' +
           '</div>' +
           '<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">' +
-            '<button type="button" onclick="editReceivingMember(' + i + ')" ' +
-              'class="text-[10px] font-black text-blue-500 hover:text-blue-700 cursor-pointer px-2 py-1 rounded-lg hover:bg-blue-50">แก้ไข</button>' +
-            '<button type="button" onclick="removeReceivingMember(' + i + ')" ' +
+            '<button type="button" onclick="removeReceivingMember(\'' + m.name.replace(/'/g,"\\'") + '\')" ' +
               'class="text-[10px] font-black text-rose-400 hover:text-rose-600 cursor-pointer px-2 py-1 rounded-lg hover:bg-rose-50">ลบ</button>' +
           '</div>' +
         '</div>';
       }).join('');
     }
 
-    window.addReceivingMember = function() {
+    window.addReceivingMember = async function() {
       const name = ((document.getElementById('recv-team-name')||{}).value||'').trim();
       const pos  = ((document.getElementById('recv-team-position')||{}).value||'').trim();
       if (!name) { showToast('กรุณากรอกชื่อ', 'error'); return; }
-      if (_receivingTeam.find(function(m){ return m.name === name; })) {
-        showToast('มีชื่อนี้อยู่แล้ว', 'error'); return;
-      }
-      _receivingTeam.push({ name: name, position: pos||'Receiving' });
-      saveReceivingTeam(); renderReceivingTeam();
-      const ni = document.getElementById('recv-team-name');     if(ni) ni.value='';
-      const pi = document.getElementById('recv-team-position'); if(pi) pi.value='';
-      showToast('เพิ่ม ' + name + ' แล้ว');
+      try {
+        const res = await callAPI('saveReceivingMember', { name: name, position: pos||'Receiving' });
+        if (res && res.success) {
+          _receivingTeam.push({ name: name, position: pos||'Receiving' });
+          renderReceivingTeam(); updateReceiverDropdowns();
+          const ni = document.getElementById('recv-team-name');     if(ni) ni.value='';
+          const pi = document.getElementById('recv-team-position'); if(pi) pi.value='';
+          showToast('เพิ่ม ' + name + ' แล้ว');
+        } else { showToast(res?.message||'ไม่สำเร็จ', 'error'); }
+      } catch(e) { showToast('Error: '+e.message, 'error'); }
     };
 
-    window.removeReceivingMember = function(idx) {
-      const name = _receivingTeam[idx]?.name || '';
+    window.removeReceivingMember = async function(name) {
       if (!confirm('ลบ ' + name + ' ?')) return;
-      _receivingTeam.splice(idx, 1);
-      saveReceivingTeam(); renderReceivingTeam();
-      showToast('ลบ ' + name + ' แล้ว');
+      try {
+        const res = await callAPI('deleteReceivingMember', { name: name });
+        if (res && res.success) {
+          _receivingTeam = _receivingTeam.filter(function(m){ return m.name !== name; });
+          renderReceivingTeam(); updateReceiverDropdowns();
+          showToast('ลบ ' + name + ' แล้ว');
+        } else { showToast(res?.message||'ไม่สำเร็จ', 'error'); }
+      } catch(e) { showToast('Error: '+e.message, 'error'); }
     };
 
     window.editReceivingMember = function(idx) {
-      const m    = _receivingTeam[idx];
-      const name = prompt('ชื่อ:', m.name);
-      if (!name || !name.trim()) return;
-      const pos  = prompt('ตำแหน่ง:', m.position||'Receiving');
-      _receivingTeam[idx] = { name: name.trim(), position: (pos||'Receiving').trim() };
-      saveReceivingTeam(); renderReceivingTeam();
-      showToast('แก้ไขแล้ว');
+      showToast('กรุณาลบแล้วเพิ่มใหม่ครับ', 'error');
     };
 
     function updateReceiverDropdowns() {
-      // โหลดจาก localStorage ทุกครั้ง
-      try { _receivingTeam = JSON.parse(localStorage.getItem(RECV_TEAM_KEY)||'[]'); } catch(e) { _receivingTeam = []; }
       const sel = document.getElementById('pcm-receiver');
       if (!sel) return;
       if (_receivingTeam.length === 0) {
